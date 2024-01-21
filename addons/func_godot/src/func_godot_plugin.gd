@@ -102,7 +102,7 @@ func create_func_godot_map_control() -> Control:
 	var separator = VSeparator.new()
 
 	var icon = TextureRect.new()
-	icon.texture = preload("res://addons/func_godot/icons/icon_godot_ranger3d.svg")
+	icon.texture = preload("res://addons/func_godot/icons/icon_slipgate3d.svg")
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 	var quick_build_button = Button.new()
