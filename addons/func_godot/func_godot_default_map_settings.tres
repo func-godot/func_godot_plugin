@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="FuncGodotMapSettings" load_steps=3 format=3 uid="uid://bkhxcqsquw1yg"]
+
+[ext_resource type="Script" path="res://addons/func_godot/src/func_godot_map_settings.gd" id="1_dlf23"]
+[ext_resource type="Resource" uid="uid://crgpdahjaj" path="res://addons/func_godot/fgd/func_godot_fgd.tres" id="1_hd7se"]
+
+[resource]
+script = ExtResource("1_dlf23")
+inverse_scale_factor = 32.0
+entity_fgd = ExtResource("1_hd7se")
+base_texture_dir = "res://textures"
+texture_file_extensions = ["png", "jpg", "jpeg", "bmp", "tga", "webp"]
+clip_texture = "special/clip"
+skip_texture = "special/skip"
+texture_wads = Array[Resource("res://addons/func_godot/src/import/quake_wad_file.gd")]([])
+material_file_extension = "tres"
+unshaded = false
+default_material_albedo_uniform = ""
+uv_unwrap_texel_size = 1.0

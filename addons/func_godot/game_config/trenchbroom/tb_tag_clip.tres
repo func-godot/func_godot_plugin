@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="TrenchBroomTag" load_steps=2 format=3 uid="uid://b4xhdj0e16lop"]
+
+[ext_resource type="Script" path="res://addons/func_godot/src/trenchbroom/trenchbroom_tag.gd" id="1_5smvi"]
+
+[resource]
+script = ExtResource("1_5smvi")
+tag_name = "Skip"
+tag_attributes = Array[String](["transparent"])
+tag_match_type = 0
+tag_pattern = "clip"
+texture_name = ""

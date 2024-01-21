@@ -1,4 +1,5 @@
 @tool
+@icon("res://addons/func_godot/icons/icon_godot_ranger.svg")
 ## Local instance project wide settings. Can define global defaults for some FuncGodot properties.
 ## **DO NOT CREATE A NEW RESOURCE!** This resource works by saving a configuration file to your game's *user://* folder and pulling the properties from that config file rather than this resource.
 ## Use the premade `addons/func_godot/project_config.tres` instead.
@@ -6,9 +7,9 @@ class_name FuncGodotProjectConfig
 extends Resource
 
 enum PROPERTY {
-    MAP_EDITOR_GAME_PATH = 0,
-	GAME_PATH_MODELS_FOLDER = 1
-	TRENCHBROOM_GAMES_FOLDER = 2,
+	MAP_EDITOR_GAME_PATH = 0,
+	GAME_PATH_MODELS_FOLDER = 1,
+	TRENCHBROOM_GAMES_FOLDER = 2
 }
 
 @export var export_func_godot_settings: bool: set = _save_settings
@@ -27,7 +28,7 @@ const CONFIG_PROPERTIES: Array[Dictionary] = [
 		"type": TYPE_STRING,
 		"func_godot_type": PROPERTY.GAME_PATH_MODELS_FOLDER
 	},
-    {
+	{
 		"name": "trenchbroom_games_folder",
 		"usage": PROPERTY_USAGE_EDITOR,
 		"type": TYPE_STRING,
@@ -55,11 +56,12 @@ func _get(property: StringName) -> Variant:
 	_try_loading()
 	return settings_dict.get(PROPERTY.keys()[config['func_godot_type']], _get_default_value(config['type']))
 
-func _set(property: StringName, value: Variant) -> void:
+func _set(property: StringName, value: Variant) -> bool:
 	var config = _get_config_property(property)
 	if config == null and not config is Dictionary: 
-		return
+		return false
 	settings_dict[PROPERTY.keys()[config['func_godot_type']]] = value
+	return true
 	
 func _get_default_value(type) -> Variant:
 	match type:

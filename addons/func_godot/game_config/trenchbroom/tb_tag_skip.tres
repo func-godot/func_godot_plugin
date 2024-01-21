@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="TrenchBroomTag" load_steps=2 format=3 uid="uid://ca7377sfgj074"]
+
+[ext_resource type="Script" path="res://addons/func_godot/src/trenchbroom/trenchbroom_tag.gd" id="1_ccwob"]
+
+[resource]
+script = ExtResource("1_ccwob")
+tag_name = "Clip"
+tag_attributes = Array[String](["transparent"])
+tag_match_type = 0
+tag_pattern = "clip"
+texture_name = ""

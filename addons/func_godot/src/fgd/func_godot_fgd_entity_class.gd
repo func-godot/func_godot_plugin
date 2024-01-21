@@ -11,7 +11,7 @@ var prefix: String = ""
 @export var classname : String = ""
 
 ## Entity description that appears in the map editor. Not required.
-@export var description : String = ""
+@export_multiline var description : String = ""
 
 @export var func_godot_internal : bool = false
 
@@ -104,9 +104,9 @@ func build_def_text() -> String:
 				var prop_arr: Array = class_property_descriptions[prop]
 				if prop_arr.size() > 1 and prop_arr[1] is int:
 					prop_description = "\"" + prop_arr[0] + "\" : " + str(prop_arr[1])
-                else:
-                    prop_description = "\"\" : 0"
-                    printerr(str(prop) + " has incorrect description format. Should be [String description, int default value].")
+				else:
+					prop_description = "\"\" : 0"
+					printerr(str(prop) + " has incorrect description format. Should be [String description, int default value].")
 			else:
 				prop_description = "\"" + class_property_descriptions[prop] + "\""
 		else:

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="TrenchBroomTag" load_steps=2 format=3 uid="uid://37iduqf7tpxq"]
+
+[ext_resource type="Script" path="res://addons/func_godot/src/trenchbroom/trenchbroom_tag.gd" id="1_rn13a"]
+
+[resource]
+script = ExtResource("1_rn13a")
+tag_name = "Func"
+tag_attributes = Array[String]([])
+tag_match_type = 1
+tag_pattern = "func*"
+texture_name = ""

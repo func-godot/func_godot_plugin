@@ -53,7 +53,7 @@ extends Resource
 
 ## Private default .cfg contents.
 ## See also: https://trenchbroom.github.io/manual/latest/#game_configuration_files
-var _base_text: String = """{
+var _base_text : String = """{
 	version: 3,
 	name: "%s",
 	icon: "icon.png",
@@ -82,6 +82,17 @@ var _base_text: String = """{
 		],
 		"brushface": [
 			%s
+		]
+	},
+	"faceattribs": { 
+		"defaults": {
+			%s
+		},
+		"surfaceflags": [
+			
+		],
+		"contentflags": [
+			
 		]
 	}
 }
@@ -121,7 +132,7 @@ func build_class_text() -> String:
 		if tex_pattern != texture_exclusion_patterns[-1]:
 			texture_exclusion_patterns_str += ", "
 	
-	var fgd_filename_str : String = fgd_file.fgd_name + ".fgd"
+	var fgd_filename_str : String = "\"" + fgd_file.fgd_name + ".fgd\""
 
 	var brush_tags_str = parse_tags(brush_tags)
 	var face_tags_str = parse_tags(face_tags)
@@ -190,10 +201,12 @@ func do_export_file() -> void:
 	if folder.is_empty():
 		print("Skipping export: No TrenchBroom games folder")
 		return
+	
 	# Make sure FGD file is set
 	if !fgd_file:
 		print("Skipping export: No FGD file")
 		return
+	
 	# Create config folder name by combining games folder with the game name as a directory
 	var config_folder = folder + "/" + game_name
 	var config_dir := DirAccess.open(config_folder)

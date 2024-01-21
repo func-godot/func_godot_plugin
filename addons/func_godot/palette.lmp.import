@@ -1,0 +1,14 @@
+[remap]
+
+importer="func_godot.palette"
+type="Resource"
+uid="uid://drgnc41yfybr"
+path="res://.godot/imported/palette.lmp-138c33f2ac0cab3ad6373e7c0425cf00.tres"
+
+[deps]
+
+source_file="res://addons/func_godot/palette.lmp"
+dest_files=["res://.godot/imported/palette.lmp-138c33f2ac0cab3ad6373e7c0425cf00.tres"]
+
+[params]
+
