@@ -53,7 +53,7 @@ extends Resource
 
 ## Private default .cfg contents.
 ## See also: https://trenchbroom.github.io/manual/latest/#game_configuration_files
-var _base_text : String = """{
+const _base_text : String = """{
 	"version": 8,
 	"name": "%s",
 	"icon": "icon.png",
@@ -61,7 +61,8 @@ var _base_text : String = """{
 		%s
 	],
 	"filesystem": {
-		"searchpath": "."
+		"searchpath": ".",
+		"packageformat": { "extension": ".zip", "format": "zip" }
 	},
 	"textures": {
 		"root": "textures",
@@ -84,7 +85,9 @@ var _base_text : String = """{
 	"faceattribs": { 
 		"defaults": {
 			%s
-		}
+		},
+		"contentflags": [],
+		"surfaceflags": []
 	}
 }
 """
