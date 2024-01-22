@@ -54,26 +54,23 @@ extends Resource
 ## Private default .cfg contents.
 ## See also: https://trenchbroom.github.io/manual/latest/#game_configuration_files
 var _base_text : String = """{
-	version: 3,
-	name: "%s",
-	icon: "icon.png",
+	"version": 8,
+	"name": "%s",
+	"icon": "icon.png",
 	"fileformats": [
 		%s
 	],
 	"filesystem": {
-		"searchpath": ".",
-		"packageformat": { "extension": "pak", "format": "idpak" }
+		"searchpath": "."
 	},
 	"textures": {
-		"package": { "type": "directory", "root": "textures" },
-		"format": { "extensions": ["bmp", "exr", "hdr", "jpeg", "jpg", "png", "tga", "webp"], "format": "image" },
-		"exclude": [ %s ],
-		"attribute": "_tb_textures"
+		"root": "textures",
+		"extensions": [".bmp", ".exr", ".hdr", ".jpeg", ".jpg", ".png", ".tga", ".webp"],
+		"excludes": [ %s ]
 	},
 	"entities": {
 		"definitions": [ %s ],
 		"defaultcolor": "0.6 0.6 0.6 1.0",
-		"modelformats": [ "mdl", "md2", "md3", "bsp", "dkm" ],
 		"scale": %s
 	},
 	"tags": {
@@ -87,13 +84,7 @@ var _base_text : String = """{
 	"faceattribs": { 
 		"defaults": {
 			%s
-		},
-		"surfaceflags": [
-			
-		],
-		"contentflags": [
-			
-		]
+		}
 	}
 }
 """
