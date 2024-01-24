@@ -27,7 +27,7 @@ extends Resource
 ## Optional path for the skip texture, relative to [member base_texture_dir]. Brush faces textured with the skip texture will have those faces removed from the generated [MeshInstance3D]. If the [FuncGodotFGDSolidClass] `collision_shape_type` is set to concave then it will also remove collision from those faces in the generated [CollisionShape3D].
 @export var skip_texture: String = "special/skip"
 
-## Optional [QuakeWADFile] resources to apply textures from. See the [**Quake Wiki**](https://quakewiki.org/wiki/Texture_Wad) for more information on Quake Texture WADs.
+## Optional [QuakeWADFile] resources to apply textures from. See the [Quake Wiki](https://quakewiki.org/wiki/Texture_Wad) for more information on Quake Texture WADs.
 @export var texture_wads: Array[QuakeWadFile] = []
 
 @export_category("Materials")
@@ -49,3 +49,8 @@ extends Resource
 ## Texel size for UV2 unwrapping.
 ## A texel size of 1 will lead to a 1:1 correspondence between texture texels and lightmap texels. Larger values will produce less detailed lightmaps. To conserve memory and filesize, use the largest value that still looks good.
 @export var uv_unwrap_texel_size: float = 1.0
+
+@export_category("TrenchBroom")
+
+## Organize Scene Tree using Trenchbroom Layers and Groups.
+@export var use_trenchbroom_groups_hierarchy: bool = false

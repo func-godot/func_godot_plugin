@@ -72,7 +72,7 @@ func gather_entity_concave_collision_surfaces(entity_idx: int, skip_filter_textu
 	
 func gather_worldspawn_layer_collision_surfaces(entity_idx: int) -> void:
 	_gather_convex_collision_surfaces(entity_idx)
-	
+
 func fetch_surfaces(inverse_scale_factor: float) -> Array:	
 	return _fetch_surfaces_internal(surface_gatherer, inverse_scale_factor)
 

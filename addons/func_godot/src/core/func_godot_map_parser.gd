@@ -258,7 +258,7 @@ func token(buf_str: String) -> void:
 				
 func commit_entity() -> void:
 	if STRIP_FUNC_GROUP and current_entity.properties.has("classname") and current_entity.properties["classname"] == "func_group" and map_data.entities.size() > 0:
-			map_data.entities[0].brushes.append_array(current_entity.brushes)
+		map_data.entities[0].brushes.append_array(current_entity.brushes)
 	else:
 		var new_entity:= FuncGodotMapData.Entity.new()
 		new_entity.spawn_type = FuncGodotMapData.EntitySpawnType.ENTITY
