@@ -15,16 +15,16 @@ extends Resource
 
 @export_category("Textures")
 
-## Base directory for textures. When building materials, FuncGodot will search this directory for texture files with matching names to the textures assigned to map brush faces.
+## Base directory for textures. When building materials, FuncGodot will search this directory for texture files with matching names to the textures assigned to map brush FuncGodotFaces.
 @export_dir var base_texture_dir: String = "res://textures"
 
 ## File extensions to search for texture data.
 @export var texture_file_extensions: PackedStringArray = ["png", "jpg", "jpeg", "bmp", "tga", "webp"]
 
-## Optional path for the clip texture, relative to [member base_texture_dir]. Brush faces textured with the clip texture will have those faces removed from the generated [MeshInstance3D] but not the generated [CollisionShape3D].
+## Optional path for the clip texture, relative to [member base_texture_dir]. Brush FuncGodotFaces textured with the clip texture will have those Faces removed from the generated [MeshInstance3D] but not the generated [CollisionShape3D].
 @export var clip_texture: String = "special/clip"
 
-## Optional path for the skip texture, relative to [member base_texture_dir]. Brush faces textured with the skip texture will have those faces removed from the generated [MeshInstance3D]. If the [FuncGodotFGDSolidClass] `collision_shape_type` is set to concave then it will also remove collision from those faces in the generated [CollisionShape3D].
+## Optional path for the skip texture, relative to [member base_texture_dir]. Brush FuncGodotFaces textured with the skip texture will have those Faces removed from the generated [MeshInstance3D]. If the [FuncGodotFGDSolidClass] `collision_shape_type` is set to concave then it will also remove collision from those FuncGodotFaces in the generated [CollisionShape3D].
 @export var skip_texture: String = "special/skip"
 
 ## Optional [QuakeWADFile] resources to apply textures from. See the [Quake Wiki](https://quakewiki.org/wiki/Texture_Wad) for more information on Quake Texture WADs.

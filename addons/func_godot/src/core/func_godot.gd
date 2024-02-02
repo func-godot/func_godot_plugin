@@ -21,8 +21,8 @@ func get_texture_list() -> PackedStringArray:
 func set_entity_definitions(entity_defs: Dictionary) -> void:
 	for i in range(entity_defs.size()):
 		var key: String = entity_defs.keys()[i]
-		var val: int = entity_defs.values()[i].get("spawn_type", FuncGodotMapData.EntitySpawnType.ENTITY)
-		map_data.set_spawn_type_by_classname(key, val as FuncGodotMapData.EntitySpawnType)
+		var val: int = entity_defs.values()[i].get("spawn_type", FuncGodotMapData.FuncGodotEntitySpawnType.ENTITY)
+		map_data.set_spawn_type_by_classname(key, val as FuncGodotMapData.FuncGodotEntitySpawnType)
 
 func generate_geometry(texture_dict: Dictionary) -> void:
 	var keys: Array = texture_dict.keys()
@@ -77,7 +77,7 @@ func fetch_surfaces(inverse_scale_factor: float) -> Array:
 	return _fetch_surfaces_internal(surface_gatherer, inverse_scale_factor)
 
 func _fetch_surfaces_internal(surf_gatherer: FuncGodotSurfaceGatherer, inverse_scale_factor: float) -> Array:	
-	var surfs: Array[FuncGodotMapData.FaceGeometry] = surf_gatherer.out_surfaces
+	var surfs: Array[FuncGodotMapData.FuncGodotFaceGeometry] = surf_gatherer.out_surfaces
 	var surf_array: Array
 	
 	for surf in surfs:

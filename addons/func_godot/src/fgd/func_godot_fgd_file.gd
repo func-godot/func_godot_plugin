@@ -12,48 +12,60 @@ extends Resource
 		return export_file # TODO Converter40 Non existent get function
 	set(new_export_file):
 		if new_export_file != export_file:
-			do_export_file()
+			do_export_file(model_key_word as bool)
 
-func do_export_file() -> void:
+func do_export_file(model_key_supported: bool = true) -> void:
 	if Engine.is_editor_hint() and get_fgd_classes().size() > 0:
-		if target_folder.is_empty():
-			print("Skipping export: No target folder")
+		var config_folder: String = map_editor_game_config_folder;
+		if config_folder.is_empty():
+			config_folder = FuncGodotProjectConfig.get_setting(FuncGodotProjectConfig.PROPERTY.MAP_EDITOR_GAME_CONFIG_FOLDER)
+		if config_folder.is_empty():
+			print("Skipping export: No game config folder")
 			return
 
 		if fgd_name == "":
 			print("Skipping export: Empty FGD name")
 
-		var fgd_file = target_folder + "/" + fgd_name + ".fgd"
+		var fgd_file = config_folder + "/" + fgd_name + ".fgd"
 
 		print("Exporting FGD to ", fgd_file)
 		var file_obj := FileAccess.open(fgd_file, FileAccess.WRITE)
-		file_obj.store_string(build_class_text())
+		file_obj.store_string(build_class_text(model_key_supported))
 		file_obj.close()
 
+@export_group("Map Editor")
+
 ## The directory to save the FGD file output to. Overrides the [FuncGodotProjectConfig] setting.
-@export_global_dir var target_folder : String
+@export_global_dir var map_editor_game_config_folder : String
+
+## Some map editors do not support the "model" key word and require the "studio" key word instead. 
+## If you get errors in your map editor, try changing this setting. 
+## This setting is overridden when the FGD is built via the Game Config resource.
+@export_enum("studio","model") var model_key_word: int = 1
+
+@export_group("FGD")
 
 ## FGD output filename without the extension.
 @export var fgd_name: String = "FuncGodot"
 
-## Array of FuncGodotFGDFile resources to include in FGD file output. All of the entities included with these FuncGodotFGDFile resources will be added to this one upon building the FGD file.
-@export var base_fgd_files: Array[FuncGodotFGDFile] = []
+## Array of [FuncGodotFGDFile] resources to include in FGD file output. All of the entities included with these FuncGodotFGDFile resources will be prepended to the outputted FGD file.
+@export var base_fgd_files: Array[Resource] = []
 
 ## Array of resources that inherit from [FuncGodotFGDEntityClass]. This array defines the entities that will be added to the exported FGD file and the nodes that will be generated in a [FuncGodotMap].
-@export var entity_definitions: Array[FuncGodotFGDEntityClass] = []
+@export var entity_definitions: Array[Resource] = []
 
-func build_class_text() -> String:
+func build_class_text(model_key_supported: bool = true) -> String:
 	var res : String = ""
 
 	for base_fgd in base_fgd_files:
-		res += base_fgd.build_class_text()
-
+		res += base_fgd.build_class_text(model_key_supported)
+	
 	var entities = get_fgd_classes()
 	for ent in entities:
 		if ent.func_godot_internal:
 			continue
 		
-		var ent_text = ent.build_def_text()
+		var ent_text = ent.build_def_text(model_key_supported)
 		res += ent_text
 		if ent != entities[-1]:
 			res += "\n"

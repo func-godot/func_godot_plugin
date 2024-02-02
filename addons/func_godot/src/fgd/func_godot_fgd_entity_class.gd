@@ -35,7 +35,7 @@ var prefix: String = ""
 ## Node to generate on map build. This can be a built-in Godot class or a GDExtension class. For Point Class entities that use Scene File instantiation leave this blank.
 @export var node_class := ""
 
-func build_def_text() -> String:
+func build_def_text(model_key_supported: bool = true) -> String:
 	# Class prefix
 	var res : String = prefix
 
@@ -59,6 +59,11 @@ func build_def_text() -> String:
 		if prefix == '@SolidClass':
 			if prop == "size" or prop == "model":
 				continue
+		
+		if prop == 'model' and not model_key_supported:
+			continue
+		elif prop == 'studio' and model_key_supported:
+			continue
 		
 		var value = meta_props[prop]
 		res += " " + prop + "("
@@ -93,6 +98,8 @@ func build_def_text() -> String:
 
 	# Class properties
 	for prop in class_properties:
+		
+		
 		var value = class_properties[prop]
 
 		var prop_val = null

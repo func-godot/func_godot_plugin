@@ -13,8 +13,8 @@ extends Resource
 			if Engine.is_editor_hint():
 				do_export_file()
 
-## The /games folder in either your TrenchBroom installation or your OS' user data folder.
-@export_global_dir var trenchbroom_games_folder : String
+## Your game's configuration folder within your TrenchBroom/Games directory.
+@export_global_dir var trenchbroom_game_config_folder : String
 
 ## Name of the game in TrenchBroom's game list.
 @export var game_name : String = "FuncGodot"
@@ -49,7 +49,7 @@ extends Resource
 @export var brush_tags : Array[TrenchBroomTag] = []
 
 ## Container for TrenchBroomTag resources that apply to textures.
-@export var face_tags : Array[TrenchBroomTag] = []
+@export var FuncGodotFace_tags : Array[TrenchBroomTag] = []
 
 ## Private default .cfg contents.
 ## See also: https://trenchbroom.github.io/manual/latest/#game_configuration_files
@@ -78,11 +78,11 @@ const _base_text : String = """{
 		"brush": [
 			%s
 		],
-		"brushface": [
+		"brushFuncGodotFace": [
 			%s
 		]
 	},
-	"faceattribs": { 
+	"FuncGodotFaceattribs": { 
 		"defaults": {
 			%s
 		},
@@ -129,7 +129,7 @@ func build_class_text() -> String:
 	var fgd_filename_str : String = "\"" + fgd_file.fgd_name + ".fgd\""
 
 	var brush_tags_str = parse_tags(brush_tags)
-	var face_tags_str = parse_tags(face_tags)
+	var FuncGodotFace_tags_str = parse_tags(FuncGodotFace_tags)
 	var uv_scale_str = parse_default_uv_scale(default_uv_scale)
 	return _base_text % [
 		game_name,
@@ -138,11 +138,11 @@ func build_class_text() -> String:
 		fgd_filename_str,
 		entity_scale,
 		brush_tags_str,
-		face_tags_str,
+		FuncGodotFace_tags_str,
 		uv_scale_str
 	]
 
-## Converts brush, face, and attribute tags into a .cfg-usable String.
+## Converts brush, FuncGodotFace, and attribute tags into a .cfg-usable String.
 func parse_tags(tags: Array) -> String:
 	var tags_str := ""
 	for brush_tag in tags:
@@ -189,11 +189,11 @@ func parse_default_uv_scale(texture_scale : Vector2) -> String:
 
 ## Exports or updates a folder in the /games directory, with an icon, .cfg, and all accompanying FGDs.
 func do_export_file() -> void:
-	var folder = trenchbroom_games_folder
-	if folder.is_empty():
-		folder = FuncGodotProjectConfig.get_setting(FuncGodotProjectConfig.PROPERTY.TRENCHBROOM_GAMES_FOLDER)
-	if folder.is_empty():
-		print("Skipping export: No TrenchBroom games folder")
+	var config_folder: String = trenchbroom_game_config_folder
+	if config_folder.is_empty():
+		config_folder = FuncGodotProjectConfig.get_setting(FuncGodotProjectConfig.PROPERTY.MAP_EDITOR_GAME_CONFIG_FOLDER)
+	if config_folder.is_empty():
+		print("Skipping export: No TrenchBroom Game folder")
 		return
 	
 	# Make sure FGD file is set
@@ -201,9 +201,8 @@ func do_export_file() -> void:
 		print("Skipping export: No FGD file")
 		return
 	
-	# Create config folder name by combining games folder with the game name as a directory
-	var config_folder = folder + "/" + game_name
 	var config_dir := DirAccess.open(config_folder)
+	# Create config folder in case it does not exist
 	if config_dir == null:
 		print("Couldn't open directory, creating...")
 		var err := DirAccess.make_dir_recursive_absolute(config_folder)
@@ -231,6 +230,6 @@ func do_export_file() -> void:
 	
 	# FGD
 	var export_fgd : FuncGodotFGDFile = fgd_file.duplicate()
-	export_fgd.target_folder = config_folder
-	export_fgd.do_export_file()
+	export_fgd.map_editor_game_config_folder = config_folder
+	export_fgd.do_export_file(true)
 	print("Export complete\n")

@@ -644,7 +644,7 @@ func build_entity_collision_shapes() -> void:
 				continue
 			
 			var shape: ConcavePolygonShape3D = ConcavePolygonShape3D.new()
-			shape.set_faces(entity_verts)
+			shape.set_FuncGodotFaces(entity_verts)
 			shape.margin = shape_margin
 			
 			var collision_shape: CollisionShape3D = entity_collision_shapes[entity_idx][0]

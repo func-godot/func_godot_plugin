@@ -7,7 +7,7 @@ var texture_filter_idx: int = -1
 var clip_filter_texture_idx: int
 var skip_filter_texture_idx: int
 
-var out_surfaces: Array[FuncGodotMapData.FaceGeometry]
+var out_surfaces: Array[FuncGodotMapData.FuncGodotFaceGeometry]
 
 func _init(in_map_data: FuncGodotMapData) -> void:
 	map_data = in_map_data
@@ -33,8 +33,8 @@ func filter_brush(entity_idx: int, brush_idx: int) -> bool:
 	# omit brushes that are fully-textured with clip
 	if clip_filter_texture_idx != -1:
 		var fully_textured: bool = true
-		for face in brush.faces:
-			if face.texture_idx != clip_filter_texture_idx:
+		for FuncGodotFace in brush.FuncGodotFaces:
+			if FuncGodotFace.texture_idx != clip_filter_texture_idx:
 				fully_textured = false
 				break
 		
@@ -43,22 +43,22 @@ func filter_brush(entity_idx: int, brush_idx: int) -> bool:
 	
 	return false
 
-func filter_face(entity_idx: int, brush_idx: int, face_idx: int) -> bool:
-	var face:= map_data.entities[entity_idx].brushes[brush_idx].faces[face_idx]
-	var face_geo:= map_data.entity_geo[entity_idx].brushes[brush_idx].faces[face_idx]
+func filter_FuncGodotFace(entity_idx: int, brush_idx: int, FuncGodotFace_idx: int) -> bool:
+	var FuncGodotFace:= map_data.entities[entity_idx].brushes[brush_idx].FuncGodotFaces[FuncGodotFace_idx]
+	var FuncGodotFace_geo:= map_data.entity_geo[entity_idx].brushes[brush_idx].FuncGodotFaces[FuncGodotFace_idx]
 	
-	if face_geo.vertices.size() < 3:
+	if FuncGodotFace_geo.vertices.size() < 3:
 		return true
 		
-	if clip_filter_texture_idx != -1 and face.texture_idx == clip_filter_texture_idx:
+	if clip_filter_texture_idx != -1 and FuncGodotFace.texture_idx == clip_filter_texture_idx:
 		return true
 		
-	# omit faces textured with skip
-	if skip_filter_texture_idx != -1 and face.texture_idx == skip_filter_texture_idx:
+	# omit FuncGodotFaces textured with skip
+	if skip_filter_texture_idx != -1 and FuncGodotFace.texture_idx == skip_filter_texture_idx:
 		return true
 	
 	# omit filtered texture indices
-	if texture_filter_idx != -1 and face.texture_idx != texture_filter_idx:
+	if texture_filter_idx != -1 and FuncGodotFace.texture_idx != texture_filter_idx:
 		return true
 	
 	return false
@@ -67,7 +67,7 @@ func run() -> void:
 	out_surfaces.clear()
 	
 	var index_offset: int = 0
-	var surf: FuncGodotMapData.FaceGeometry
+	var surf: FuncGodotMapData.FuncGodotFaceGeometry
 	
 	if split_type == SurfaceSplitType.NONE:
 		surf = add_surface()
@@ -81,7 +81,7 @@ func run() -> void:
 			continue
 			
 		if split_type == SurfaceSplitType.ENTITY:
-			if entity.spawn_type == FuncGodotMapData.EntitySpawnType.MERGE_WORLDSPAWN:
+			if entity.spawn_type == FuncGodotMapData.FuncGodotEntitySpawnType.MERGE_WORLDSPAWN:
 				add_surface()
 				surf = out_surfaces[0]
 				index_offset = surf.vertices.size()
@@ -100,27 +100,27 @@ func run() -> void:
 				index_offset = 0
 				surf = add_surface()
 				
-			for f in range(brush.faces.size()):
-				var face_geo:= brush_geo.faces[f]
+			for f in range(brush.FuncGodotFaces.size()):
+				var FuncGodotFace_geo:= brush_geo.FuncGodotFaces[f]
 				
-				if filter_face(e, b, f):
+				if filter_FuncGodotFace(e, b, f):
 					continue
 				
-				for v in range(face_geo.vertices.size()):
-					var vert:= face_geo.vertices[v].duplicate()
+				for v in range(FuncGodotFace_geo.vertices.size()):
+					var vert:= FuncGodotFace_geo.vertices[v].duplicate()
 					
-					if entity.spawn_type == FuncGodotMapData.EntitySpawnType.ENTITY:
+					if entity.spawn_type == FuncGodotMapData.FuncGodotEntitySpawnType.ENTITY:
 						vert.vertex -= entity.center
 					
 					surf.vertices.append(vert)
 					
-				for i in range((face_geo.vertices.size() - 2) * 3):
-					surf.indicies.append(face_geo.indicies[i] + index_offset)
+				for i in range((FuncGodotFace_geo.vertices.size() - 2) * 3):
+					surf.indicies.append(FuncGodotFace_geo.indicies[i] + index_offset)
 				
-				index_offset += face_geo.vertices.size()
+				index_offset += FuncGodotFace_geo.vertices.size()
 
-func add_surface() -> FuncGodotMapData.FaceGeometry:
-	var surf:= FuncGodotMapData.FaceGeometry.new()
+func add_surface() -> FuncGodotMapData.FuncGodotFaceGeometry:
+	var surf:= FuncGodotMapData.FuncGodotFaceGeometry.new()
 	out_surfaces.append(surf)
 	return surf
 

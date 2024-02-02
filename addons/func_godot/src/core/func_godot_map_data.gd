@@ -1,15 +1,15 @@
 class_name FuncGodotMapData extends RefCounted
 
-var entities: Array[FuncGodotMapData.Entity]
-var entity_geo: Array[FuncGodotMapData.EntityGeometry]
-var textures: Array[FuncGodotMapData.TextureData]
+var entities: Array[FuncGodotMapData.FuncGodotEntity]
+var entity_geo: Array[FuncGodotMapData.FuncGodotEntityGeometry]
+var textures: Array[FuncGodotMapData.FuncGodotTextureData]
 
 func register_texture(name: String) -> int:
 	for i in range(textures.size()):
 		if textures[i].name == name:
 			return i
 	
-	textures.append(TextureData.new(name))
+	textures.append(FuncGodotTextureData.new(name))
 	return textures.size() - 1
 
 func set_texture_size(name: String, width: int, height: int) -> void:
@@ -25,7 +25,7 @@ func find_texture(texture_name: String) -> int:
 			return i
 	return -1
 
-func set_spawn_type_by_classname(key: String, spawn_type: EntitySpawnType) -> void:
+func set_spawn_type_by_classname(key: String, spawn_type: FuncGodotEntitySpawnType) -> void:
 	for entity in entities:
 		if entity.properties.has("classname") and entity.properties["classname"] == key:
 			entity.spawn_type = spawn_type
@@ -38,84 +38,84 @@ func clear() -> void:
 # --------------------------------------------------------------------------------------------------
 # Nested Types
 # --------------------------------------------------------------------------------------------------
-enum EntitySpawnType{
+enum FuncGodotEntitySpawnType{
 	WORLDSPAWN = 0,
 	MERGE_WORLDSPAWN = 1,
 	ENTITY = 2
 }
 
-class FacePoints:
+class FuncGodotFuncGodotFacePoints:
 	var v0: Vector3
 	var v1: Vector3
 	var v2: Vector3
 
-class ValveTextureAxis:
+class FuncGodotValveTextureAxis:
 	var axis: Vector3
 	var offset: float
 	
-class ValveUV:
-	var u: ValveTextureAxis
-	var v: ValveTextureAxis
+class FuncGodotValveUV:
+	var u: FuncGodotValveTextureAxis
+	var v: FuncGodotValveTextureAxis
 	
 	func _init() -> void:
-		u = ValveTextureAxis.new()
-		v = ValveTextureAxis.new()
+		u = FuncGodotValveTextureAxis.new()
+		v = FuncGodotValveTextureAxis.new()
 	
-class FaceUVExtra:
+class FuncGodotFuncGodotFaceUVExtra:
 	var rot: float
 	var scale_x: float
 	var scale_y: float
 	
-class Face:
-	var plane_points: FacePoints
+class FuncGodotFace:
+	var plane_points: FuncGodotFuncGodotFacePoints
 	var plane_normal: Vector3
 	var plane_dist: float
 	var texture_idx: int
 	var is_valve_uv: bool
 	var uv_standard: Vector2
-	var uv_valve: ValveUV
-	var uv_extra: FaceUVExtra
+	var uv_valve: FuncGodotValveUV
+	var uv_extra: FuncGodotFuncGodotFaceUVExtra
 	
 	func _init() -> void:
-		plane_points = FacePoints.new()
-		uv_valve = ValveUV.new()
-		uv_extra = FaceUVExtra.new()
+		plane_points = FuncGodotFuncGodotFacePoints.new()
+		uv_valve = FuncGodotValveUV.new()
+		uv_extra = FuncGodotFuncGodotFaceUVExtra.new()
 
-class Brush:
-	var faces: Array[Face]
+class FuncGodotBrush:
+	var FuncGodotFaces: Array[FuncGodotFace]
 	var center: Vector3
 
-class Entity:
+class FuncGodotEntity:
 	var properties: Dictionary
-	var brushes: Array[Brush]
+	var brushes: Array[FuncGodotBrush]
 	var center: Vector3
-	var spawn_type: EntitySpawnType
+	var spawn_type: FuncGodotEntitySpawnType
 	
-class FaceVertex:
+class FuncGodotFaceVertex:
 	var vertex: Vector3
 	var normal: Vector3
 	var uv: Vector2
 	var tangent: Vector4
 	
-	func duplicate() -> FaceVertex:
-		var new_vert := FaceVertex.new()
+	func duplicate() -> FuncGodotFaceVertex:
+		var new_vert := FuncGodotFaceVertex.new()
 		new_vert.vertex = vertex
 		new_vert.normal = normal
 		new_vert.uv = uv
 		new_vert.tangent = tangent
 		return new_vert
 	
-class FaceGeometry:
-	var vertices: Array[FaceVertex]
+class FuncGodotFaceGeometry:
+	var vertices: Array[FuncGodotFaceVertex]
 	var indicies: Array[int]
 
-class BrushGeometry:
-	var faces: Array[FaceGeometry]
+class FuncGodotBrushGeometry:
+	var FuncGodotFaces: Array[FuncGodotFaceGeometry]
 	
-class EntityGeometry:
-	var brushes: Array[BrushGeometry]
+class FuncGodotEntityGeometry:
+	var brushes: Array[FuncGodotBrushGeometry]
 
-class TextureData:
+class FuncGodotTextureData:
 	var name: String
 	var width: int
 	var height: int

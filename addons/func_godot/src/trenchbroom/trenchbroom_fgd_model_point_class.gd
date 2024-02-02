@@ -1,6 +1,6 @@
 @tool
-## A special type of [FuncGodotFGDPointClass] entity that can automatically generate a special simplified GLB model file for the map editor display. Currently only supported by TrenchBroom.
-class_name FuncGodotFGDModelPointClass
+## A special type of [FuncGodotFGDPointClass] entity that can automatically generate a special simplified GLB model file for the map editor display. Only supported by TrenchBroom.
+class_name TrenchBroomFGDModelPointClass
 extends FuncGodotFGDPointClass
 
 ## The game's working path set in your map editor. Optional - if empty, this entity will use the game path set by [FuncGodotProjectConfig].
@@ -14,7 +14,7 @@ extends FuncGodotFGDPointClass
 ## Will auto-generate a .gdignore file in the model export folder to prevent Godot from importing the display models. Only needs to be generated once.
 @export var generate_gd_ignore_file : bool = false
 
-func build_def_text() -> String:
+func build_def_text(model_key_supported: bool = true) -> String:
 	_generate_model()
 	return super()
 	if generate_gd_ignore_file:

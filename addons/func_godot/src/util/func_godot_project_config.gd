@@ -7,14 +7,21 @@ class_name FuncGodotProjectConfig
 extends Resource
 
 enum PROPERTY {
-	MAP_EDITOR_GAME_PATH = 0,
-	GAME_PATH_MODELS_FOLDER = 1,
-	TRENCHBROOM_GAMES_FOLDER = 2
+	MAP_EDITOR_GAME_CONFIG_FOLDER = 0,
+	MAP_EDITOR_GAME_PATH = 1,
+	GAME_PATH_MODELS_FOLDER = 2
 }
 
 @export var export_func_godot_settings: bool: set = _save_settings
 
 const CONFIG_PROPERTIES: Array[Dictionary] = [
+	{
+		"name": "map_editor_game_config_folder",
+		"usage": PROPERTY_USAGE_EDITOR,
+		"type": TYPE_STRING,
+		"hint": PROPERTY_HINT_GLOBAL_DIR,
+		"func_godot_type": PROPERTY.MAP_EDITOR_GAME_CONFIG_FOLDER
+	},
 	{
 		"name": "map_editor_game_path",
 		"usage": PROPERTY_USAGE_EDITOR,
@@ -27,13 +34,6 @@ const CONFIG_PROPERTIES: Array[Dictionary] = [
 		"usage": PROPERTY_USAGE_EDITOR,
 		"type": TYPE_STRING,
 		"func_godot_type": PROPERTY.GAME_PATH_MODELS_FOLDER
-	},
-	{
-		"name": "trenchbroom_games_folder",
-		"usage": PROPERTY_USAGE_EDITOR,
-		"type": TYPE_STRING,
-		"hint": PROPERTY_HINT_GLOBAL_DIR,
-		"func_godot_type": PROPERTY.TRENCHBROOM_GAMES_FOLDER
 	}
 ]
 

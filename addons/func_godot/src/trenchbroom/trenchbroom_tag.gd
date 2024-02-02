@@ -1,18 +1,18 @@
 @icon("res://addons/func_godot/icons/icon_godot_ranger.svg")
 ## Pattern matching tags to enable a number of features in TrenchBroom, including display appearance and menu filtering options. This resource gets added to the [TrenchBroomGameConfig] resource. Does not affect appearance or functionality in Godot.
-## See the TrenchBroom Documentation on [**Tags under the Game Configuration section**](https://trenchbroom.github.io/manual/latest/#game_configuration_files) and [**Special Bruch Face Types**](https://trenchbroom.github.io/manual/latest/#special_brush_face_types) for more information.
+## See the TrenchBroom Documentation on [**Tags under the Game Configuration section**](https://trenchbroom.github.io/manual/latest/#game_configuration_files) and [**Special Bruch FuncGodotFace Types**](https://trenchbroom.github.io/manual/latest/#special_brush_FuncGodotFace_types) for more information.
 class_name TrenchBroomTag
 extends Resource
 
 enum TagMatchType {
-	TEXTURE, ## Tag applies to any face with a texture matching the texture name.
+	TEXTURE, ## Tag applies to any FuncGodotFace with a texture matching the texture name.
 	CLASSNAME ## Tag applies to any brush entity with a class name matching the tag pattern.
 }
 
 ## Name to define this tag. Not used as the matching pattern.
 @export var tag_name: String
 
-## The attributes applied to matching faces or brushes. Only "_transparent" is supported in Trenchbroom, which makes matching faces or brushes transparent.
+## The attributes applied to matching FuncGodotFaces or brushes. Only "_transparent" is supported in Trenchbroom, which makes matching FuncGodotFaces or brushes transparent.
 @export var tag_attributes : Array[String] = ["transparent"]
 
 ## Detemines how the tag is matched. See [constant TagMatchType].
