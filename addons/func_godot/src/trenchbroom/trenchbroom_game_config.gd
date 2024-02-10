@@ -13,9 +13,6 @@ extends Resource
 			if Engine.is_editor_hint():
 				do_export_file()
 
-## Your game's configuration folder within your TrenchBroom/Games directory.
-@export_global_dir var trenchbroom_game_config_folder : String
-
 ## Name of the game in TrenchBroom's game list.
 @export var game_name : String = "FuncGodot"
 
@@ -189,9 +186,7 @@ func parse_default_uv_scale(texture_scale : Vector2) -> String:
 
 ## Exports or updates a folder in the /games directory, with an icon, .cfg, and all accompanying FGDs.
 func do_export_file() -> void:
-	var config_folder: String = trenchbroom_game_config_folder
-	if config_folder.is_empty():
-		config_folder = FuncGodotProjectConfig.get_setting(FuncGodotProjectConfig.PROPERTY.MAP_EDITOR_GAME_CONFIG_FOLDER)
+	var config_folder: String = FuncGodotProjectConfig.get_setting(FuncGodotProjectConfig.PROPERTY.MAP_EDITOR_GAME_CONFIG_FOLDER) as String
 	if config_folder.is_empty():
 		print("Skipping export: No TrenchBroom Game folder")
 		return

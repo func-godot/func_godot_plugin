@@ -3,8 +3,6 @@
 class_name TrenchBroomFGDModelPointClass
 extends FuncGodotFGDPointClass
 
-## The game's working path set in your map editor. Optional - if empty, this entity will use the game path set by [FuncGodotProjectConfig].
-@export_global_dir var map_editor_game_path : String = ""
 ## Display model export folder relative to the game path set in your map editor. Optional - if empty, this entity will use the model folder set by [FuncGodotProjectConfig].
 @export var game_path_models_folder : String = ""
 ## Scale expression applied to model. See the [**TrenchBroom Documentation**](https://trenchbroom.github.io/manual/latest/#display-models-for-entities) for more information.
@@ -66,9 +64,7 @@ func _get_model_folder() -> String:
 		else game_path_models_folder)
 
 func _get_game_path() -> String:
-	return (FuncGodotProjectConfig.get_setting(FuncGodotProjectConfig.PROPERTY.MAP_EDITOR_GAME_PATH)
-		if map_editor_game_path.is_empty()
-		else map_editor_game_path)
+	return FuncGodotProjectConfig.get_setting(FuncGodotProjectConfig.PROPERTY.MAP_EDITOR_GAME_PATH) as String
 
 func _create_gltf_file(gltf_state: GLTFState, path: String, node: Node3D, create_ignore_files: bool) -> bool:
 	var error := 0 
