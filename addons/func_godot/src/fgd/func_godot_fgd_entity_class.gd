@@ -62,8 +62,6 @@ func build_def_text(model_key_supported: bool = true) -> String:
 		
 		if prop == 'model' and not model_key_supported:
 			continue
-		elif prop == 'studio' and model_key_supported:
-			continue
 		
 		var value = meta_props[prop]
 		res += " " + prop + "("

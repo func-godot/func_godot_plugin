@@ -12,7 +12,7 @@ extends Resource
 		return export_file # TODO Converter40 Non existent get function
 	set(new_export_file):
 		if new_export_file != export_file:
-			do_export_file(model_key_word as bool)
+			do_export_file(model_key_word_supported)
 
 func do_export_file(model_key_supported: bool = true) -> void:
 	if Engine.is_editor_hint() and get_fgd_classes().size() > 0:
@@ -36,7 +36,7 @@ func do_export_file(model_key_supported: bool = true) -> void:
 ## Some map editors do not support the "model" key word and require the "studio" key word instead. 
 ## If you get errors in your map editor, try changing this setting. 
 ## This setting is overridden when the FGD is built via the Game Config resource.
-@export_enum("studio","model") var model_key_word: int = 1
+@export var model_key_word_supported: bool = true
 
 @export_group("FGD")
 
