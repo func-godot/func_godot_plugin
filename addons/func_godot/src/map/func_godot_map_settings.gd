@@ -3,12 +3,8 @@
 class_name FuncGodotMapSettings
 extends Resource
 
-@export_category("Build")
-
 ## Ratio between map editor units and Godot units. FuncGodot will divide brush coordinates by this number when building. This does not affect entity properties unless scripted to do so.
 @export var inverse_scale_factor: float = 32.0
-
-@export_category("Entities")
 
 ## [FuncGodotFGDFile] that translates map file classnames into Godot nodes and packed scenes.
 @export var entity_fgd: FuncGodotFGDFile = load("res://addons/func_godot/fgd/func_godot_fgd.tres")
@@ -43,6 +39,19 @@ extends Resource
 
 ## Sampler2D uniform that supplies the Albedo in a custom shader when [member default_material] is a [ShaderMaterial].
 @export var default_material_albedo_uniform: String = ""
+
+## Automatic PBR material generation normal map pattern.
+@export var normal_map_pattern: String = "%s_normal.%s"
+## Automatic PBR material generation metallic map pattern
+@export var metallic_map_pattern: String = "%s_metallic.%s"
+## Automatic PBR material generation roughness map pattern
+@export var roughness_map_pattern: String = "%s_roughness.%s"
+## Automatic PBR material generation emission map pattern
+@export var emission_map_pattern: String = "%s_emission.%s"
+## Automatic PBR material generation ambient occlusion map pattern
+@export var ao_map_pattern: String = "%s_ao.%s"
+## Automatic PBR material generation height map pattern
+@export var height_map_pattern: String = "%s_height.%s"
 
 @export_category("UV Unwrap")
 

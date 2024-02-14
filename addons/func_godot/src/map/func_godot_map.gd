@@ -304,7 +304,7 @@ func fetch_texture_list() -> Array:
 
 ## Initialize texture loader, allowing textures in [member base_texture_dir] and [member texture_wads] to be turned into materials
 func init_texture_loader() -> FuncGodotTextureLoader:
-	var tex_ldr: FuncGodotTextureLoader = FuncGodotTextureLoader.new(map_settings.base_texture_dir, map_settings.texture_file_extensions, map_settings.texture_wads)
+	var tex_ldr: FuncGodotTextureLoader = FuncGodotTextureLoader.new(map_settings)
 	tex_ldr.unshaded = map_settings.unshaded
 	return tex_ldr
 
@@ -314,7 +314,7 @@ func load_textures() -> Dictionary:
 
 ## Build a dictionary from Map File texture names to Godot materials
 func build_materials() -> Dictionary:
-	return texture_loader.create_materials(texture_list, map_settings.material_file_extension, map_settings.default_material, map_settings.default_material_albedo_uniform)
+	return texture_loader.create_materials(texture_list)
 
 ## Collect entity definitions from [member entity_fgd], as a dictionary from Map File classnames to entity definitions
 func fetch_entity_definitions() -> Dictionary:
@@ -644,7 +644,7 @@ func build_entity_collision_shapes() -> void:
 				continue
 			
 			var shape: ConcavePolygonShape3D = ConcavePolygonShape3D.new()
-			shape.set_FuncGodotFaces(entity_verts)
+			shape.set_faces(entity_verts)
 			shape.margin = shape_margin
 			
 			var collision_shape: CollisionShape3D = entity_collision_shapes[entity_idx][0]

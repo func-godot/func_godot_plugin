@@ -27,9 +27,6 @@ func _make_visible(visible: bool) -> void:
 		func_godot_map_progress_bar.set_visible(visible)
 
 func _enter_tree() -> void:
-	# Project settings
-	setup_project_settings()
-	
 	# Import plugins
 	map_import_plugin = QuakeMapImportPlugin.new()
 	palette_import_plugin = QuakePaletteImportPlugin.new()
@@ -48,7 +45,7 @@ func _enter_tree() -> void:
 	func_godot_map_progress_bar.set_visible(false)
 	add_control_to_container(EditorPlugin.CONTAINER_INSPECTOR_BOTTOM, func_godot_map_progress_bar)
 	
-	add_custom_type("FuncGodotMap", "Node3D", preload("res://addons/func_godot/src/func_godot_map.gd"), null)
+	add_custom_type("FuncGodotMap", "Node3D", preload("res://addons/func_godot/src/map/func_godot_map.gd"), null)
 
 func _exit_tree() -> void:
 	remove_custom_type("FuncGodotMap")
@@ -70,32 +67,6 @@ func _exit_tree() -> void:
 		remove_control_from_container(EditorPlugin.CONTAINER_SPATIAL_EDITOR_BOTTOM, func_godot_map_progress_bar)
 		func_godot_map_progress_bar.queue_free()
 		func_godot_map_progress_bar = null
-
-## Add FuncGodot-specific settings to Godot's Project Settings
-func setup_project_settings() -> void:
-	try_add_project_setting('func_godot/textures/normal_pattern', TYPE_STRING, FuncGodotTextureLoader.PBR_SUFFIX_PATTERNS[FuncGodotTextureLoader.PBRSuffix.NORMAL])
-	try_add_project_setting('func_godot/textures/metallic_pattern', TYPE_STRING, FuncGodotTextureLoader.PBR_SUFFIX_PATTERNS[FuncGodotTextureLoader.PBRSuffix.METALLIC])
-	try_add_project_setting('func_godot/textures/roughness_pattern', TYPE_STRING, FuncGodotTextureLoader.PBR_SUFFIX_PATTERNS[FuncGodotTextureLoader.PBRSuffix.ROUGHNESS])
-	try_add_project_setting('func_godot/textures/emission_pattern', TYPE_STRING, FuncGodotTextureLoader.PBR_SUFFIX_PATTERNS[FuncGodotTextureLoader.PBRSuffix.EMISSION])
-	try_add_project_setting('func_godot/textures/ao_pattern', TYPE_STRING, FuncGodotTextureLoader.PBR_SUFFIX_PATTERNS[FuncGodotTextureLoader.PBRSuffix.AO])
-	try_add_project_setting('func_godot/textures/height_pattern', TYPE_STRING, FuncGodotTextureLoader.PBR_SUFFIX_PATTERNS[FuncGodotTextureLoader.PBRSuffix.HEIGHT])
-
-## Add property, if not already present. See [method add_project_setting] for usage.
-func try_add_project_setting(name: String, type: int, value, info: Dictionary = {}) -> void:
-	if not ProjectSettings.has_setting(name):
-		add_project_setting(name, type, value, info)
-
-## Add property with path name and type from [enum @GlobalScope.Variant.Type] to Project Settings, defaulting to value.
-## Optionally, supply property info from info.
-func add_project_setting(name: String, type: int, value, info: Dictionary = {}) -> void:
-	ProjectSettings.set(name, value)
-
-	var info_dict := info.duplicate()
-	info_dict['name'] = name
-	info_dict['type'] = type
-
-	ProjectSettings.add_property_info(info_dict)
-	ProjectSettings.set_initial_value(name, value)
 
 ## Create the toolbar controls for [FuncGodotMap] instances in the editor
 func create_func_godot_map_control() -> Control:

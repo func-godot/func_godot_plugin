@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/skip.png-d741e3eb75a5e289907774cb73d93931.cte
 
 [params]
 
-compress/mode=0
+compress/mode=3
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

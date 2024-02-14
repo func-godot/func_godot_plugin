@@ -31,10 +31,10 @@ extends Resource
 @export var texture_exclusion_patterns: Array[String] = ["*_ao", "*_emission", "*_heightmap", "*_metallic", "*_normal", "*_orm", "*_roughness", "*_sss"]
 
 ## FGD resource to include with this game. If using multiple FGD resources, this should be the master FGD that contains them in the `base_fgd_files` resource array.
-@export var fgd_file : FuncGodotFGDFile = null #preload("res://addons/func_godot/fgd/func_godot_fgd.tres")
+@export var fgd_file : FuncGodotFGDFile = preload("res://addons/func_godot/fgd/func_godot_fgd.tres")
 
 ## Scale expression that modifies the default display scale of entities in TrenchBroom. See the [**TrenchBroom Documentation**](https://trenchbroom.github.io/manual/latest/#game_configuration_files_entities) for more information.
-@export var entity_scale: String = "1"
+@export var entity_scale: String = "32"
 
 ## Scale of textures on new brushes.
 @export var default_uv_scale : Vector2 = Vector2(1, 1)
@@ -43,10 +43,13 @@ extends Resource
 @export_category("Editor hint tags")
 
 ## Container for TrenchBroomTag resources that apply to brush entities.
-@export var brush_tags : Array[TrenchBroomTag] = []
+@export var brush_tags : Array[Resource] = []
 
 ## Container for TrenchBroomTag resources that apply to textures.
-@export var FuncGodotFace_tags : Array[TrenchBroomTag] = []
+@export var brushface_tags : Array[Resource] = [
+	preload("res://addons/func_godot/game_config/trenchbroom/tb_face_tag_clip.tres"),
+	preload("res://addons/func_godot/game_config/trenchbroom/tb_face_tag_skip.tres")
+]
 
 ## Private default .cfg contents.
 ## See also: https://trenchbroom.github.io/manual/latest/#game_configuration_files
@@ -75,11 +78,11 @@ const _base_text : String = """{
 		"brush": [
 			%s
 		],
-		"brushFuncGodotFace": [
+		"brushface": [
 			%s
 		]
 	},
-	"FuncGodotFaceattribs": { 
+	"faceeattribs": { 
 		"defaults": {
 			%s
 		},
@@ -126,7 +129,7 @@ func build_class_text() -> String:
 	var fgd_filename_str : String = "\"" + fgd_file.fgd_name + ".fgd\""
 
 	var brush_tags_str = parse_tags(brush_tags)
-	var FuncGodotFace_tags_str = parse_tags(FuncGodotFace_tags)
+	var brushface_tags_str = parse_tags(brushface_tags)
 	var uv_scale_str = parse_default_uv_scale(default_uv_scale)
 	return _base_text % [
 		game_name,
@@ -135,7 +138,7 @@ func build_class_text() -> String:
 		fgd_filename_str,
 		entity_scale,
 		brush_tags_str,
-		FuncGodotFace_tags_str,
+		brushface_tags_str,
 		uv_scale_str
 	]
 
@@ -225,6 +228,5 @@ func do_export_file() -> void:
 	
 	# FGD
 	var export_fgd : FuncGodotFGDFile = fgd_file.duplicate()
-	export_fgd.map_editor_game_config_folder = config_folder
 	export_fgd.do_export_file(true)
 	print("Export complete\n")

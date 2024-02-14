@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/clip.png-508a86fa3876d8467d5c9af6188a34df.cte
 
 [params]
 
-compress/mode=0
+compress/mode=3
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1

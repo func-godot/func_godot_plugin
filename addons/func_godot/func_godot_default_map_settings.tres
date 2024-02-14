@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="FuncGodotMapSettings" load_steps=3 format=3 uid="uid://bkhxcqsquw1yg"]
+[gd_resource type="Resource" script_class="FuncGodotMapSettings" load_steps=4 format=3 uid="uid://bkhxcqsquw1yg"]
 
-[ext_resource type="Script" path="res://addons/func_godot/src/func_godot_map_settings.gd" id="1_dlf23"]
+[ext_resource type="Material" uid="uid://cvex6toty8yn7" path="res://addons/func_godot/textures/default_material.tres" id="1_8l5wm"]
+[ext_resource type="Script" path="res://addons/func_godot/src/map/func_godot_map_settings.gd" id="1_dlf23"]
 [ext_resource type="Resource" uid="uid://crgpdahjaj" path="res://addons/func_godot/fgd/func_godot_fgd.tres" id="1_hd7se"]
 
 [resource]
@@ -14,5 +15,13 @@ skip_texture = "special/skip"
 texture_wads = Array[Resource("res://addons/func_godot/src/import/quake_wad_file.gd")]([])
 material_file_extension = "tres"
 unshaded = false
+default_material = ExtResource("1_8l5wm")
 default_material_albedo_uniform = ""
+normal_map_pattern = "%s_normal.%s"
+metallic_map_pattern = "%s_metallic.%s"
+roughness_map_pattern = "%s_roughness.%s"
+emission_map_pattern = "%s_emission.%s"
+ao_map_pattern = "%s_ao.%s"
+height_map_pattern = "%s_height.%s"
 uv_unwrap_texel_size = 1.0
+use_trenchbroom_groups_hierarchy = false

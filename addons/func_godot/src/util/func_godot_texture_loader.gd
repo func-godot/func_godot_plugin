@@ -46,31 +46,18 @@ const PBR_SUFFIX_PROPERTIES: Dictionary = {
 	PBRSuffix.HEIGHT: 'heightmap_enabled',
 }
 
-# Parameters
-var base_texture_path: String
-var texture_extensions: PackedStringArray
-var texture_wads: Array
+# Persistent data
+var map_settings: FuncGodotMapSettings
 
 # Instances
 var texture_wad_resources: Array = []
 var unshaded: bool = false
 
-# Getters
-func get_pbr_suffix_pattern(suffix: int) -> String:
-	if not suffix in PBR_SUFFIX_NAMES:
-		return ''
-
-	var pattern_setting: String = "func_godot/textures/%s_pattern" % [PBR_SUFFIX_NAMES[suffix]]
-	if ProjectSettings.has_setting(pattern_setting):
-		return ProjectSettings.get_setting(pattern_setting)
-
-	return PBR_SUFFIX_PATTERNS[suffix]
 
 # Overrides
-func _init(base_texture_path: String, texture_extensions: PackedStringArray, texture_wads: Array) -> void:
-	self.base_texture_path = base_texture_path
-	self.texture_extensions = texture_extensions
-	load_texture_wad_resources(texture_wads)
+func _init(new_map_settings: FuncGodotMapSettings) -> void:
+	map_settings = new_map_settings.duplicate()
+	load_texture_wad_resources(map_settings.texture_wads)
 
 # Business Logic
 func load_texture_wad_resources(texture_wads: Array) -> void:
@@ -90,8 +77,8 @@ func load_texture(texture_name: String) -> Texture2D:
 		return load("res://addons/func_godot/textures/__TB_empty.png") as Texture2D
 
 	# Load albedo texture if it exists
-	for texture_extension in texture_extensions:
-		var texture_path: String = "%s/%s.%s" % [base_texture_path, texture_name, texture_extension]
+	for texture_extension in map_settings.texture_file_extensions:
+		var texture_path: String = "%s/%s.%s" % [map_settings.base_texture_dir, texture_name, texture_extension]
 		if ResourceLoader.exists(texture_path, "Texture2D"):
 			return load(texture_path) as Texture2D
 
@@ -102,23 +89,18 @@ func load_texture(texture_name: String) -> Texture2D:
 
 	return null
 
-func create_materials(texture_list: Array, material_extension: String, default_material: Material, default_material_albedo_uniform: String) -> Dictionary:
+func create_materials(texture_list: Array) -> Dictionary:
 	var texture_materials: Dictionary = {}
 	# prints("TEXLI", texture_list)
 	for texture in texture_list:
-		texture_materials[texture] = create_material(
-			texture,
-			material_extension,
-			default_material,
-			default_material_albedo_uniform
-		)
+		texture_materials[texture] = create_material(texture)
 	return texture_materials
 
-func create_material(texture_name: String, material_extension: String, default_material: Material, default_material_albedo_uniform: String) -> Material:
+func create_material(texture_name: String) -> Material:
 	# Autoload material if it exists
 	var material_dict: Dictionary = {}
 
-	var material_path: String = "%s/%s.%s" % [base_texture_path, texture_name, material_extension]
+	var material_path: String = "%s/%s.%s" % [map_settings.base_texture_dir, texture_name, map_settings.material_file_extension]
 	if not material_path in material_dict and FileAccess.file_exists(material_path):
 		var loaded_material: Material = load(material_path)
 		if loaded_material:
@@ -130,8 +112,8 @@ func create_material(texture_name: String, material_extension: String, default_m
 	
 	var material: Material = null
 	
-	if default_material:
-		material = default_material.duplicate()
+	if map_settings.default_material:
+		material = map_settings.default_material.duplicate()
 	else:
 		material = StandardMaterial3D.new()
 	var texture: Texture2D = load_texture(texture_name)
@@ -143,8 +125,8 @@ func create_material(texture_name: String, material_extension: String, default_m
 	
 	if material is StandardMaterial3D:
 		material.set_texture(StandardMaterial3D.TEXTURE_ALBEDO, texture)
-	elif material is ShaderMaterial && default_material_albedo_uniform != "":
-		material.set_shader_parameter(default_material_albedo_uniform, texture)
+	elif material is ShaderMaterial && map_settings.default_material_albedo_uniform != "":
+		material.set_shader_parameter(map_settings.default_material_albedo_uniform, texture)
 	
 	var pbr_textures : Dictionary = get_pbr_textures(texture_name)
 	
@@ -167,21 +149,24 @@ func create_material(texture_name: String, material_extension: String, default_m
 	return material
 
 # PBR texture fetching
-func get_pbr_textures(texture_name: String) -> Dictionary:
-	var pbr_textures: Dictionary = {}
-	for pbr_suffix in PBRSuffix.values():
-		pbr_textures[pbr_suffix] = get_pbr_texture(texture_name, pbr_suffix)
-	return pbr_textures
+func get_pbr_suffix_pattern(suffix: int) -> String:
+	if not suffix in PBR_SUFFIX_NAMES:
+		return ''
+	
+	var pattern_setting: String = "%s_map_pattern" % [PBR_SUFFIX_NAMES[suffix]]
+	if pattern_setting in map_settings:
+		return map_settings.get(pattern_setting)
+	
+	return PBR_SUFFIX_PATTERNS[suffix]
 
 func get_pbr_texture(texture: String, suffix: PBRSuffix) -> Texture2D:
 	var texture_comps: PackedStringArray = texture.split('/')
-
 	if texture_comps.size() == 0:
 		return null
-
-	for texture_extension in texture_extensions:
+	
+	for texture_extension in map_settings.texture_file_extensions:
 		var path: String = "%s/%s/%s" % [
-			base_texture_path,
+			map_settings.base_texture_dir,
 			'/'.join(texture_comps),
 			get_pbr_suffix_pattern(suffix) % [
 				texture_comps[-1],
@@ -193,3 +178,9 @@ func get_pbr_texture(texture: String, suffix: PBRSuffix) -> Texture2D:
 			return load(path) as Texture2D
 
 	return null
+
+func get_pbr_textures(texture_name: String) -> Dictionary:
+	var pbr_textures: Dictionary = {}
+	for pbr_suffix in PBRSuffix.values():
+		pbr_textures[pbr_suffix] = get_pbr_texture(texture_name, pbr_suffix)
+	return pbr_textures

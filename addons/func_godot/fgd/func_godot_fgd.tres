@@ -10,8 +10,7 @@
 [resource]
 script = ExtResource("1_axt3h")
 export_file = false
-map_editor_game_config_folder = ""
-model_key_word = 1
+model_key_word_supported = true
 fgd_name = "FuncGodot"
 base_fgd_files = Array[Resource]([])
 entity_definitions = Array[Resource]([ExtResource("3_fqfww"), ExtResource("5_b2q3p"), ExtResource("4_c4ucw"), ExtResource("1_ehab8"), ExtResource("2_ri2rx")])
