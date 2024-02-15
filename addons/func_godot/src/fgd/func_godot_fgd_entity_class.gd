@@ -91,15 +91,15 @@ func build_def_text(model_key_supported: bool = true) -> String:
 	var normalized_description = description.replace("\n", " ").strip_edges()
 	if normalized_description != "":
 		res += " : \"%s\" " % [normalized_description]
-
-	res += "[" + FuncGodotUtil.newline()
-
+	
+	if class_properties.size() > 0:
+		res += FuncGodotUtil.newline() + "[" + FuncGodotUtil.newline()
+	else:
+		res += "["
+	
 	# Class properties
 	for prop in class_properties:
-		
-		
 		var value = class_properties[prop]
-
 		var prop_val = null
 		var prop_type := ""
 		var prop_description: String
@@ -129,9 +129,9 @@ func build_def_text(model_key_supported: bool = true) -> String:
 				prop_val = "\"" + value + "\""
 			TYPE_BOOL:
 				prop_type = "choices"
-				prop_val = "[" + "\n"
-				prop_val += "\t\t" + str(0) + " : \"False\"\n"
-				prop_val += "\t\t" + str(1) + " : \"True\"\n"
+				prop_val = FuncGodotUtil.newline() + "\t[" + FuncGodotUtil.newline()
+				prop_val += "\t\t" + str(0) + " : \"False\"" + FuncGodotUtil.newline()
+				prop_val += "\t\t" + str(1) + " : \"True\"" + FuncGodotUtil.newline()
 				prop_val += "\t]"
 			TYPE_VECTOR2, TYPE_VECTOR2I:
 				prop_type = "string"
@@ -147,16 +147,16 @@ func build_def_text(model_key_supported: bool = true) -> String:
 				prop_val = "\"%s %s %s\"" % [value.r8, value.g8, value.b8]
 			TYPE_DICTIONARY:
 				prop_type = "choices"
-				prop_val = "[" + "\n"
+				prop_val = FuncGodotUtil.newline() + "\t[" + FuncGodotUtil.newline()
 				for choice in value:
 					var choice_val = value[choice]
-					prop_val += "\t\t" + str(choice_val) + " : \"" + choice + "\"\n"
+					prop_val += "\t\t" + str(choice_val) + " : \"" + choice + "\"" + FuncGodotUtil.newline()
 				prop_val += "\t]"
 			TYPE_ARRAY:
 				prop_type = "flags"
-				prop_val = "[" + "\n"
+				prop_val = FuncGodotUtil.newline() + "\t[" + FuncGodotUtil.newline()
 				for arr_val in value:
-					prop_val += "\t\t" + str(arr_val[1]) + " : \"" + str(arr_val[0]) + "\" : " + ("1" if arr_val[2] else "0") + "\n"
+					prop_val += "\t\t" + str(arr_val[1]) + " : \"" + str(arr_val[0]) + "\" : " + ("1" if arr_val[2] else "0") + FuncGodotUtil.newline()
 				prop_val += "\t]"
 			TYPE_NODE_PATH:
 				prop_type = "target_destination"

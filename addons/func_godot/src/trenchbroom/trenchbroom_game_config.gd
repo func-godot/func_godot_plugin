@@ -208,7 +208,6 @@ func do_export_file() -> void:
 			print("Skipping export: Failed to create directory")
 			return
 		config_dir = DirAccess.open(config_folder)
-	print("Exporting TrenchBroom Game Config Folder to ", config_folder)
 	
 	# Icon
 	var icon_path : String = config_folder + "/icon.png"

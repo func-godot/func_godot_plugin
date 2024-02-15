@@ -53,6 +53,9 @@ extends Resource
 ## Automatic PBR material generation height map pattern
 @export var height_map_pattern: String = "%s_height.%s"
 
+## Save automatically generated materials to disk, allowing reuse across [FuncGodotMap] nodes.
+@export var save_generated_materials: bool = true
+
 @export_category("UV Unwrap")
 
 ## Texel size for UV2 unwrapping.

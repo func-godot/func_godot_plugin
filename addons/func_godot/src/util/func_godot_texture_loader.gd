@@ -99,7 +99,7 @@ func create_materials(texture_list: Array) -> Dictionary:
 func create_material(texture_name: String) -> Material:
 	# Autoload material if it exists
 	var material_dict: Dictionary = {}
-
+	
 	var material_path: String = "%s/%s.%s" % [map_settings.base_texture_dir, texture_name, map_settings.material_file_extension]
 	if not material_path in material_dict and FileAccess.file_exists(material_path):
 		var loaded_material: Material = load(material_path)
@@ -137,15 +137,16 @@ func create_material(texture_name: String) -> Material:
 			if material is ShaderMaterial:
 				material = StandardMaterial3D.new()
 				material.set_texture(StandardMaterial3D.TEXTURE_ALBEDO, texture)
-			
 			var enable_prop: String = PBR_SUFFIX_PROPERTIES[suffix] if suffix in PBR_SUFFIX_PROPERTIES else ""
 			if(enable_prop != ""):
 				material.set(enable_prop, true)
-
 			material.set_texture(PBR_SUFFIX_TEXTURES[suffix], tex)
-
+		
 		material_dict[material_path] = material
-
+	
+	if map_settings.save_generated_materials and texture_name != TEXTURE_EMPTY:
+		ResourceSaver.save(material, material_path)
+	
 	return material
 
 # PBR texture fetching
