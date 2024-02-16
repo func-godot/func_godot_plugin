@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="NetRadiantCustomShader" load_steps=2 format=3 uid="uid://f5erfnvbg6b7"]
+
+[ext_resource type="Script" path="res://addons/func_godot/src/netradiant_custom/netradiant_custom_shader.gd" id="1_cuylw"]
+
+[resource]
+script = ExtResource("1_cuylw")
+texture_path = "textures/special/clip"
+shader_attributes = Array[String](["qer_trans 0.4"])

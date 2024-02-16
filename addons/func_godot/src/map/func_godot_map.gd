@@ -255,13 +255,14 @@ func register_post_attach_steps() -> void:
 ## Build the map
 func build_map() -> void:
 	reset_build_context()
-	
+	if map_settings == null:
+		printerr("Skipping build process: No map settings resource!")
+		emit_signal("build_complete")
+		return
 	print('Building %s\n' % _map_file_internal)
 	start_profile('build_map')
-	
 	register_build_steps()
 	register_post_attach_steps()
-	
 	run_build_steps()
 
 ## Recursively unwrap UV2s for [code]node[/code] and its children, in preparation for baked lighting.
@@ -304,9 +305,7 @@ func fetch_texture_list() -> Array:
 
 ## Initialize texture loader, allowing textures in [member base_texture_dir] and [member texture_wads] to be turned into materials
 func init_texture_loader() -> FuncGodotTextureLoader:
-	var tex_ldr: FuncGodotTextureLoader = FuncGodotTextureLoader.new(map_settings)
-	tex_ldr.unshaded = map_settings.unshaded
-	return tex_ldr
+	return FuncGodotTextureLoader.new(map_settings)
 
 ## Build a dictionary from Map File texture names to their corresponding Texture2D resources in Godot
 func load_textures() -> Dictionary:

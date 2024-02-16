@@ -51,47 +51,6 @@ extends Resource
 	preload("res://addons/func_godot/game_config/trenchbroom/tb_face_tag_skip.tres")
 ]
 
-## Private default .cfg contents.
-## See also: https://trenchbroom.github.io/manual/latest/#game_configuration_files
-const _base_text : String = """{
-	"version": 8,
-	"name": "%s",
-	"icon": "icon.png",
-	"fileformats": [
-		%s
-	],
-	"filesystem": {
-		"searchpath": ".",
-		"packageformat": { "extension": ".zip", "format": "zip" }
-	},
-	"textures": {
-		"root": "textures",
-		"extensions": [".bmp", ".exr", ".hdr", ".jpeg", ".jpg", ".png", ".tga", ".webp"],
-		"excludes": [ %s ]
-	},
-	"entities": {
-		"definitions": [ %s ],
-		"defaultcolor": "0.6 0.6 0.6 1.0",
-		"scale": %s
-	},
-	"tags": {
-		"brush": [
-			%s
-		],
-		"brushface": [
-			%s
-		]
-	},
-	"faceeattribs": { 
-		"defaults": {
-			%s
-		},
-		"contentflags": [],
-		"surfaceflags": []
-	}
-}
-"""
-
 func _init() -> void:
 	if not icon:
 		if ResourceLoader.exists("res://addons/func_godot/icon.png"):
@@ -131,7 +90,46 @@ func build_class_text() -> String:
 	var brush_tags_str = parse_tags(brush_tags)
 	var brushface_tags_str = parse_tags(brushface_tags)
 	var uv_scale_str = parse_default_uv_scale(default_uv_scale)
-	return _base_text % [
+	
+	var config_text : String = """{
+	"version": 8,
+	"name": "%s",
+	"icon": "icon.png",
+	"fileformats": [
+		%s
+	],
+	"filesystem": {
+		"searchpath": ".",
+		"packageformat": { "extension": ".zip", "format": "zip" }
+	},
+	"textures": {
+		"root": "textures",
+		"extensions": [".bmp", ".exr", ".hdr", ".jpeg", ".jpg", ".png", ".tga", ".webp"],
+		"excludes": [ %s ]
+	},
+	"entities": {
+		"definitions": [ %s ],
+		"defaultcolor": "0.6 0.6 0.6 1.0",
+		"scale": %s
+	},
+	"tags": {
+		"brush": [
+			%s
+		],
+		"brushface": [
+			%s
+		]
+	},
+	"faceeattribs": { 
+		"defaults": {
+			%s
+		},
+		"contentflags": [],
+		"surfaceflags": []
+	}
+}
+"""
+	return config_text % [
 		game_name,
 		map_formats_str,
 		texture_exclusion_patterns_str,
@@ -189,14 +187,14 @@ func parse_default_uv_scale(texture_scale : Vector2) -> String:
 
 ## Exports or updates a folder in the /games directory, with an icon, .cfg, and all accompanying FGDs.
 func do_export_file() -> void:
-	var config_folder: String = FuncGodotProjectConfig.get_setting(FuncGodotProjectConfig.PROPERTY.MAP_EDITOR_GAME_CONFIG_FOLDER) as String
+	var config_folder: String = FuncGodotProjectConfig.get_setting(FuncGodotProjectConfig.PROPERTY.TRENCHBROOM_GAME_CONFIG_FOLDER) as String
 	if config_folder.is_empty():
-		print("Skipping export: No TrenchBroom Game folder")
+		printerr("Skipping export: No TrenchBroom Game folder")
 		return
 	
 	# Make sure FGD file is set
 	if !fgd_file:
-		print("Skipping export: No FGD file")
+		printerr("Skipping export: No FGD file")
 		return
 	
 	var config_dir := DirAccess.open(config_folder)
@@ -205,9 +203,8 @@ func do_export_file() -> void:
 		print("Couldn't open directory, creating...")
 		var err := DirAccess.make_dir_recursive_absolute(config_folder)
 		if err != OK:
-			print("Skipping export: Failed to create directory")
+			printerr("Skipping export: Failed to create directory")
 			return
-		config_dir = DirAccess.open(config_folder)
 	
 	# Icon
 	var icon_path : String = config_folder + "/icon.png"
@@ -217,15 +214,13 @@ func do_export_file() -> void:
 	export_icon.save_png(icon_path)
 	
 	# .cfg
-	var export_config_file: Dictionary = {}
-	export_config_file.game_name = game_name
-	export_config_file.target_file = config_folder + "/GameConfig.cfg"
-	print("Exporting TrenchBroom Game Config File to ", export_config_file.target_file)
-	var file = FileAccess.open(export_config_file.target_file, FileAccess.WRITE)
+	var target_file_path: String = config_folder + "/GameConfig.cfg"
+	print("Exporting TrenchBroom Game Config to ", target_file_path)
+	var file = FileAccess.open(target_file_path, FileAccess.WRITE)
 	file.store_string(build_class_text())
-	file = null # Official way to close files in GDscript 2
+	file.close()
 	
 	# FGD
 	var export_fgd : FuncGodotFGDFile = fgd_file.duplicate()
-	export_fgd.do_export_file(true)
+	export_fgd.do_export_file(true, config_folder)
 	print("Export complete\n")

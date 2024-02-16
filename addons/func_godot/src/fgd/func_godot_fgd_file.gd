@@ -14,17 +14,18 @@ extends Resource
 		if new_export_file != export_file:
 			do_export_file(model_key_word_supported)
 
-func do_export_file(model_key_supported: bool = true) -> void:
+func do_export_file(model_key_supported: bool = true, fgd_output_folder: String = "") -> void:
 	if Engine.is_editor_hint() and get_fgd_classes().size() > 0:
-		var config_folder: String = FuncGodotProjectConfig.get_setting(FuncGodotProjectConfig.PROPERTY.MAP_EDITOR_GAME_CONFIG_FOLDER) as String
-		if config_folder.is_empty():
+		if fgd_output_folder.is_empty():
+			fgd_output_folder = FuncGodotProjectConfig.get_setting(FuncGodotProjectConfig.PROPERTY.FGD_OUTPUT_FOLDER) as String
+		if fgd_output_folder.is_empty():
 			print("Skipping export: No game config folder")
 			return
 
 		if fgd_name == "":
 			print("Skipping export: Empty FGD name")
 
-		var fgd_file = config_folder + "/" + fgd_name + ".fgd"
+		var fgd_file = fgd_output_folder + "/" + fgd_name + ".fgd"
 
 		print("Exporting FGD to ", fgd_file)
 		var file_obj := FileAccess.open(fgd_file, FileAccess.WRITE)

@@ -88,7 +88,7 @@ func build_def_text(model_key_supported: bool = true) -> String:
 
 	res += " = " + classname
 
-	var normalized_description = description.replace("\n", " ").strip_edges()
+	var normalized_description = description.replace("\n", " ").strip_edges() if prefix != "@BaseClass" else ""
 	if normalized_description != "":
 		res += " : \"%s\" " % [normalized_description]
 	

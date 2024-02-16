@@ -15,7 +15,7 @@ extends Resource
 @export_dir var base_texture_dir: String = "res://textures"
 
 ## File extensions to search for texture data.
-@export var texture_file_extensions: PackedStringArray = ["png", "jpg", "jpeg", "bmp", "tga", "webp"]
+@export var texture_file_extensions: Array = ["png", "jpg", "jpeg", "bmp", "tga", "webp"]
 
 ## Optional path for the clip texture, relative to [member base_texture_dir]. Brush FuncGodotFaces textured with the clip texture will have those Faces removed from the generated [MeshInstance3D] but not the generated [CollisionShape3D].
 @export var clip_texture: String = "special/clip"

@@ -1,7 +1,5 @@
 class_name FuncGodotTextureLoader
 
-const TEXTURE_EMPTY: String = '__TB_empty'	# TrenchBroom empty texture string
-
 enum PBRSuffix {
 	NORMAL,
 	METALLIC,
@@ -46,23 +44,18 @@ const PBR_SUFFIX_PROPERTIES: Dictionary = {
 	PBRSuffix.HEIGHT: 'heightmap_enabled',
 }
 
-# Persistent data
-var map_settings: FuncGodotMapSettings
-
-# Instances
+var map_settings: FuncGodotMapSettings = FuncGodotMapSettings.new()
 var texture_wad_resources: Array = []
-var unshaded: bool = false
-
 
 # Overrides
 func _init(new_map_settings: FuncGodotMapSettings) -> void:
-	map_settings = new_map_settings.duplicate()
-	load_texture_wad_resources(map_settings.texture_wads)
+	map_settings = new_map_settings
+	load_texture_wad_resources()
 
 # Business Logic
-func load_texture_wad_resources(texture_wads: Array) -> void:
+func load_texture_wad_resources() -> void:
 	texture_wad_resources.clear()
-	for texture_wad in texture_wads:
+	for texture_wad in map_settings.texture_wads:
 		if texture_wad and not texture_wad in texture_wad_resources:
 			texture_wad_resources.append(texture_wad)
 
@@ -73,25 +66,22 @@ func load_textures(texture_list: Array) -> Dictionary:
 	return texture_dict
 
 func load_texture(texture_name: String) -> Texture2D:
-	if(texture_name == TEXTURE_EMPTY):
-		return load("res://addons/func_godot/textures/__TB_empty.png") as Texture2D
-
 	# Load albedo texture if it exists
 	for texture_extension in map_settings.texture_file_extensions:
 		var texture_path: String = "%s/%s.%s" % [map_settings.base_texture_dir, texture_name, texture_extension]
 		if ResourceLoader.exists(texture_path, "Texture2D"):
 			return load(texture_path) as Texture2D
-
+	
 	var texture_name_lower: String = texture_name.to_lower()
 	for texture_wad in texture_wad_resources:
 		if texture_name_lower in texture_wad.textures:
 			return texture_wad.textures[texture_name_lower]
-
-	return null
+	
+	return load("res://addons/func_godot/textures/default_texture.png") as Texture2D
 
 func create_materials(texture_list: Array) -> Dictionary:
 	var texture_materials: Dictionary = {}
-	# prints("TEXLI", texture_list)
+	#prints("TEXLI", texture_list)
 	for texture in texture_list:
 		texture_materials[texture] = create_material(texture)
 	return texture_materials
@@ -121,7 +111,7 @@ func create_material(texture_name: String) -> Material:
 		return material
 	
 	if material is BaseMaterial3D:
-		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED if unshaded else BaseMaterial3D.SHADING_MODE_PER_PIXEL
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED if map_settings.unshaded else BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	
 	if material is StandardMaterial3D:
 		material.set_texture(StandardMaterial3D.TEXTURE_ALBEDO, texture)
@@ -142,9 +132,12 @@ func create_material(texture_name: String) -> Material:
 				material.set(enable_prop, true)
 			material.set_texture(PBR_SUFFIX_TEXTURES[suffix], tex)
 		
-		material_dict[material_path] = material
+	material_dict[material_path] = material
 	
-	if map_settings.save_generated_materials and texture_name != TEXTURE_EMPTY:
+	if (map_settings.save_generated_materials and material 
+		and texture_name != map_settings.clip_texture 
+		and texture_name != map_settings.skip_texture 
+		and texture.resource_path != "res://addons/func_godot/textures/default_texture.png"):
 		ResourceSaver.save(material, material_path)
 	
 	return material

@@ -7,20 +7,36 @@ class_name FuncGodotProjectConfig
 extends Resource
 
 enum PROPERTY {
-	MAP_EDITOR_GAME_CONFIG_FOLDER = 0,
-	MAP_EDITOR_GAME_PATH = 1,
-	GAME_PATH_MODELS_FOLDER = 2
+	FGD_OUTPUT_FOLDER,
+	TRENCHBROOM_GAME_CONFIG_FOLDER,
+	NETRADIANT_CUSTOM_GAMEPACKS_FOLDER,
+	MAP_EDITOR_GAME_PATH,
+	GAME_PATH_MODELS_FOLDER
 }
 
 @export var export_func_godot_settings: bool: set = _save_settings
 
 const CONFIG_PROPERTIES: Array[Dictionary] = [
 	{
-		"name": "map_editor_game_config_folder",
+		"name": "fgd_output_folder",
 		"usage": PROPERTY_USAGE_EDITOR,
 		"type": TYPE_STRING,
 		"hint": PROPERTY_HINT_GLOBAL_DIR,
-		"func_godot_type": PROPERTY.MAP_EDITOR_GAME_CONFIG_FOLDER
+		"func_godot_type": PROPERTY.FGD_OUTPUT_FOLDER
+	},
+	{
+		"name": "trenchbroom_game_config_folder",
+		"usage": PROPERTY_USAGE_EDITOR,
+		"type": TYPE_STRING,
+		"hint": PROPERTY_HINT_GLOBAL_DIR,
+		"func_godot_type": PROPERTY.TRENCHBROOM_GAME_CONFIG_FOLDER
+	},
+	{
+		"name": "netradiant_custom_gamepacks_folder",
+		"usage": PROPERTY_USAGE_EDITOR,
+		"type": TYPE_STRING,
+		"hint": PROPERTY_HINT_GLOBAL_DIR,
+		"func_godot_type": PROPERTY.NETRADIANT_CUSTOM_GAMEPACKS_FOLDER
 	},
 	{
 		"name": "map_editor_game_path",
