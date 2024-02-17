@@ -297,7 +297,7 @@ func remove_children() -> void:
 ## Parse and load [member map_file]
 func load_map() -> void:
 	var file: String = _map_file_internal
-	func_godot.load_map(file)
+	func_godot.load_map(file, map_settings.use_trenchbroom_groups_hierarchy)
 
 ## Get textures found in [member map_file]
 func fetch_texture_list() -> Array:
@@ -453,21 +453,21 @@ func resolve_trenchbroom_group_hierarchy() -> void:
 		var node = entity_nodes[node_idx]
 		var properties = entity_dicts[node_idx]['properties']
 		
-		if not properties: continue
+		if not properties: 
+			continue
 		
 		if not ('_tb_id' in properties or '_tb_group' in properties or '_tb_layer' in properties):
 			continue
 		
-		if not 'classname' in properties: continue
+		if not 'classname' in properties: 
+			continue
+		
 		var classname = properties['classname']
 		
-		if not classname in entity_definitions: continue
-		var entity_definition = entity_definitions[classname]
-
 		# identify children
 		if '_tb_group' in properties or '_tb_layer' in properties: 
 			child_entities[node_idx] = node
-
+		
 		# identify parents
 		if '_tb_id' in properties:
 			if properties['_tb_name'] != "Unnamed":
@@ -489,7 +489,8 @@ func resolve_trenchbroom_group_hierarchy() -> void:
 			tb_group = properties['_tb_group']
 		elif '_tb_layer' in properties:
 			tb_group = properties['_tb_layer']
-		if tb_group == null: continue
+		if tb_group == null: 
+			continue
 
 		var parent = null
 		var parent_properties = null

@@ -11,26 +11,26 @@ var map_data: FuncGodotMapData
 
 var wind_entity_idx: int = 0
 var wind_brush_idx: int = 0
-var wind_FuncGodotFace_idx: int = 0
-var wind_FuncGodotFace_center: Vector3
-var wind_FuncGodotFace_basis: Vector3
-var wind_FuncGodotFace_normal: Vector3
+var wind_face_idx: int = 0
+var wind_face_center: Vector3
+var wind_face_basis: Vector3
+var wind_face_normal: Vector3
 
 func _init(in_map_data: FuncGodotMapData) -> void:
 	map_data = in_map_data
 
 func sort_vertices_by_winding(a, b) -> bool:
-	var FuncGodotFace:= map_data.entities[wind_entity_idx].brushes[wind_brush_idx].FuncGodotFaces[wind_FuncGodotFace_idx]
-	var FuncGodotFace_geo:= map_data.entity_geo[wind_entity_idx].brushes[wind_brush_idx].FuncGodotFaces[wind_FuncGodotFace_idx]
+	var FuncGodotFace:= map_data.entities[wind_entity_idx].brushes[wind_brush_idx].FuncGodotFaces[wind_face_idx]
+	var FuncGodotFace_geo:= map_data.entity_geo[wind_entity_idx].brushes[wind_brush_idx].FuncGodotFaces[wind_face_idx]
 	
-	var u:= wind_FuncGodotFace_basis.normalized()
-	var v:= u.cross(wind_FuncGodotFace_normal).normalized()
+	var u:= wind_face_basis.normalized()
+	var v:= u.cross(wind_face_normal).normalized()
 	
-	var loc_a = a.vertex - wind_FuncGodotFace_center
+	var loc_a = a.vertex - wind_face_center
 	var a_pu: float = loc_a.dot(u)
 	var a_pv: float = loc_a.dot(v)
 	
-	var loc_b = b.vertex - wind_FuncGodotFace_center
+	var loc_b = b.vertex - wind_face_center
 	var b_pu: float = loc_b.dot(u)
 	var b_pv: float = loc_b.dot(v)
 	
@@ -106,22 +106,22 @@ func run() -> void:
 				
 				wind_entity_idx = e
 				wind_brush_idx = b
-				wind_FuncGodotFace_idx = f
+				wind_face_idx = f
 				
-				wind_FuncGodotFace_basis = FuncGodotFace_geo.vertices[1].vertex - FuncGodotFace_geo.vertices[0].vertex
-				wind_FuncGodotFace_center = Vector3.ZERO
-				wind_FuncGodotFace_normal = FuncGodotFace.plane_normal
+				wind_face_basis = FuncGodotFace_geo.vertices[1].vertex - FuncGodotFace_geo.vertices[0].vertex
+				wind_face_center = Vector3.ZERO
+				wind_face_normal = FuncGodotFace.plane_normal
 				
 				for v in FuncGodotFace_geo.vertices:
-					wind_FuncGodotFace_center += v.vertex
+					wind_face_center += v.vertex
 				
-				wind_FuncGodotFace_center /= FuncGodotFace_geo.vertices.size()
+				wind_face_center /= FuncGodotFace_geo.vertices.size()
 				
 				FuncGodotFace_geo.vertices.sort_custom(sort_vertices_by_winding)
 				wind_entity_idx = 0
 	
 	# index FuncGodotFace vertices
-	var index_FuncGodotFaces_task:= func(e):
+	var index_faces_task:= func(e):
 		var entity_geo:= map_data.entity_geo[e]
 		
 		for b in range(entity_geo.brushes.size()):
@@ -141,8 +141,8 @@ func run() -> void:
 					FuncGodotFace_geo.indicies[i_count + 2] = i + 2
 					i_count += 3
 					
-	var index_FuncGodotFaces_task_id:= WorkerThreadPool.add_group_task(index_FuncGodotFaces_task, map_data.entities.size(), 4, true)
-	WorkerThreadPool.wait_for_group_task_completion(index_FuncGodotFaces_task_id)
+	var index_faces_task_id:= WorkerThreadPool.add_group_task(index_faces_task, map_data.entities.size(), 4, true)
+	WorkerThreadPool.wait_for_group_task_completion(index_faces_task_id)
 
 func generate_brush_vertices(entity_idx: int, brush_idx: int) -> void:
 	var entity:= map_data.entities[entity_idx]
@@ -163,7 +163,7 @@ func generate_brush_vertices(entity_idx: int, brush_idx: int) -> void:
 		
 		for f1 in range(FuncGodotFace_count):
 			for f2 in range(FuncGodotFace_count):
-				var vertex = intersect_FuncGodotFaces(brush.FuncGodotFaces[f0], brush.FuncGodotFaces[f1], brush.FuncGodotFaces[f2])
+				var vertex = intersect_face(brush.FuncGodotFaces[f0], brush.FuncGodotFaces[f1], brush.FuncGodotFaces[f2])
 				if not vertex is Vector3:
 					continue
 				if not vertex_in_hull(brush.FuncGodotFaces, vertex):
@@ -171,10 +171,10 @@ func generate_brush_vertices(entity_idx: int, brush_idx: int) -> void:
 				
 				var merged: bool = false
 				for f3 in range(f0):
-					var other_FuncGodotFace_geo := brush_geo.FuncGodotFaces[f3]
-					for i in range(len(other_FuncGodotFace_geo.vertices)):
-						if other_FuncGodotFace_geo.vertices[i].vertex.distance_to(vertex) < CMP_EPSILON:
-							vertex = other_FuncGodotFace_geo.vertices[i].vertex
+					var other_face_geo := brush_geo.FuncGodotFaces[f3]
+					for i in range(len(other_face_geo.vertices)):
+						if other_face_geo.vertices[i].vertex.distance_to(vertex) < CMP_EPSILON:
+							vertex = other_face_geo.vertices[i].vertex
 							merged = true;
 							break
 					
@@ -210,12 +210,12 @@ func generate_brush_vertices(entity_idx: int, brush_idx: int) -> void:
 						break
 				
 				if duplicate_idx < 0:
-					var new_FuncGodotFace_vert:= FuncGodotMapData.FuncGodotFaceVertex.new()
-					new_FuncGodotFace_vert.vertex = vertex
-					new_FuncGodotFace_vert.normal = normal
-					new_FuncGodotFace_vert.tangent = tangent
-					new_FuncGodotFace_vert.uv = uv
-					FuncGodotFace_geo.vertices.append(new_FuncGodotFace_vert)
+					var new_face_vert:= FuncGodotMapData.FuncGodotFaceVertex.new()
+					new_face_vert.vertex = vertex
+					new_face_vert.normal = normal
+					new_face_vert.tangent = tangent
+					new_face_vert.uv = uv
+					FuncGodotFace_geo.vertices.append(new_face_vert)
 				elif phong:
 					FuncGodotFace_geo.vertices[duplicate_idx].normal += normal
 	
@@ -225,7 +225,7 @@ func generate_brush_vertices(entity_idx: int, brush_idx: int) -> void:
 			FuncGodotFace_geo.vertices[i].normal = FuncGodotFace_geo.vertices[i].normal.normalized()
 	
 # returns null if no intersection, else intersection vertex.
-func intersect_FuncGodotFaces(f0: FuncGodotMapData.FuncGodotFace, f1: FuncGodotMapData.FuncGodotFace, f2: FuncGodotMapData.FuncGodotFace):
+func intersect_face(f0: FuncGodotMapData.FuncGodotFace, f1: FuncGodotMapData.FuncGodotFace, f2: FuncGodotMapData.FuncGodotFace):
 	var n0:= f0.plane_normal
 	var n1:= f1.plane_normal
 	var n2:= f2.plane_normal

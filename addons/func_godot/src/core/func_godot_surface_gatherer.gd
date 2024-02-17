@@ -43,7 +43,7 @@ func filter_brush(entity_idx: int, brush_idx: int) -> bool:
 	
 	return false
 
-func filter_FuncGodotFace(entity_idx: int, brush_idx: int, FuncGodotFace_idx: int) -> bool:
+func filter_face(entity_idx: int, brush_idx: int, FuncGodotFace_idx: int) -> bool:
 	var FuncGodotFace:= map_data.entities[entity_idx].brushes[brush_idx].FuncGodotFaces[FuncGodotFace_idx]
 	var FuncGodotFace_geo:= map_data.entity_geo[entity_idx].brushes[brush_idx].FuncGodotFaces[FuncGodotFace_idx]
 	
@@ -103,7 +103,7 @@ func run() -> void:
 			for f in range(brush.FuncGodotFaces.size()):
 				var FuncGodotFace_geo:= brush_geo.FuncGodotFaces[f]
 				
-				if filter_FuncGodotFace(e, b, f):
+				if filter_face(e, b, f):
 					continue
 				
 				for v in range(FuncGodotFace_geo.vertices.size()):

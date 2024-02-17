@@ -1,7 +1,5 @@
 class_name FuncGodotMapParser extends RefCounted
 
-var STRIP_FUNC_GROUP := true
-
 var scope:= FuncGodotMapParser.ParseScope.FILE
 var comment: bool = false
 var entity_idx: int = -1
@@ -12,17 +10,18 @@ var prop_key: String = ""
 var current_property: String = ""
 var valve_uvs: bool = false
 
-var current_FuncGodotFace: FuncGodotMapData.FuncGodotFace
+var current_face: FuncGodotMapData.FuncGodotFace
 var current_brush: FuncGodotMapData.FuncGodotBrush
 var current_entity: FuncGodotMapData.FuncGodotEntity
 
 var map_data: FuncGodotMapData
+var _keep_tb_groups: bool = false
 
 func _init(in_map_data: FuncGodotMapData) -> void:
 	map_data = in_map_data
 
-func load(map_file: String) -> bool:
-	current_FuncGodotFace = FuncGodotMapData.FuncGodotFace.new()
+func load(map_file: String, keep_tb_groups: bool) -> bool:
+	current_face = FuncGodotMapData.FuncGodotFace.new()
 	current_brush = FuncGodotMapData.FuncGodotBrush.new()
 	current_entity = FuncGodotMapData.FuncGodotEntity.new()
 	
@@ -33,6 +32,7 @@ func load(map_file: String) -> bool:
 	FuncGodotFace_idx = -1
 	component_idx = 0
 	valve_uvs = false
+	_keep_tb_groups = keep_tb_groups
 	
 	var map: FileAccess = FileAccess.open(map_file, FileAccess.READ)
 	if map == null:
@@ -161,11 +161,11 @@ func token(buf_str: String) -> void:
 			else:
 				match component_idx:
 					0:
-						current_FuncGodotFace.plane_points.v0.x = float(buf_str)
+						current_face.plane_points.v0.x = float(buf_str)
 					1:
-						current_FuncGodotFace.plane_points.v0.y = float(buf_str)
+						current_face.plane_points.v0.y = float(buf_str)
 					2:
-						current_FuncGodotFace.plane_points.v0.z = float(buf_str)
+						current_face.plane_points.v0.z = float(buf_str)
 						
 				component_idx += 1
 		FuncGodotMapParser.ParseScope.PLANE_1:
@@ -176,11 +176,11 @@ func token(buf_str: String) -> void:
 				else:
 					match component_idx:
 						0:
-							current_FuncGodotFace.plane_points.v1.x = float(buf_str)
+							current_face.plane_points.v1.x = float(buf_str)
 						1:
-							current_FuncGodotFace.plane_points.v1.y = float(buf_str)
+							current_face.plane_points.v1.y = float(buf_str)
 						2:
-							current_FuncGodotFace.plane_points.v1.z = float(buf_str)
+							current_face.plane_points.v1.z = float(buf_str)
 							
 					component_idx += 1
 		FuncGodotMapParser.ParseScope.PLANE_2:
@@ -191,15 +191,15 @@ func token(buf_str: String) -> void:
 				else:
 					match component_idx:
 						0:
-							current_FuncGodotFace.plane_points.v2.x = float(buf_str)
+							current_face.plane_points.v2.x = float(buf_str)
 						1:
-							current_FuncGodotFace.plane_points.v2.y = float(buf_str)
+							current_face.plane_points.v2.y = float(buf_str)
 						2:
-							current_FuncGodotFace.plane_points.v2.z = float(buf_str)
+							current_face.plane_points.v2.z = float(buf_str)
 							
 					component_idx += 1
 		FuncGodotMapParser.ParseScope.TEXTURE:
-			current_FuncGodotFace.texture_idx = map_data.register_texture(buf_str)
+			current_face.texture_idx = map_data.register_texture(buf_str)
 			set_scope(FuncGodotMapParser.ParseScope.U)
 		FuncGodotMapParser.ParseScope.U:
 			if buf_str == "[":
@@ -208,10 +208,10 @@ func token(buf_str: String) -> void:
 				set_scope(FuncGodotMapParser.ParseScope.VALVE_U)
 			else:
 				valve_uvs = false
-				current_FuncGodotFace.uv_standard.x = float(buf_str)
+				current_face.uv_standard.x = float(buf_str)
 				set_scope(FuncGodotMapParser.ParseScope.V)
 		FuncGodotMapParser.ParseScope.V:
-				current_FuncGodotFace.uv_standard.y = float(buf_str)
+				current_face.uv_standard.y = float(buf_str)
 				set_scope(FuncGodotMapParser.ParseScope.ROT)
 		FuncGodotMapParser.ParseScope.VALVE_U:
 			if buf_str == "]":
@@ -220,13 +220,13 @@ func token(buf_str: String) -> void:
 			else:
 				match component_idx:
 					0:
-						current_FuncGodotFace.uv_valve.u.axis.x = float(buf_str)
+						current_face.uv_valve.u.axis.x = float(buf_str)
 					1:
-						current_FuncGodotFace.uv_valve.u.axis.y = float(buf_str)
+						current_face.uv_valve.u.axis.y = float(buf_str)
 					2:
-						current_FuncGodotFace.uv_valve.u.axis.z = float(buf_str)
+						current_face.uv_valve.u.axis.z = float(buf_str)
 					3:
-						current_FuncGodotFace.uv_valve.u.offset = float(buf_str)
+						current_face.uv_valve.u.offset = float(buf_str)
 					
 				component_idx += 1
 		FuncGodotMapParser.ParseScope.VALVE_V:
@@ -236,52 +236,55 @@ func token(buf_str: String) -> void:
 				else:
 					match component_idx:
 						0:
-							current_FuncGodotFace.uv_valve.v.axis.x = float(buf_str)
+							current_face.uv_valve.v.axis.x = float(buf_str)
 						1:
-							current_FuncGodotFace.uv_valve.v.axis.y = float(buf_str)
+							current_face.uv_valve.v.axis.y = float(buf_str)
 						2:
-							current_FuncGodotFace.uv_valve.v.axis.z = float(buf_str)
+							current_face.uv_valve.v.axis.z = float(buf_str)
 						3:
-							current_FuncGodotFace.uv_valve.v.offset = float(buf_str)
+							current_face.uv_valve.v.offset = float(buf_str)
 						
 					component_idx += 1
 		FuncGodotMapParser.ParseScope.ROT:
-			current_FuncGodotFace.uv_extra.rot = float(buf_str)
+			current_face.uv_extra.rot = float(buf_str)
 			set_scope(FuncGodotMapParser.ParseScope.U_SCALE)
 		FuncGodotMapParser.ParseScope.U_SCALE:
-			current_FuncGodotFace.uv_extra.scale_x = float(buf_str)
+			current_face.uv_extra.scale_x = float(buf_str)
 			set_scope(FuncGodotMapParser.ParseScope.V_SCALE)
 		FuncGodotMapParser.ParseScope.V_SCALE:
-			current_FuncGodotFace.uv_extra.scale_y = float(buf_str)
-			commit_FuncGodotFace()
+			current_face.uv_extra.scale_y = float(buf_str)
+			commit_face()
 			set_scope(FuncGodotMapParser.ParseScope.BRUSH)
 				
 func commit_entity() -> void:
-	if STRIP_FUNC_GROUP and current_entity.properties.has("classname") and current_entity.properties["classname"] == "func_group" and map_data.entities.size() > 0:
+	if current_entity.properties.has('_tb_type') and map_data.entities.size() > 0:
 		map_data.entities[0].brushes.append_array(current_entity.brushes)
-	else:
-		var new_entity:= FuncGodotMapData.FuncGodotEntity.new()
-		new_entity.spawn_type = FuncGodotMapData.FuncGodotEntitySpawnType.ENTITY
-		new_entity.properties = current_entity.properties
-		new_entity.brushes = current_entity.brushes
-		
-		map_data.entities.append(new_entity)
-		
+		current_entity.brushes.clear()
+		if !_keep_tb_groups:
+			current_entity = FuncGodotMapData.FuncGodotEntity.new()
+			return
+	
+	var new_entity:= FuncGodotMapData.FuncGodotEntity.new()
+	new_entity.spawn_type = FuncGodotMapData.FuncGodotEntitySpawnType.ENTITY
+	new_entity.properties = current_entity.properties
+	new_entity.brushes = current_entity.brushes
+	map_data.entities.append(new_entity)
+	
 	current_entity = FuncGodotMapData.FuncGodotEntity.new()
 	
 func commit_brush() -> void:
 	current_entity.brushes.append(current_brush)
 	current_brush = FuncGodotMapData.FuncGodotBrush.new()
 	
-func commit_FuncGodotFace() -> void:
-	var v0v1: Vector3 = current_FuncGodotFace.plane_points.v1 - current_FuncGodotFace.plane_points.v0
-	var v1v2: Vector3 = current_FuncGodotFace.plane_points.v2 - current_FuncGodotFace.plane_points.v1
-	current_FuncGodotFace.plane_normal = v1v2.cross(v0v1).normalized()
-	current_FuncGodotFace.plane_dist = current_FuncGodotFace.plane_normal.dot(current_FuncGodotFace.plane_points.v0)
-	current_FuncGodotFace.is_valve_uv = valve_uvs
+func commit_face() -> void:
+	var v0v1: Vector3 = current_face.plane_points.v1 - current_face.plane_points.v0
+	var v1v2: Vector3 = current_face.plane_points.v2 - current_face.plane_points.v1
+	current_face.plane_normal = v1v2.cross(v0v1).normalized()
+	current_face.plane_dist = current_face.plane_normal.dot(current_face.plane_points.v0)
+	current_face.is_valve_uv = valve_uvs
 	
-	current_brush.FuncGodotFaces.append(current_FuncGodotFace)
-	current_FuncGodotFace = FuncGodotMapData.FuncGodotFace.new()
+	current_brush.FuncGodotFaces.append(current_face)
+	current_face = FuncGodotMapData.FuncGodotFace.new()
 
 # Nested
 enum ParseScope{

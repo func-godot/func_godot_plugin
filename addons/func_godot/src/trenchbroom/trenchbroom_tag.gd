@@ -1,6 +1,6 @@
 @icon("res://addons/func_godot/icons/icon_godot_ranger.svg")
 ## Pattern matching tags to enable a number of features in TrenchBroom, including display appearance and menu filtering options. This resource gets added to the [TrenchBroomGameConfig] resource. Does not affect appearance or functionality in Godot.
-## See the TrenchBroom Documentation on [**Tags under the Game Configuration section**](https://trenchbroom.github.io/manual/latest/#game_configuration_files) and [**Special Bruch FuncGodotFace Types**](https://trenchbroom.github.io/manual/latest/#special_brush_FuncGodotFace_types) for more information.
+## See the TrenchBroom Documentation on [**Tags under the Game Configuration section**](https://trenchbroom.github.io/manual/latest/#game_configuration_files) and [**Special Bruch FuncGodotFace Types**](https://trenchbroom.github.io/manual/latest/#special_brush_face_types) for more information.
 class_name TrenchBroomTag
 extends Resource
 
