@@ -1,10 +1,9 @@
 @tool
 @icon("res://addons/func_godot/icons/icon_godot_ranger.svg")
-## Translation resource that parses Quake map files to generate Godot scenes according to [FuncGodotFGDEntity] definitions. It is also used to export an FGD file for use with Quake map editors.
+## [Resource] file used to express a set of [FuncGodotFGDEntity] definitions. Can be exported as an FGD file for use with a Quake map editor. Used in conjunction with a [FuncGodotMapSetting] resource to generate nodes in a [FuncGodotMap] node.
 class_name FuncGodotFGDFile
 extends Resource
 
-## [Resource] file used to express a set of [FuncGodotFGDEntity] definitions. Can be exported as an FGD file for use with a Quake map editor. Used in conjunction with a [FuncGodotMapSetting] resource to generate nodes in a [FuncGodotMap] node.
 
 ## Builds and exports the FGD file.
 @export var export_file: bool:
@@ -54,10 +53,13 @@ func build_class_text(model_key_supported: bool = true) -> String:
 	var res : String = ""
 
 	for base_fgd in base_fgd_files:
-		res += base_fgd.build_class_text(model_key_supported)
+		if base_fgs is FuncGodotFGDFile:
+			res += base_fgd.build_class_text(model_key_supported)
 	
 	var entities = get_fgd_classes()
 	for ent in entities:
+		if not ent is FuncGodotFGDEntity:
+			continue
 		if ent.func_godot_internal:
 			continue
 		

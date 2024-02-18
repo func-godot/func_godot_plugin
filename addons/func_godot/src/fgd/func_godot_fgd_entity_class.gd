@@ -13,9 +13,10 @@ var prefix: String = ""
 ## Entity description that appears in the map editor. Not required.
 @export_multiline var description : String = ""
 
+## Entity does not get written to the exported FGD. Entity is only used for [FuncGodotMap] build process.
 @export var func_godot_internal : bool = false
 
-## FuncGodotFGDBaseClass resources to inherit class properties and class descriptions from.
+## FuncGodotFGDBaseClass resources to inherit [member class_properties] and [member class_descriptions] from.
 @export var base_classes: Array[Resource] = []
 
 ## Key value pair properties that will appear in the map editor. After building the FuncGodotMap in Godot, these properties will be added to a Dictionary that gets applied to the generated Node, as long as that Node is a tool script with an exported `func_godot_properties` Dictionary.

@@ -143,6 +143,7 @@ func do_export_file() -> void:
 	# Create gamepack folders in case they do not exist
 	var gamepack_dir_paths: Array = [
 		gamepacks_folder + "/" + gamepack_name + ".game",
+		gamepacks_folder + "/" + gamepack_name + ".game/" + base_game_path,
 		gamepacks_folder + "/" + gamepack_name + ".game/scripts"
 	]
 	var err: Error
