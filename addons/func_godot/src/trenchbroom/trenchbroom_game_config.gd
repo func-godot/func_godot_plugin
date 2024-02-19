@@ -1,10 +1,10 @@
 @tool
 @icon("res://addons/func_godot/icons/icon_godot_ranger.svg")
-## Defines a new game in TrenchBroom to express a set of entity definitions and editor behaviors.
+## Defines a game in TrenchBroom to express a set of entity definitions and editor behaviors.
 class_name TrenchBroomGameConfig
 extends Resource
 
-## Button to export/update this game's folder in the TrenchBroom Games Path.
+## Button to export / update this game's configuration and FGD file in the TrenchBroom Games Path.
 @export var export_file: bool:
 	get:
 		return export_file
@@ -19,7 +19,7 @@ extends Resource
 ## Icon for TrenchBroom's game list.
 @export var icon : Texture2D
 
-## Available map formats when creating a new map in TrenchBroom. The order of elements in the array is respected by TrenchBroom. The `initialmap` key value is optional.
+## Available map formats when creating a new map in TrenchBroom. The order of elements in the array is the order TrenchBroom will list the available formats. The `initialmap` key value is optional.
 @export var map_formats: Array[Dictionary] = [
 	{ "format": "Valve", "initialmap": "initial_valve.map" },
 	{ "format": "Standard", "initialmap": "initial_standard.map" },
@@ -28,7 +28,7 @@ extends Resource
 ]
 
 ## Textures matching these patterns will be hidden from TrenchBroom.
-@export var texture_exclusion_patterns: Array[String] = ["*_ao", "*_emission", "*_heightmap", "*_metallic", "*_normal", "*_orm", "*_roughness", "*_sss"]
+@export var texture_exclusion_patterns: Array[String] = ["*_ao", "*_emission", "*_height", "*_metallic", "*_normal", "*_orm", "*_roughness", "*_sss"]
 
 ## FGD resource to include with this game. If using multiple FGD resources, this should be the master FGD that contains them in the `base_fgd_files` resource array.
 @export var fgd_file : FuncGodotFGDFile = preload("res://addons/func_godot/fgd/func_godot_fgd.tres")
@@ -40,12 +40,12 @@ extends Resource
 @export var default_uv_scale : Vector2 = Vector2(1, 1)
 
 ## Arrays containing the TrenchBroomTag resource type.
-@export_category("Editor hint tags")
+@export_category("Editor Hint Tags")
 
-## Container for TrenchBroomTag resources that apply to brush entities.
+## TrenchBroomTag resources that apply to brush entities.
 @export var brush_tags : Array[Resource] = []
 
-## Container for TrenchBroomTag resources that apply to textures.
+## TrenchBroomTag resources that apply to brush faces.
 @export var brushface_tags : Array[Resource] = [
 	preload("res://addons/func_godot/game_config/trenchbroom/tb_face_tag_clip.tres"),
 	preload("res://addons/func_godot/game_config/trenchbroom/tb_face_tag_skip.tres")

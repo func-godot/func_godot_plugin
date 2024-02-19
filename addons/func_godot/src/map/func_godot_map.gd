@@ -30,13 +30,13 @@ signal unwrap_uv2_complete()
 ## Map path used by code. Do it this way to support both global and local paths.
 var _map_file_internal: String = ""
 
-## Map settings resource that defines map build scale, textures location, and more
+## Map settings resource that defines map build scale, textures location, and more.
 @export var map_settings: FuncGodotMapSettings = load("res://addons/func_godot/func_godot_default_map_settings.tres")
 
 @export_category("Build")
-## If true, print profiling data before and after each build step
+## If true, print profiling data before and after each build step.
 @export var print_profiling_data: bool = false
-## If true, stop the whole editor until build is complete
+## If true, stop the whole editor until build is complete.
 @export var block_until_complete: bool = false
 ## How many nodes to set the owner of, or add children of, at once. Higher values may lead to quicker build times, but a less responsive editor.
 @export var set_owner_batch_size: int = 1000

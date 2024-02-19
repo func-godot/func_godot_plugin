@@ -1,10 +1,10 @@
 @tool
 @icon("res://addons/func_godot/icons/icon_godot_ranger.svg")
-## Builds a new gamepack for NetRadiant Custom
+## Builds a gamepack for NetRadiant Custom.
 class_name NetRadiantCustomGamePackConfig
 extends Resource
 
-## Button to export/update this gamepack's folder
+## Button to export / update this gamepack's configuration in the NetRadiant Custom Gamepacks Folder.
 @export var export_file: bool:
 	get:
 		return export_file
@@ -19,7 +19,7 @@ extends Resource
 ## Name of the game in NetRadiant Custom's gamepack list.
 @export var game_name : String = "FuncGodot"
 
-## Name of the directory containing your maps, textures, shaders, etc...
+## Directory path containing your maps, textures, shaders, etc... relative to your project directory.
 @export var base_game_path : String = ""
 
 ## FGD resource to include with this gamepack. If using multiple FGD resources, this should be the master FGD that contains them in the `base_fgd_files` resource array.
@@ -40,7 +40,7 @@ extends Resource
 ## Supported audio file types.
 @export var sound_types : PackedStringArray = ["wav", "ogg"]
 
-## Scale of entities in NetRadiant Custom
+## Default scale of textures in NetRadiant Custom.
 @export var default_scale : String = "1.0"
 
 ## Generates completed text for a .shader file.

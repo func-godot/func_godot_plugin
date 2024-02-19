@@ -5,17 +5,17 @@ class_name TrenchBroomTag
 extends Resource
 
 enum TagMatchType {
-	TEXTURE, ## Tag applies to any FuncGodotFace with a texture matching the texture name.
+	TEXTURE, ## Tag applies to any brush face with a texture matching the texture name.
 	CLASSNAME ## Tag applies to any brush entity with a class name matching the tag pattern.
 }
 
 ## Name to define this tag. Not used as the matching pattern.
 @export var tag_name: String
 
-## The attributes applied to matching FuncGodotFaces or brushes. Only "_transparent" is supported in Trenchbroom, which makes matching FuncGodotFaces or brushes transparent.
+## The attributes applied to matching faces or brush entities. Only "_transparent" is supported in TrenchBroom, which makes matching faces or brush entities transparent.
 @export var tag_attributes : Array[String] = ["transparent"]
 
-## Detemines how the tag is matched. See [constant TagMatchType].
+## Determines how the tag is matched. See [constant TagMatchType].
 @export var tag_match_type: TagMatchType
 
 ## A string that filters which flag, param, or classname to use. [code]*[/code] can be used as a wildcard to include multiple options.
