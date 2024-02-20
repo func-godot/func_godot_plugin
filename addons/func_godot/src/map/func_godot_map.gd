@@ -459,11 +459,6 @@ func resolve_trenchbroom_group_hierarchy() -> void:
 		if not ('_tb_id' in properties or '_tb_group' in properties or '_tb_layer' in properties):
 			continue
 		
-		if not 'classname' in properties: 
-			continue
-		
-		var classname = properties['classname']
-		
 		# identify children
 		if '_tb_group' in properties or '_tb_layer' in properties: 
 			child_entities[node_idx] = node

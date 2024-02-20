@@ -210,7 +210,7 @@ func do_export_file() -> void:
 	var icon_path : String = config_folder + "/icon.png"
 	print("Exporting icon to ", icon_path)
 	var export_icon : Image = icon.get_image()
-	export_icon.resize(32, 32, Image.INTERPOLATE_LANCZOS)
+	#export_icon.resize(32, 32, Image.INTERPOLATE_LANCZOS) <-- doesn't work, Godot can't resize it for some reason
 	export_icon.save_png(icon_path)
 	
 	# .cfg
