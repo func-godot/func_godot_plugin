@@ -53,12 +53,12 @@ func build_class_text(model_key_supported: bool = true) -> String:
 	var res : String = ""
 
 	for base_fgd in base_fgd_files:
-		if base_fgs is FuncGodotFGDFile:
+		if base_fgd is FuncGodotFGDFile:
 			res += base_fgd.build_class_text(model_key_supported)
 	
 	var entities = get_fgd_classes()
 	for ent in entities:
-		if not ent is FuncGodotFGDEntity:
+		if not ent is FuncGodotFGDEntityClass:
 			continue
 		if ent.func_godot_internal:
 			continue
