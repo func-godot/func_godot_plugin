@@ -25,10 +25,11 @@ func find_texture(texture_name: String) -> int:
 			return i
 	return -1
 
-func set_spawn_type_by_classname(key: String, spawn_type: FuncGodotEntitySpawnType) -> void:
+func set_entity_types_by_classname(classname: String, spawn_type: int, origin_type: int) -> void:
 	for entity in entities:
-		if entity.properties.has("classname") and entity.properties["classname"] == key:
-			entity.spawn_type = spawn_type
+		if entity.properties.has("classname") and entity.properties["classname"] == classname:
+			entity.spawn_type = spawn_type as FuncGodotMapData.FuncGodotEntitySpawnType
+			entity.origin_type = origin_type as FuncGodotMapData.FuncGodotEntityOriginType
 
 func clear() -> void:
 	entities.clear()
@@ -38,13 +39,19 @@ func clear() -> void:
 # --------------------------------------------------------------------------------------------------
 # Nested Types
 # --------------------------------------------------------------------------------------------------
-enum FuncGodotEntitySpawnType{
+enum FuncGodotEntitySpawnType {
 	WORLDSPAWN = 0,
 	MERGE_WORLDSPAWN = 1,
 	ENTITY = 2
 }
 
-class FuncGodotFuncGodotFacePoints:
+enum FuncGodotEntityOriginType {
+	IGNORE = 0,
+	ABSOLUTE = 1,
+	RELATIVE = 2
+}
+
+class FuncGodotFacePoints:
 	var v0: Vector3
 	var v1: Vector3
 	var v2: Vector3
@@ -61,28 +68,28 @@ class FuncGodotValveUV:
 		u = FuncGodotValveTextureAxis.new()
 		v = FuncGodotValveTextureAxis.new()
 	
-class FuncGodotFuncGodotFaceUVExtra:
+class FuncGodotFaceUVExtra:
 	var rot: float
 	var scale_x: float
 	var scale_y: float
 	
 class FuncGodotFace:
-	var plane_points: FuncGodotFuncGodotFacePoints
+	var plane_points: FuncGodotFacePoints
 	var plane_normal: Vector3
 	var plane_dist: float
 	var texture_idx: int
 	var is_valve_uv: bool
 	var uv_standard: Vector2
 	var uv_valve: FuncGodotValveUV
-	var uv_extra: FuncGodotFuncGodotFaceUVExtra
+	var uv_extra: FuncGodotFaceUVExtra
 	
 	func _init() -> void:
-		plane_points = FuncGodotFuncGodotFacePoints.new()
+		plane_points = FuncGodotFacePoints.new()
 		uv_valve = FuncGodotValveUV.new()
-		uv_extra = FuncGodotFuncGodotFaceUVExtra.new()
+		uv_extra = FuncGodotFaceUVExtra.new()
 
 class FuncGodotBrush:
-	var FuncGodotFaces: Array[FuncGodotFace]
+	var faces: Array[FuncGodotFace]
 	var center: Vector3
 
 class FuncGodotEntity:
@@ -90,6 +97,7 @@ class FuncGodotEntity:
 	var brushes: Array[FuncGodotBrush]
 	var center: Vector3
 	var spawn_type: FuncGodotEntitySpawnType
+	var origin_type: FuncGodotEntityOriginType
 	
 class FuncGodotFaceVertex:
 	var vertex: Vector3
@@ -110,7 +118,7 @@ class FuncGodotFaceGeometry:
 	var indicies: Array[int]
 
 class FuncGodotBrushGeometry:
-	var FuncGodotFaces: Array[FuncGodotFaceGeometry]
+	var faces: Array[FuncGodotFaceGeometry]
 	
 class FuncGodotEntityGeometry:
 	var brushes: Array[FuncGodotBrushGeometry]

@@ -351,6 +351,7 @@ func build_libmap_entity_definitions(entity_definitions: Dictionary) -> Dictiona
 		libmap_entity_definitions[classname] = {}
 		if entity_definitions[classname] is FuncGodotFGDSolidClass:
 			libmap_entity_definitions[classname]['spawn_type'] = entity_definitions[classname].spawn_type
+			libmap_entity_definitions[classname]['origin_type'] = entity_definitions[classname].origin_type
 	return libmap_entity_definitions
 
 ## Build nodes from the entities in [member entity_dicts]
@@ -416,20 +417,20 @@ func build_entity_nodes() -> Array:
 		
 		node.name = node_name
 		
-		if 'origin' in properties:
+		if 'origin' in properties and entity_dict.brush_count < 1:
 			var origin_vec: Vector3 = Vector3.ZERO
 			var origin_comps: PackedFloat64Array = properties['origin'].split_floats(' ')
 			if origin_comps.size() > 2:
 				origin_vec = Vector3(origin_comps[1], origin_comps[2], origin_comps[0])
 			else:
 				push_error("Invalid vector format for \'origin\' in " + node.name)
-			if "position" in node:
+			if 'position' in node:
 				if node.position is Vector3:
 					node.position = origin_vec / map_settings.inverse_scale_factor
 				elif node.position is Vector2:
 					node.position = Vector2(origin_vec.z, -origin_vec.y)
 		else:
-			if entity_idx != 0 and "position" in node:
+			if entity_idx != 0 and 'position' in node:
 				if node.position is Vector3:
 					node.position = entity_dict['center'] / map_settings.inverse_scale_factor
 		

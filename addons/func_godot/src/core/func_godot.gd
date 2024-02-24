@@ -20,9 +20,10 @@ func get_texture_list() -> PackedStringArray:
 
 func set_entity_definitions(entity_defs: Dictionary) -> void:
 	for i in range(entity_defs.size()):
-		var key: String = entity_defs.keys()[i]
-		var val: int = entity_defs.values()[i].get("spawn_type", FuncGodotMapData.FuncGodotEntitySpawnType.ENTITY)
-		map_data.set_spawn_type_by_classname(key, val as FuncGodotMapData.FuncGodotEntitySpawnType)
+		var classname: String = entity_defs.keys()[i]
+		var spawn_type: int = entity_defs.values()[i].get("spawn_type", FuncGodotMapData.FuncGodotEntitySpawnType.ENTITY)
+		var origin_type: int = entity_defs.values()[i].get("origin_type", FuncGodotMapData.FuncGodotEntityOriginType.IGNORE)
+		map_data.set_entity_types_by_classname(classname, spawn_type, origin_type)
 
 func generate_geometry(texture_dict: Dictionary) -> void:
 	var keys: Array = texture_dict.keys()

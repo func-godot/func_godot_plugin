@@ -4,7 +4,7 @@ var scope:= FuncGodotMapParser.ParseScope.FILE
 var comment: bool = false
 var entity_idx: int = -1
 var brush_idx: int = -1
-var FuncGodotFace_idx: int = -1
+var face_idx: int = -1
 var component_idx: int = 0
 var prop_key: String = ""
 var current_property: String = ""
@@ -29,7 +29,7 @@ func load(map_file: String, keep_tb_groups: bool) -> bool:
 	comment = false
 	entity_idx = -1
 	brush_idx = -1
-	FuncGodotFace_idx = -1
+	face_idx = -1
 	component_idx = 0
 	valve_uvs = false
 	_keep_tb_groups = keep_tb_groups
@@ -80,11 +80,11 @@ func set_scope(new_scope: FuncGodotMapParser.ParseScope) -> void:
 		ParseScope.BRUSH:
 			print("Switching to brush " + str(brush_idx) + " scope")
 		ParseScope.PLANE_0:
-			print("Switching to FuncGodotFace " + str(FuncGodotFace_idx) + " plane 0 scope")
+			print("Switching to face " + str(face_idx) + " plane 0 scope")
 		ParseScope.PLANE_1:
-			print("Switching to FuncGodotFace " + str(FuncGodotFace_idx) + " plane 1 scope")
+			print("Switching to face " + str(face_idx) + " plane 1 scope")
 		ParseScope.PLANE_2:
-			print("Switching to FuncGodotFace " + str(FuncGodotFace_idx) + " plane 2 scope")
+			print("Switching to face " + str(face_idx) + " plane 2 scope")
 		ParseScope.TEXTURE:
 			print("Switching to texture scope")
 		ParseScope.U:
@@ -125,7 +125,7 @@ func token(buf_str: String) -> void:
 					set_scope(FuncGodotMapParser.ParseScope.PROPERTY_VALUE)
 			elif buf_str == "{":
 				brush_idx += 1
-				FuncGodotFace_idx = -1
+				face_idx = -1
 				set_scope(FuncGodotMapParser.ParseScope.BRUSH)
 			elif buf_str == "}":
 				commit_entity()
@@ -148,7 +148,7 @@ func token(buf_str: String) -> void:
 				set_scope(FuncGodotMapParser.ParseScope.ENTITY)
 		FuncGodotMapParser.ParseScope.BRUSH:
 			if buf_str == "(":
-				FuncGodotFace_idx += 1
+				face_idx += 1
 				component_idx = 0
 				set_scope(FuncGodotMapParser.ParseScope.PLANE_0)
 			elif buf_str == "}":
@@ -283,7 +283,7 @@ func commit_face() -> void:
 	current_face.plane_dist = current_face.plane_normal.dot(current_face.plane_points.v0)
 	current_face.is_valve_uv = valve_uvs
 	
-	current_brush.FuncGodotFaces.append(current_face)
+	current_brush.faces.append(current_face)
 	current_face = FuncGodotMapData.FuncGodotFace.new()
 
 # Nested

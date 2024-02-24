@@ -20,8 +20,8 @@ func _init(in_map_data: FuncGodotMapData) -> void:
 	map_data = in_map_data
 
 func sort_vertices_by_winding(a, b) -> bool:
-	var FuncGodotFace:= map_data.entities[wind_entity_idx].brushes[wind_brush_idx].FuncGodotFaces[wind_face_idx]
-	var FuncGodotFace_geo:= map_data.entity_geo[wind_entity_idx].brushes[wind_brush_idx].FuncGodotFaces[wind_face_idx]
+	var face:= map_data.entities[wind_entity_idx].brushes[wind_brush_idx].faces[wind_face_idx]
+	var face_geo:= map_data.entity_geo[wind_entity_idx].brushes[wind_brush_idx].faces[wind_face_idx]
 	
 	var u:= wind_face_basis.normalized()
 	var v:= u.cross(wind_face_normal).normalized()
@@ -55,9 +55,9 @@ func run() -> void:
 		for b in range(entity.brushes.size()):
 			var brush:= entity.brushes[b]
 			var brush_geo:= entity_geo.brushes[b]
-			brush_geo.FuncGodotFaces.resize(brush.FuncGodotFaces.size())
-			for i in range(brush_geo.FuncGodotFaces.size()):
-				brush_geo.FuncGodotFaces[i] = FuncGodotMapData.FuncGodotFaceGeometry.new()
+			brush_geo.faces.resize(brush.faces.size())
+			for i in range(brush_geo.faces.size()):
+				brush_geo.faces[i] = FuncGodotMapData.FuncGodotFaceGeometry.new()
 	
 	var generate_vertices_task = func(e):
 		var entity:= map_data.entities[e]
@@ -72,8 +72,8 @@ func run() -> void:
 			generate_brush_vertices(e, b)
 			
 			var brush_geo:= map_data.entity_geo[e].brushes[b]
-			for FuncGodotFace in brush_geo.FuncGodotFaces:
-				for vert in FuncGodotFace.vertices:
+			for face in brush_geo.faces:
+				for vert in face.vertices:
 					brush.center += vert.vertex
 					vert_count += 1
 			
@@ -84,11 +84,19 @@ func run() -> void:
 			
 		if entity.brushes.size() > 0:
 			entity.center /= float(entity.brushes.size())
+			print(entity.spawn_type)
+			if entity.origin_type != FuncGodotMapData.FuncGodotEntityOriginType.IGNORE and 'origin' in entity.properties:
+				var origin_comps: PackedFloat64Array = entity.properties['origin'].split_floats(' ')
+				if origin_comps.size() > 2:
+					if entity.origin_type == FuncGodotMapData.FuncGodotEntityOriginType.ABSOLUTE:
+						entity.center = Vector3(origin_comps[0], origin_comps[1], origin_comps[2])
+					elif entity.origin_type == FuncGodotMapData.FuncGodotEntityOriginType.RELATIVE:
+						entity.center += Vector3(origin_comps[0], origin_comps[1], origin_comps[2])
 	
 	var generate_vertices_task_id:= WorkerThreadPool.add_group_task(generate_vertices_task, map_data.entities.size(), 4, true)
 	WorkerThreadPool.wait_for_group_task_completion(generate_vertices_task_id)
 	
-	# wind FuncGodotFace vertices
+	# wind face vertices
 	for e in range(map_data.entities.size()):
 		var entity:= map_data.entities[e]
 		var entity_geo:= map_data.entity_geo[e]
@@ -97,48 +105,48 @@ func run() -> void:
 			var brush:= entity.brushes[b]
 			var brush_geo:= entity_geo.brushes[b]
 			
-			for f in range(brush.FuncGodotFaces.size()):
-				var FuncGodotFace:= brush.FuncGodotFaces[f]
-				var FuncGodotFace_geo:= brush_geo.FuncGodotFaces[f]
+			for f in range(brush.faces.size()):
+				var face:= brush.faces[f]
+				var face_geo:= brush_geo.faces[f]
 				
-				if FuncGodotFace_geo.vertices.size() < 3:
+				if face_geo.vertices.size() < 3:
 					continue
 				
 				wind_entity_idx = e
 				wind_brush_idx = b
 				wind_face_idx = f
 				
-				wind_face_basis = FuncGodotFace_geo.vertices[1].vertex - FuncGodotFace_geo.vertices[0].vertex
+				wind_face_basis = face_geo.vertices[1].vertex - face_geo.vertices[0].vertex
 				wind_face_center = Vector3.ZERO
-				wind_face_normal = FuncGodotFace.plane_normal
+				wind_face_normal = face.plane_normal
 				
-				for v in FuncGodotFace_geo.vertices:
+				for v in face_geo.vertices:
 					wind_face_center += v.vertex
 				
-				wind_face_center /= FuncGodotFace_geo.vertices.size()
+				wind_face_center /= face_geo.vertices.size()
 				
-				FuncGodotFace_geo.vertices.sort_custom(sort_vertices_by_winding)
+				face_geo.vertices.sort_custom(sort_vertices_by_winding)
 				wind_entity_idx = 0
 	
-	# index FuncGodotFace vertices
+	# index face vertices
 	var index_faces_task:= func(e):
 		var entity_geo:= map_data.entity_geo[e]
 		
 		for b in range(entity_geo.brushes.size()):
 			var brush_geo:= entity_geo.brushes[b]
 			
-			for f in range(brush_geo.FuncGodotFaces.size()):
-				var FuncGodotFace_geo:= brush_geo.FuncGodotFaces[f]
+			for f in range(brush_geo.faces.size()):
+				var face_geo:= brush_geo.faces[f]
 				
-				if FuncGodotFace_geo.vertices.size() < 3:
+				if face_geo.vertices.size() < 3:
 					continue
 					
 				var i_count: int = 0
-				FuncGodotFace_geo.indicies.resize((FuncGodotFace_geo.vertices.size() - 2) * 3)
-				for i in range(FuncGodotFace_geo.vertices.size() - 2):
-					FuncGodotFace_geo.indicies[i_count] = 0
-					FuncGodotFace_geo.indicies[i_count + 1] = i + 1
-					FuncGodotFace_geo.indicies[i_count + 2] = i + 2
+				face_geo.indicies.resize((face_geo.vertices.size() - 2) * 3)
+				for i in range(face_geo.vertices.size() - 2):
+					face_geo.indicies[i_count] = 0
+					face_geo.indicies[i_count + 1] = i + 1
+					face_geo.indicies[i_count + 2] = i + 2
 					i_count += 3
 					
 	var index_faces_task_id:= WorkerThreadPool.add_group_task(index_faces_task, map_data.entities.size(), 4, true)
@@ -147,7 +155,7 @@ func run() -> void:
 func generate_brush_vertices(entity_idx: int, brush_idx: int) -> void:
 	var entity:= map_data.entities[entity_idx]
 	var brush:= entity.brushes[brush_idx]
-	var FuncGodotFace_count: int = brush.FuncGodotFaces.size()
+	var face_count: int = brush.faces.size()
 	
 	var entity_geo:= map_data.entity_geo[entity_idx]
 	var brush_geo:= entity_geo.brushes[brush_idx]
@@ -156,22 +164,22 @@ func generate_brush_vertices(entity_idx: int, brush_idx: int) -> void:
 	var phong_angle_str: String = entity.properties.get("_phong_angle", "89")
 	var phong_angle: float = float(phong_angle_str) if phong_angle_str.is_valid_float() else 89.0
 	
-	for f0 in range(FuncGodotFace_count):
-		var FuncGodotFace:= brush.FuncGodotFaces[f0]
-		var FuncGodotFace_geo:= brush_geo.FuncGodotFaces[f0]
-		var texture:= map_data.textures[FuncGodotFace.texture_idx]
+	for f0 in range(face_count):
+		var face:= brush.faces[f0]
+		var face_geo:= brush_geo.faces[f0]
+		var texture:= map_data.textures[face.texture_idx]
 		
-		for f1 in range(FuncGodotFace_count):
-			for f2 in range(FuncGodotFace_count):
-				var vertex = intersect_face(brush.FuncGodotFaces[f0], brush.FuncGodotFaces[f1], brush.FuncGodotFaces[f2])
+		for f1 in range(face_count):
+			for f2 in range(face_count):
+				var vertex = intersect_face(brush.faces[f0], brush.faces[f1], brush.faces[f2])
 				if not vertex is Vector3:
 					continue
-				if not vertex_in_hull(brush.FuncGodotFaces, vertex):
+				if not vertex_in_hull(brush.faces, vertex):
 					continue
 				
 				var merged: bool = false
 				for f3 in range(f0):
-					var other_face_geo := brush_geo.FuncGodotFaces[f3]
+					var other_face_geo := brush_geo.faces[f3]
 					for i in range(len(other_face_geo.vertices)):
 						if other_face_geo.vertices[i].vertex.distance_to(vertex) < CMP_EPSILON:
 							vertex = other_face_geo.vertices[i].vertex
@@ -184,28 +192,28 @@ func generate_brush_vertices(entity_idx: int, brush_idx: int) -> void:
 				var normal: Vector3
 				if phong:
 					var threshold:= cos((phong_angle + 0.01) * 0.0174533)
-					normal = FuncGodotFace.plane_normal
-					if FuncGodotFace.plane_normal.dot(brush.FuncGodotFaces[f1].plane_normal) > threshold:
-						normal += brush.FuncGodotFaces[f1].plane_normal
-					if FuncGodotFace.plane_normal.dot(brush.FuncGodotFaces[f2].plane_normal) > threshold:
-						normal += brush.FuncGodotFaces[f2].plane_normal
+					normal = face.plane_normal
+					if face.plane_normal.dot(brush.faces[f1].plane_normal) > threshold:
+						normal += brush.faces[f1].plane_normal
+					if face.plane_normal.dot(brush.faces[f2].plane_normal) > threshold:
+						normal += brush.faces[f2].plane_normal
 					normal = normal.normalized()
 				else:
-					normal = FuncGodotFace.plane_normal
+					normal = face.plane_normal
 				
 				var uv: Vector2
 				var tangent: Vector4
-				if FuncGodotFace.is_valve_uv:
-					uv = get_valve_uv(vertex, FuncGodotFace, texture.width, texture.height)
-					tangent = get_valve_tangent(FuncGodotFace)
+				if face.is_valve_uv:
+					uv = get_valve_uv(vertex, face, texture.width, texture.height)
+					tangent = get_valve_tangent(face)
 				else:
-					uv = get_standard_uv(vertex, FuncGodotFace, texture.width, texture.height)
-					tangent = get_standard_tangent(FuncGodotFace)
+					uv = get_standard_uv(vertex, face, texture.width, texture.height)
+					tangent = get_standard_tangent(face)
 					
-				# Check for a duplicate vertex in the current FuncGodotFace.
+				# Check for a duplicate vertex in the current face.
 				var duplicate_idx: int = -1
-				for i in range(FuncGodotFace_geo.vertices.size()):
-					if FuncGodotFace_geo.vertices[i].vertex == vertex:
+				for i in range(face_geo.vertices.size()):
+					if face_geo.vertices[i].vertex == vertex:
 						duplicate_idx = i
 						break
 				
@@ -215,14 +223,14 @@ func generate_brush_vertices(entity_idx: int, brush_idx: int) -> void:
 					new_face_vert.normal = normal
 					new_face_vert.tangent = tangent
 					new_face_vert.uv = uv
-					FuncGodotFace_geo.vertices.append(new_face_vert)
+					face_geo.vertices.append(new_face_vert)
 				elif phong:
-					FuncGodotFace_geo.vertices[duplicate_idx].normal += normal
+					face_geo.vertices[duplicate_idx].normal += normal
 	
 	# maybe optimisable? 
-	for FuncGodotFace_geo in brush_geo.FuncGodotFaces:
-		for i in range(FuncGodotFace_geo.vertices.size()):
-			FuncGodotFace_geo.vertices[i].normal = FuncGodotFace_geo.vertices[i].normal.normalized()
+	for face_geo in brush_geo.faces:
+		for i in range(face_geo.vertices.size()):
+			face_geo.vertices[i].normal = face_geo.vertices[i].normal.normalized()
 	
 # returns null if no intersection, else intersection vertex.
 func intersect_face(f0: FuncGodotMapData.FuncGodotFace, f1: FuncGodotMapData.FuncGodotFace, f2: FuncGodotMapData.FuncGodotFace):
@@ -236,19 +244,19 @@ func intersect_face(f0: FuncGodotMapData.FuncGodotFace, f1: FuncGodotMapData.Fun
 	
 	return (n1.cross(n2) * f0.plane_dist + n2.cross(n0) * f1.plane_dist + n0.cross(n1) * f2.plane_dist) / denom
 	
-func vertex_in_hull(FuncGodotFaces: Array[FuncGodotMapData.FuncGodotFace], vertex: Vector3) -> bool:
-	for FuncGodotFace in FuncGodotFaces:
-		var proj: float = FuncGodotFace.plane_normal.dot(vertex)
-		if proj > FuncGodotFace.plane_dist and absf(FuncGodotFace.plane_dist - proj) > CMP_EPSILON:
+func vertex_in_hull(faces: Array[FuncGodotMapData.FuncGodotFace], vertex: Vector3) -> bool:
+	for face in faces:
+		var proj: float = face.plane_normal.dot(vertex)
+		if proj > face.plane_dist and absf(face.plane_dist - proj) > CMP_EPSILON:
 			return false
 	
 	return true
 	
-func get_standard_uv(vertex: Vector3, FuncGodotFace: FuncGodotMapData.FuncGodotFace, texture_width: int, texture_height: int) -> Vector2:
+func get_standard_uv(vertex: Vector3, face: FuncGodotMapData.FuncGodotFace, texture_width: int, texture_height: int) -> Vector2:
 	var uv_out: Vector2
-	var du:= absf(FuncGodotFace.plane_normal.dot(UP_VECTOR))
-	var dr:= absf(FuncGodotFace.plane_normal.dot(RIGHT_VECTOR))
-	var df:= absf(FuncGodotFace.plane_normal.dot(FORWARD_VECTOR))
+	var du:= absf(face.plane_normal.dot(UP_VECTOR))
+	var dr:= absf(face.plane_normal.dot(RIGHT_VECTOR))
+	var df:= absf(face.plane_normal.dot(FORWARD_VECTOR))
 	
 	if du >= dr and du >= df:
 		uv_out = Vector2(vertex.x, -vertex.y)
@@ -257,7 +265,7 @@ func get_standard_uv(vertex: Vector3, FuncGodotFace: FuncGodotMapData.FuncGodotF
 	elif df >= du and df >= dr:
 		uv_out = Vector2(vertex.y, -vertex.z)
 	
-	var angle: float = deg_to_rad(FuncGodotFace.uv_extra.rot)
+	var angle: float = deg_to_rad(face.uv_extra.rot)
 	uv_out = Vector2(
 		uv_out.x * cos(angle) - uv_out.y * sin(angle),
 		uv_out.x * sin(angle) + uv_out.y * cos(angle))
@@ -265,20 +273,20 @@ func get_standard_uv(vertex: Vector3, FuncGodotFace: FuncGodotMapData.FuncGodotF
 	uv_out.x /= texture_width
 	uv_out.y /= texture_height
 	
-	uv_out.x /= FuncGodotFace.uv_extra.scale_x
-	uv_out.y /= FuncGodotFace.uv_extra.scale_y
+	uv_out.x /= face.uv_extra.scale_x
+	uv_out.y /= face.uv_extra.scale_y
 	
-	uv_out.x += FuncGodotFace.uv_standard.x / texture_width
-	uv_out.y += FuncGodotFace.uv_standard.y / texture_height
+	uv_out.x += face.uv_standard.x / texture_width
+	uv_out.y += face.uv_standard.y / texture_height
 	
 	return uv_out
 
-func get_valve_uv(vertex: Vector3, FuncGodotFace: FuncGodotMapData.FuncGodotFace, texture_width: int, texture_height: int) -> Vector2:
+func get_valve_uv(vertex: Vector3, face: FuncGodotMapData.FuncGodotFace, texture_width: int, texture_height: int) -> Vector2:
 	var uv_out: Vector2
-	var u_axis:= FuncGodotFace.uv_valve.u.axis
-	var v_axis:= FuncGodotFace.uv_valve.v.axis
-	var u_shift:= FuncGodotFace.uv_valve.u.offset
-	var v_shift:= FuncGodotFace.uv_valve.v.offset
+	var u_axis:= face.uv_valve.u.axis
+	var v_axis:= face.uv_valve.v.axis
+	var u_shift:= face.uv_valve.u.offset
+	var v_shift:= face.uv_valve.v.offset
 	
 	uv_out.x = u_axis.dot(vertex);
 	uv_out.y = v_axis.dot(vertex);
@@ -286,18 +294,18 @@ func get_valve_uv(vertex: Vector3, FuncGodotFace: FuncGodotMapData.FuncGodotFace
 	uv_out.x /= texture_width;
 	uv_out.y /= texture_height;
 	
-	uv_out.x /= FuncGodotFace.uv_extra.scale_x;
-	uv_out.y /= FuncGodotFace.uv_extra.scale_y;
+	uv_out.x /= face.uv_extra.scale_x;
+	uv_out.y /= face.uv_extra.scale_y;
 	
 	uv_out.x += u_shift / texture_width;
 	uv_out.y += v_shift / texture_height;
 	
 	return uv_out
 
-func get_standard_tangent(FuncGodotFace: FuncGodotMapData.FuncGodotFace) -> Vector4:
-	var du:= FuncGodotFace.plane_normal.dot(UP_VECTOR)
-	var dr:= FuncGodotFace.plane_normal.dot(RIGHT_VECTOR)
-	var df:= FuncGodotFace.plane_normal.dot(FORWARD_VECTOR)
+func get_standard_tangent(face: FuncGodotMapData.FuncGodotFace) -> Vector4:
+	var du:= face.plane_normal.dot(UP_VECTOR)
+	var dr:= face.plane_normal.dot(RIGHT_VECTOR)
+	var df:= face.plane_normal.dot(FORWARD_VECTOR)
 	var dua:= absf(du)
 	var dra:= absf(dr)
 	var dfa:= absf(df)
@@ -315,15 +323,15 @@ func get_standard_tangent(FuncGodotFace: FuncGodotMapData.FuncGodotFace) -> Vect
 		u_axis = RIGHT_VECTOR
 		v_sign = signf(df)
 		
-	v_sign *= signf(FuncGodotFace.uv_extra.scale_y);
-	u_axis = u_axis.rotated(FuncGodotFace.plane_normal, deg_to_rad(-FuncGodotFace.uv_extra.rot) * v_sign)
+	v_sign *= signf(face.uv_extra.scale_y);
+	u_axis = u_axis.rotated(face.plane_normal, deg_to_rad(-face.uv_extra.rot) * v_sign)
 	
 	return Vector4(u_axis.x, u_axis.y, u_axis.z, v_sign)
 
-func get_valve_tangent(FuncGodotFace: FuncGodotMapData.FuncGodotFace) -> Vector4:
-	var u_axis:= FuncGodotFace.uv_valve.u.axis.normalized()
-	var v_axis:= FuncGodotFace.uv_valve.v.axis.normalized()
-	var v_sign = -signf(FuncGodotFace.plane_normal.cross(u_axis).dot(v_axis))
+func get_valve_tangent(face: FuncGodotMapData.FuncGodotFace) -> Vector4:
+	var u_axis:= face.uv_valve.u.axis.normalized()
+	var v_axis:= face.uv_valve.v.axis.normalized()
+	var v_sign = -signf(face.plane_normal.cross(u_axis).dot(v_axis))
 	
 	return Vector4(u_axis.x, u_axis.y, u_axis.z, v_sign)
 
@@ -333,13 +341,13 @@ func get_entities() -> Array[FuncGodotMapData.FuncGodotEntityGeometry]:
 func get_brush_vertex_count(entity_idx: int, brush_idx: int) -> int:
 	var vertex_count: int = 0
 	var brush_geo:= map_data.entity_geo[entity_idx].brushes[brush_idx]
-	for FuncGodotFace in brush_geo.FuncGodotFaces:
-		vertex_count += FuncGodotFace.vertices.size()
+	for face in brush_geo.faces:
+		vertex_count += face.vertices.size()
 	return vertex_count
 	
 func get_brush_index_count(entity_idx: int, brush_idx: int) -> int:
 	var index_count: int = 0
 	var brush_geo:= map_data.entity_geo[entity_idx].brushes[brush_idx]
-	for FuncGodotFace in brush_geo.FuncGodotFaces:
-		index_count += FuncGodotFace.indicies.size()
+	for face in brush_geo.faces:
+		index_count += face.indicies.size()
 	return index_count

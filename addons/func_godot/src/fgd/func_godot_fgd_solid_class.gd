@@ -10,15 +10,22 @@ enum SpawnType {
 	ENTITY = 2, ## Is its own separate entity
 }
 
+enum OriginType {
+	IGNORE = 0, ## Ignore origin property and only use averaged brush vertices for positioning. Standard Quake 1 / Half-Life behavior.
+	ABSOLUTE = 1, ## Use origin property for position center, ignoring brush vertice positions.
+	RELATIVE = 2 ## Use origin relative to averaged brush vertice positions. Use this setting if brush entity vertices have local coordinates to the origin.
+}
+
 enum CollisionShapeType {
 	NONE, ## No collision shape is built. Useful for decorative geometry like vines, hanging wires, grass, etc...
 	CONVEX, ## Will build a Convex CollisionShape3D for each brush used to make this Solid Class. Required for non-[StaticBody3D] nodes like [Area3D].
 	CONCAVE ## Should have a concave collision shape
 }
 
-@export_group("Spawn")
-## Controls whether a given Solid Class is the worldspawn, is combined with the worldspawn, or is spawned as its own free-standing entity.
+## Controls whether this Solid Class is the worldspawn, is combined with the worldspawn, or is spawned as its own free-standing entity.
 @export var spawn_type: SpawnType = SpawnType.ENTITY
+## Controls how this Solid Class utilizes the `origin` key value pair to find its position.
+@export var origin_type: OriginType = OriginType.IGNORE
 
 @export_group("Visual Build")
 ## Controls whether a [MeshInstance3D] is built for this Solid Class.
