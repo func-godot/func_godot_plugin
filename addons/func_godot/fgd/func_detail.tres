@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("1_0fsmp")
 spawn_type = 2
-origin_type = 1
+origin_type = 0
 build_visuals = true
 use_in_baked_light = true
 shadow_casting_setting = 1
