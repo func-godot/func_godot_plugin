@@ -43,6 +43,12 @@ extends Resource
 ## Default scale of textures in NetRadiant Custom.
 @export var default_scale : String = "1.0"
 
+## Clip texture path that gets applied to weapclip and nodraw shaders.
+@export var clip_texture: String = "textures/special/clip"
+
+## Skip texture path that gets applied to caulk and nodrawnonsolid shaders.
+@export var skip_texture: String = "textures/special/skip"
+
 ## Generates completed text for a .shader file.
 func build_shader_text() -> String:
 	var shader_text: String = ""
@@ -99,6 +105,10 @@ func build_gamepack_text() -> String:
   patchtypes="quake3"
   q3map2_type="quake3"
   default_scale="%s"
+  shader_weapclip="%s"
+  shader_caulk="%s"
+  shader_nodraw="%s"
+  shader_nodrawnonsolid="%s"
   common_shaders_name="Common"
   common_shaders_dir="common/"
 />
@@ -116,7 +126,11 @@ func build_gamepack_text() -> String:
 		texturetypes_str,
 		modeltypes_str,
 		soundtypes_str,
-		default_scale
+		default_scale,
+		clip_texture,
+		skip_texture,
+		clip_texture,
+		skip_texture
 	]
 
 ## Exports or updates a folder in the /games directory, with an icon, .cfg, and all accompanying FGDs.
