@@ -84,7 +84,6 @@ func run() -> void:
 			
 		if entity.brushes.size() > 0:
 			entity.center /= float(entity.brushes.size())
-			print(entity.spawn_type)
 			if entity.origin_type != FuncGodotMapData.FuncGodotEntityOriginType.IGNORE and 'origin' in entity.properties:
 				var origin_comps: PackedFloat64Array = entity.properties['origin'].split_floats(' ')
 				if origin_comps.size() > 2:
