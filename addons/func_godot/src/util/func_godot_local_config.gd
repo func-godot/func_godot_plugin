@@ -1,9 +1,9 @@
 @tool
 @icon("res://addons/func_godot/icons/icon_godot_ranger.svg")
 ## Local machine project wide settings. Can define global defaults for some FuncGodot properties.
-## **DO NOT CREATE A NEW RESOURCE!** This resource works by saving a configuration file to your game's *user://* folder and pulling the properties from that config file rather than this resource.
-## Use the premade `addons/func_godot/project_config.tres` instead.
-class_name FuncGodotProjectConfig
+## DO NOT CREATE A NEW RESOURCE! This resource works by saving a configuration file to your game's *user://* folder and pulling the properties from that config file rather than this resource.
+## Use the premade `addons/func_godot/func_godot_local_config.tres` instead.
+class_name FuncGodotLocalConfig
 extends Resource
 
 enum PROPERTY {
@@ -11,7 +11,8 @@ enum PROPERTY {
 	TRENCHBROOM_GAME_CONFIG_FOLDER,
 	NETRADIANT_CUSTOM_GAMEPACKS_FOLDER,
 	MAP_EDITOR_GAME_PATH,
-	GAME_PATH_MODELS_FOLDER
+	GAME_PATH_MODELS_FOLDER,
+	DEFAULT_INVERSE_SCALE
 }
 
 @export var export_func_godot_settings: bool: set = _save_settings
@@ -50,17 +51,23 @@ const CONFIG_PROPERTIES: Array[Dictionary] = [
 		"usage": PROPERTY_USAGE_EDITOR,
 		"type": TYPE_STRING,
 		"func_godot_type": PROPERTY.GAME_PATH_MODELS_FOLDER
+	},
+	{
+		"name": "default_inverse_scale_factor",
+		"usage": PROPERTY_USAGE_EDITOR,
+		"type": TYPE_FLOAT,
+		"func_godot_type": PROPERTY.DEFAULT_INVERSE_SCALE
 	}
 ]
 
 var settings_dict: Dictionary
 var loaded := false
 
-static func get_setting(name: PROPERTY) -> String:
-	var settings = load("res://addons/func_godot/func_godot_project_config.tres")
+static func get_setting(name: PROPERTY) -> Variant:
+	var settings = load("res://addons/func_godot/func_godot_local_config.tres")
 	if not settings.loaded: 
 		settings._load_settings()
-	return settings.settings_dict.get(PROPERTY.keys()[name], '') as String
+	return settings.settings_dict.get(PROPERTY.keys()[name], '') as Variant
 
 func _get_property_list() -> Array:
 	return CONFIG_PROPERTIES.duplicate()
@@ -85,6 +92,8 @@ func _get_default_value(type) -> Variant:
 		TYPE_INT: return 0
 		TYPE_FLOAT: return 0.0
 		TYPE_BOOL: return false
+		TYPE_VECTOR2: return Vector2.ZERO
+		TYPE_VECTOR3: return Vector3.ZERO
 		TYPE_ARRAY: return []
 		TYPE_DICTIONARY: return {}
 	push_error("Invalid setting type. Returning null")

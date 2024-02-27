@@ -16,7 +16,7 @@ extends Resource
 func do_export_file(model_key_supported: bool = true, fgd_output_folder: String = "") -> void:
 	if Engine.is_editor_hint() and get_fgd_classes().size() > 0:
 		if fgd_output_folder.is_empty():
-			fgd_output_folder = FuncGodotProjectConfig.get_setting(FuncGodotProjectConfig.PROPERTY.FGD_OUTPUT_FOLDER) as String
+			fgd_output_folder = FuncGodotLocalConfig.get_setting(FuncGodotLocalConfig.PROPERTY.FGD_OUTPUT_FOLDER) as String
 		if fgd_output_folder.is_empty():
 			print("Skipping export: No game config folder")
 			return

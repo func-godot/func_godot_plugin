@@ -71,30 +71,25 @@ func _exit_tree() -> void:
 ## Create the toolbar controls for [FuncGodotMap] instances in the editor
 func create_func_godot_map_control() -> Control:
 	var separator = VSeparator.new()
-
+	
 	var icon = TextureRect.new()
 	icon.texture = preload("res://addons/func_godot/icons/icon_slipgate3d.svg")
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-
-	var quick_build_button = Button.new()
-	quick_build_button.text = "Quick Build"
-	quick_build_button.connect("pressed",Callable(self,"func_godot_map_quick_build"))
-
-	var full_build_button = Button.new()
-	full_build_button.text = "Full Build"
-	full_build_button.connect("pressed",Callable(self,"func_godot_map_full_build"))
-
+	
+	var build_button = Button.new()
+	build_button.text = "Build"
+	build_button.connect("pressed",Callable(self,"func_godot_map_build"))
+	
 	var unwrap_uv2_button = Button.new()
 	unwrap_uv2_button.text = "Unwrap UV2"
 	unwrap_uv2_button.connect("pressed",Callable(self,"func_godot_map_unwrap_uv2"))
-
+	
 	var control = HBoxContainer.new()
 	control.add_child(separator)
 	control.add_child(icon)
-	control.add_child(quick_build_button)
-	control.add_child(full_build_button)
+	control.add_child(build_button)
 	control.add_child(unwrap_uv2_button)
-
+	
 	return control
 
 ## Create a progress bar for building a [FuncGodotMap]
@@ -118,24 +113,8 @@ func create_func_godot_map_progress_bar() -> Control:
 
 	return progress_bar
 
-## Create the "Quick build" button for [FuncGodotMap]s in the editor
-func func_godot_map_quick_build() -> void:
-	var edited_object : FuncGodotMap = edited_object_ref.get_ref()
-	if not edited_object:
-		return
-	
-	edited_object.should_add_children = true
-	edited_object.should_set_owners = false
-
-	set_func_godot_map_control_disabled(true)
-	edited_object.build_progress.connect(func_godot_map_build_progress)
-	edited_object.build_complete.connect(func_godot_map_build_complete.bind(edited_object))
-	edited_object.build_failed.connect(func_godot_map_build_complete.bind(edited_object))
-
-	edited_object.verify_and_build()
-
-## Create the "Full Build" button for [FuncGodotMap]s in the editor
-func func_godot_map_full_build() -> void:
+## Create the "Build" button for [FuncGodotMap]s in the editor
+func func_godot_map_build() -> void:
 	var edited_object : FuncGodotMap = edited_object_ref.get_ref()
 	if not edited_object:
 		return

@@ -88,10 +88,13 @@ func build_def_text(model_key_supported: bool = true) -> String:
 		res += ")"
 
 	res += " = " + classname
-
-	var normalized_description = description.replace("\n", " ").strip_edges() if prefix != "@BaseClass" else ""
-	if normalized_description != "":
-		res += " : \"%s\" " % [normalized_description]
+	
+	if prefix != "@BaseClass": # having a description in BaseClasses crashes some editors
+		var normalized_description = description.replace("\n", " ").strip_edges() if prefix != "@BaseClass" else ""
+		if normalized_description != "":
+			res += " : \"%s\" " % [normalized_description]
+		else: # Having no description crashes some editors
+			res += " : \"" + classname + "\" "
 	
 	if class_properties.size() > 0:
 		res += FuncGodotUtil.newline() + "[" + FuncGodotUtil.newline()

@@ -187,7 +187,7 @@ func parse_default_uv_scale(texture_scale : Vector2) -> String:
 
 ## Exports or updates a folder in the /games directory, with an icon, .cfg, and all accompanying FGDs.
 func do_export_file() -> void:
-	var config_folder: String = FuncGodotProjectConfig.get_setting(FuncGodotProjectConfig.PROPERTY.TRENCHBROOM_GAME_CONFIG_FOLDER) as String
+	var config_folder: String = FuncGodotLocalConfig.get_setting(FuncGodotLocalConfig.PROPERTY.TRENCHBROOM_GAME_CONFIG_FOLDER) as String
 	if config_folder.is_empty():
 		printerr("Skipping export: No TrenchBroom Game folder")
 		return
@@ -223,4 +223,4 @@ func do_export_file() -> void:
 	# FGD
 	var export_fgd : FuncGodotFGDFile = fgd_file.duplicate()
 	export_fgd.do_export_file(true, config_folder)
-	print("Export complete\n")
+	print("TrenchBroom Game Config export complete\n")

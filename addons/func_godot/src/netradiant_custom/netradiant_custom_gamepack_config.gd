@@ -135,11 +135,11 @@ func build_gamepack_text() -> String:
 
 ## Exports or updates a folder in the /games directory, with an icon, .cfg, and all accompanying FGDs.
 func do_export_file() -> void:
-	if (FuncGodotProjectConfig.get_setting(FuncGodotProjectConfig.PROPERTY.MAP_EDITOR_GAME_PATH) as String).is_empty():
+	if (FuncGodotLocalConfig.get_setting(FuncGodotLocalConfig.PROPERTY.MAP_EDITOR_GAME_PATH) as String).is_empty():
 		printerr("Skipping export: Map Editor Game Path not set in Project Configuration")
 		return
 	
-	var gamepacks_folder: String = FuncGodotProjectConfig.get_setting(FuncGodotProjectConfig.PROPERTY.NETRADIANT_CUSTOM_GAMEPACKS_FOLDER) as String
+	var gamepacks_folder: String = FuncGodotLocalConfig.get_setting(FuncGodotLocalConfig.PROPERTY.NETRADIANT_CUSTOM_GAMEPACKS_FOLDER) as String
 	if gamepacks_folder.is_empty():
 		printerr("Skipping export: No NetRadiant Custom gamepacks folder")
 		return
@@ -216,4 +216,4 @@ func do_export_file() -> void:
 	# FGD
 	var export_fgd : FuncGodotFGDFile = fgd_file.duplicate()
 	export_fgd.do_export_file(true, gamepacks_folder + "/" + gamepack_name + ".game/" + base_game_path)
-	print("Export complete\n")
+	print("NetRadiant Custom Gamepack export complete\n")

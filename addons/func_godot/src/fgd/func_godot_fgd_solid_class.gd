@@ -13,7 +13,7 @@ enum SpawnType {
 enum OriginType {
 	IGNORE = 0, ## Ignore origin property and only use averaged brush vertices for positioning. Standard Quake 1 / Half-Life behavior.
 	ABSOLUTE = 1, ## Use origin property for position center, ignoring brush vertice positions.
-	RELATIVE = 2 ## Use origin relative to averaged brush vertice positions. Use this setting if brush entity vertices have local coordinates to the origin.
+	RELATIVE = 2 ## Use origin relative to averaged brush vertice positions. Use this setting if brush entity vertices have coordinates local to the origin.
 }
 
 enum CollisionShapeType {

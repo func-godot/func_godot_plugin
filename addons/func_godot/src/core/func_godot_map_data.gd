@@ -29,7 +29,10 @@ func set_entity_types_by_classname(classname: String, spawn_type: int, origin_ty
 	for entity in entities:
 		if entity.properties.has("classname") and entity.properties["classname"] == classname:
 			entity.spawn_type = spawn_type as FuncGodotMapData.FuncGodotEntitySpawnType
-			entity.origin_type = origin_type as FuncGodotMapData.FuncGodotEntityOriginType
+			if entity.spawn_type == FuncGodotMapData.FuncGodotEntitySpawnType.ENTITY:
+				entity.origin_type = origin_type as FuncGodotMapData.FuncGodotEntityOriginType
+			else:
+				entity.origin_type = FuncGodotMapData.FuncGodotEntityOriginType.IGNORE
 
 func clear() -> void:
 	entities.clear()
