@@ -36,6 +36,10 @@ var prefix: String = ""
 ## Node to generate on map build. This can be a built-in Godot class or a GDExtension class. For Point Class entities that use Scene File instantiation leave this blank.
 @export var node_class := ""
 
+## Class property to use in naming the generated node. Naming occurs before adding to the [SceneTree] and applying properties.
+## Nodes will be named `"entity_" + name_property`. An entity's name should be unique, otherwise you may run into unexpected behavior.
+@export var name_property := ""
+
 func build_def_text(model_key_supported: bool = true) -> String:
 	# Class prefix
 	var res : String = prefix

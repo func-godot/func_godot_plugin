@@ -372,6 +372,12 @@ func build_entity_nodes() -> Array:
 			node_name += "_" + classname
 			if classname in entity_definitions:
 				var entity_definition: FuncGodotFGDEntityClass = entity_definitions[classname] as FuncGodotFGDEntityClass
+				
+				if entity_definition.name_property in properties:
+					var name_prop: String = str(properties[entity_definition.name_property])
+					if not name_prop.is_empty():
+						node_name = "entity_" + name_prop
+				
 				if entity_definition is FuncGodotFGDSolidClass:
 					if entity_definition.spawn_type == FuncGodotFGDSolidClass.SpawnType.MERGE_WORLDSPAWN:
 						entity_nodes.append(null)
