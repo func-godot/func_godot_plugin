@@ -1,6 +1,7 @@
 class_name FuncGodotTextureLoader
 
 enum PBRSuffix {
+	ALBEDO,
 	NORMAL,
 	METALLIC,
 	ROUGHNESS,
@@ -11,6 +12,7 @@ enum PBRSuffix {
 
 # Suffix string / Godot enum / StandardMaterial3D property
 const PBR_SUFFIX_NAMES: Dictionary = {
+	PBRSuffix.ALBEDO: 'albedo',
 	PBRSuffix.NORMAL: 'normal',
 	PBRSuffix.METALLIC: 'metallic',
 	PBRSuffix.ROUGHNESS: 'roughness',
@@ -20,6 +22,7 @@ const PBR_SUFFIX_NAMES: Dictionary = {
 }
 
 const PBR_SUFFIX_PATTERNS: Dictionary = {
+	PBRSuffix.ALBEDO: '%s_albedo.%s',
 	PBRSuffix.NORMAL: '%s_normal.%s',
 	PBRSuffix.METALLIC: '%s_metallic.%s',
 	PBRSuffix.ROUGHNESS: '%s_roughness.%s',
@@ -29,6 +32,7 @@ const PBR_SUFFIX_PATTERNS: Dictionary = {
 }
 
 var PBR_SUFFIX_TEXTURES: Dictionary = {
+	PBRSuffix.ALBEDO: StandardMaterial3D.TEXTURE_ALBEDO,
 	PBRSuffix.NORMAL: StandardMaterial3D.TEXTURE_NORMAL,
 	PBRSuffix.METALLIC: StandardMaterial3D.TEXTURE_METALLIC,
 	PBRSuffix.ROUGHNESS: StandardMaterial3D.TEXTURE_ROUGHNESS,

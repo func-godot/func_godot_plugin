@@ -373,10 +373,13 @@ func build_entity_nodes() -> Array:
 			if classname in entity_definitions:
 				var entity_definition: FuncGodotFGDEntityClass = entity_definitions[classname] as FuncGodotFGDEntityClass
 				
+				var name_prop: String
 				if entity_definition.name_property in properties:
-					var name_prop: String = str(properties[entity_definition.name_property])
-					if not name_prop.is_empty():
-						node_name = "entity_" + name_prop
+					name_prop = str(properties[entity_definition.name_property])
+				elif map_settings.entity_name_property in properties:
+					name_prop = str(properties[map_settings.entity_name_property])
+				if not name_prop.is_empty():
+					node_name = "entity_" + name_prop
 				
 				if entity_definition is FuncGodotFGDSolidClass:
 					if entity_definition.spawn_type == FuncGodotFGDSolidClass.SpawnType.MERGE_WORLDSPAWN:
@@ -446,78 +449,6 @@ func build_entity_nodes() -> Array:
 			queue_add_child(self, node)
 	
 	return entity_nodes
-
-## Resolve entity group hierarchy, turning Trenchbroom groups into nodes and queueing their contents to be added to said nodes as children
-func resolve_trenchbroom_group_hierarchy() -> void:
-	if not map_settings.use_trenchbroom_groups_hierarchy:
-		return
-	
-	var parent_entities := {}
-	var child_entities := {}
-	
-	# Gather all entities which are children in some group or parents in some group
-	for node_idx in range(0, entity_nodes.size()):
-		var node = entity_nodes[node_idx]
-		var properties = entity_dicts[node_idx]['properties']
-		
-		if not properties: 
-			continue
-		
-		if not ('_tb_id' in properties or '_tb_group' in properties or '_tb_layer' in properties):
-			continue
-		
-		# identify children
-		if '_tb_group' in properties or '_tb_layer' in properties: 
-			child_entities[node_idx] = node
-		
-		# identify parents
-		if '_tb_id' in properties:
-			if properties['_tb_name'] != "Unnamed":
-				if properties['_tb_type'] == "_tb_group":
-					node.name = "group_" + str(properties['_tb_id'])
-				elif properties['_tb_type'] == "_tb_layer":
-					node.name = "layer_" + str(properties['_tb_layer_sort_index'])
-				node.name = node.name + "_" + properties['_tb_name']
-			parent_entities[node_idx] = node
-	
-	var child_to_parent_map := {}
-	
-	#For each child,...
-	for node_idx in child_entities:
-		var node = child_entities[node_idx]
-		var properties = entity_dicts[node_idx]['properties']
-		var tb_group = null
-		if '_tb_group' in properties:
-			tb_group = properties['_tb_group']
-		elif '_tb_layer' in properties:
-			tb_group = properties['_tb_layer']
-		if tb_group == null: 
-			continue
-
-		var parent = null
-		var parent_properties = null
-		var parent_entity = null
-		var parent_idx = null
-		
-		#...identify its direct parent out of the parent_entities array
-		for possible_parent in parent_entities:
-			parent_entity = parent_entities[possible_parent]
-			parent_properties = entity_dicts[possible_parent]['properties']
-			
-			if parent_properties['_tb_id'] == tb_group:
-				parent = parent_entity
-				parent_idx = possible_parent
-				break
-		#if there's a match, pass it on to the child-parent relationship map
-		if parent:
-			child_to_parent_map[node_idx] = parent_idx 
-	
-	for child_idx in child_to_parent_map:
-		var child = entity_nodes[child_idx]
-		var parent_idx = child_to_parent_map[child_idx]
-		var parent = entity_nodes[parent_idx]
-		
-		queue_add_child(parent, child, null, true)
 
 ## Build [CollisionShape3D] nodes for brush entities
 func build_entity_collision_shape_nodes() -> Array:
@@ -798,6 +729,78 @@ func apply_entity_occluders() -> void:
 		
 		occluder_instance.occluder = occluder
 
+## Resolve entity group hierarchy, turning Trenchbroom groups into nodes and queueing their contents to be added to said nodes as children
+func resolve_trenchbroom_group_hierarchy() -> void:
+	if not map_settings.use_trenchbroom_groups_hierarchy:
+		return
+	
+	var parent_entities: Dictionary = {}
+	var child_entities: Dictionary = {}
+	
+	# Gather all entities which are children in some group or parents in some group
+	for node_idx in range(0, entity_nodes.size()):
+		var node: Node = entity_nodes[node_idx]
+		var properties: Dictionary = entity_dicts[node_idx]['properties']
+		
+		if not properties: 
+			continue
+		
+		if not ('_tb_id' in properties or '_tb_group' in properties or '_tb_layer' in properties):
+			continue
+		
+		# identify children
+		if '_tb_group' in properties or '_tb_layer' in properties: 
+			child_entities[node_idx] = node
+		
+		# identify parents
+		if '_tb_id' in properties:
+			if properties['_tb_name'] != "Unnamed":
+				if properties['_tb_type'] == "_tb_group":
+					node.name = "group_" + str(properties['_tb_id'])
+				elif properties['_tb_type'] == "_tb_layer":
+					node.name = "layer_" + str(properties['_tb_layer_sort_index'])
+				node.name = node.name + "_" + properties['_tb_name']
+			parent_entities[node_idx] = node
+	
+	var child_to_parent_map: Dictionary = {}
+	
+	#For each child,...
+	for node_idx in child_entities:
+		var node: Node = child_entities[node_idx]
+		var properties: Dictionary = entity_dicts[node_idx]['properties']
+		var tb_group: Variant = null
+		if '_tb_group' in properties:
+			tb_group = properties['_tb_group']
+		elif '_tb_layer' in properties:
+			tb_group = properties['_tb_layer']
+		if tb_group == null: 
+			continue
+
+		var parent: Node = null
+		var parent_properties: Dictionary = {}
+		var parent_entity = null
+		var parent_idx = null
+		
+		#...identify its direct parent out of the parent_entities array
+		for possible_parent in parent_entities:
+			parent_entity = parent_entities[possible_parent]
+			parent_properties = entity_dicts[possible_parent]['properties']
+			
+			if parent_properties['_tb_id'] == tb_group:
+				if '_tb_layer_omit_from_export' in parent_properties:
+					properties['_tb_layer_omit_from_export'] = parent_properties['_tb_layer_omit_from_export']
+				parent = parent_entity
+				parent_idx = possible_parent
+				break
+		#if there's a match, pass it on to the child-parent relationship map
+		if parent:
+			child_to_parent_map[node_idx] = parent_idx 
+	
+	for child_idx in child_to_parent_map:
+		var child = entity_nodes[child_idx]
+		var parent_idx = child_to_parent_map[child_idx]
+		var parent = entity_nodes[parent_idx]
+		queue_add_child(parent, child, null, true)
 
 ## Add a child and its new parent to the add child queue. If [code]below[/code] is a node, add it as a child to that instead. If [code]relative[/code] is true, set the location of node relative to parent.
 func queue_add_child(parent, node, below = null, relative = false) -> void:
@@ -856,7 +859,7 @@ func set_owners_complete() -> void:
 func apply_properties_and_finish() -> void:
 	# Array of all entities' properties
 	var properties_arr: Array[Dictionary] = []
-
+	
 	for entity_idx in range(0, entity_nodes.size()):
 		var entity_node: Node = entity_nodes[entity_idx] as Node
 		if not entity_node:
@@ -864,6 +867,10 @@ func apply_properties_and_finish() -> void:
 		
 		var entity_dict: Dictionary = entity_dicts[entity_idx] as Dictionary
 		var properties: Dictionary = entity_dict['properties'] as Dictionary
+		
+		if '_tb_layer_omit_from_export' in properties and properties['_tb_layer_omit_from_export'] == "1":
+			entity_node.queue_free()
+			continue
 		
 		if 'classname' in properties:
 			var classname: String = properties['classname']
@@ -972,7 +979,7 @@ func apply_properties_and_finish() -> void:
 						# Everything else
 						else:
 							properties[property] = prop_default
-						
+		
 		if 'func_godot_properties' in entity_node:
 			entity_node.func_godot_properties = properties
 		

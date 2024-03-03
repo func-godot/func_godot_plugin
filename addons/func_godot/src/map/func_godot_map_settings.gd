@@ -9,6 +9,11 @@ extends Resource
 ## [FuncGodotFGDFile] that translates map file classnames into Godot nodes and packed scenes.
 @export var entity_fgd: FuncGodotFGDFile = load("res://addons/func_godot/fgd/func_godot_fgd.tres")
 
+## Default class property to use in naming generated nodes. This setting is overridden by `name_property` in [FuncGodotFGDEntityClass].
+## Naming occurs before adding to the [SceneTree] and applying properties.
+## Nodes will be named `"entity_" + name_property`. An entity's name should be unique, otherwise you may run into unexpected behavior.
+@export var entity_name_property: String = ""
+
 @export_category("Textures")
 
 ## Base directory for textures. When building materials, FuncGodot will search this directory for texture files with matching names to the textures assigned to map brush faces.
@@ -40,6 +45,8 @@ extends Resource
 ## Sampler2D uniform that supplies the Albedo in a custom shader when [member default_material] is a [ShaderMaterial].
 @export var default_material_albedo_uniform: String = ""
 
+## Automatic PBR material generation albedo map pattern.
+@export var albedo_map_pattern: String = "%s_albedo.%s"
 ## Automatic PBR material generation normal map pattern.
 @export var normal_map_pattern: String = "%s_normal.%s"
 ## Automatic PBR material generation metallic map pattern
