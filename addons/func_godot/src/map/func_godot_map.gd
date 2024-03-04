@@ -815,7 +815,8 @@ func add_children() -> void:
 				if data:
 					add_child_editor(data['parent'], data['node'], data['below'])
 					if data['relative']:
-						data['node'].global_transform.origin -= data['parent'].global_transform.origin
+						if (data['node'] is Node3D and data['parent'] is Node3D) or (data['node'] is Node2D and data['parent'] is Node2D):
+							data['node'].global_position -= data['parent'].global_position
 				continue
 			add_children_complete()
 			return
@@ -870,6 +871,7 @@ func apply_properties_and_finish() -> void:
 		
 		if '_tb_layer_omit_from_export' in properties and properties['_tb_layer_omit_from_export'] == "1":
 			entity_node.queue_free()
+			properties_arr.append({})
 			continue
 		
 		if 'classname' in properties:
