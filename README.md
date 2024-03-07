@@ -3,7 +3,7 @@
 
 ***FuncGodot*** is a plugin for [Godot 4](https://godotengine.org/) that allows users to generate Godot scenes using the [Quake MAP file format](https://quakewiki.org/wiki/Quake_Map_Format). Map files can be made in a variety of editors, the most commonly recommended one being [TrenchBroom](https://trenchbroom.github.io/). It is a reworking and rewrite of the [Qodot](https://github.com/QodotPlugin/Qodot) plugin for Godot 3 and 4.
 
-[Full documentation is available online](func-godot.github.io/func_godot_docs) as well as off. Release zip files come pre-packaged with the manual, but if you need to you can [download a standalone copy here](https://github.com/func-godot/func_godot_docs/releases/).
+[Full documentation is available online](https://func-godot.github.io/func_godot_docs/) as well as off. Release zip files come pre-packaged with the manual, but if you need to you can [download a standalone copy here](https://github.com/func-godot/func_godot_docs/releases/).
 
 For more help or to contribute to the community, join us on the [Official FuncGodot Discord](https://discord.gg/eBQ7EfNZSZ)!
 
