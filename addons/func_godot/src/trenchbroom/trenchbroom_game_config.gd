@@ -17,7 +17,7 @@ extends Resource
 @export var game_name : String = "FuncGodot"
 
 ## Icon for TrenchBroom's game list.
-@export var icon : Texture2D
+@export var icon : Texture2D = preload("res://addons/func_godot/icon32.png")
 
 ## Available map formats when creating a new map in TrenchBroom. The order of elements in the array is the order TrenchBroom will list the available formats. The `initialmap` key value is optional.
 @export var map_formats: Array[Dictionary] = [
@@ -50,11 +50,6 @@ extends Resource
 	preload("res://addons/func_godot/game_config/trenchbroom/tb_face_tag_clip.tres"),
 	preload("res://addons/func_godot/game_config/trenchbroom/tb_face_tag_skip.tres")
 ]
-
-func _init() -> void:
-	if not icon:
-		if ResourceLoader.exists("res://addons/func_godot/icon.png"):
-			icon = ResourceLoader.load("res://addons/func_godot/icon.png")
 
 ## Matches tag key enum to the String name used in .cfg
 static func get_match_key(tag_match_type: int) -> String:
@@ -210,7 +205,7 @@ func do_export_file() -> void:
 	var icon_path : String = config_folder + "/icon.png"
 	print("Exporting icon to ", icon_path)
 	var export_icon : Image = icon.get_image()
-	#export_icon.resize(32, 32, Image.INTERPOLATE_LANCZOS) <-- doesn't work, Godot can't resize it for some reason
+	export_icon.resize(32, 32, Image.INTERPOLATE_LANCZOS)
 	export_icon.save_png(icon_path)
 	
 	# .cfg

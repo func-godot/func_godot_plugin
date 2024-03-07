@@ -549,10 +549,10 @@ func build_entity_collision_shapes() -> void:
 		var entity_verts: PackedVector3Array = PackedVector3Array()
 		
 		for surface_idx in range(0, entity_surfaces.size()):
-			var surface_verts: Array = entity_surfaces[surface_idx]
-			
-			if surface_verts == null:
+			if entity_surfaces[surface_idx] == null:
 				continue
+
+			var surface_verts: Array = entity_surfaces[surface_idx]
 			
 			if concave:
 				var vertices: PackedVector3Array = surface_verts[Mesh.ARRAY_VERTEX] as PackedVector3Array

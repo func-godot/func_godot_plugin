@@ -14,22 +14,29 @@ extends Resource
 			do_export_file(model_key_word_supported)
 
 func do_export_file(model_key_supported: bool = true, fgd_output_folder: String = "") -> void:
-	if Engine.is_editor_hint() and get_fgd_classes().size() > 0:
-		if fgd_output_folder.is_empty():
-			fgd_output_folder = FuncGodotLocalConfig.get_setting(FuncGodotLocalConfig.PROPERTY.FGD_OUTPUT_FOLDER) as String
-		if fgd_output_folder.is_empty():
-			print("Skipping export: No game config folder")
+	if not Engine.is_editor_hint():
+		return
+	for base_fgd in base_fgd_files:
+		if base_fgd.get_fgd_classes().is_empty():
 			return
+	if base_fgd_files.is_empty() and get_fgd_classes().is_empty():
+		return
+	
+	if fgd_output_folder.is_empty():
+		fgd_output_folder = FuncGodotLocalConfig.get_setting(FuncGodotLocalConfig.PROPERTY.FGD_OUTPUT_FOLDER) as String
+	if fgd_output_folder.is_empty():
+		print("Skipping export: No game config folder")
+		return
 
-		if fgd_name == "":
-			print("Skipping export: Empty FGD name")
+	if fgd_name == "":
+		print("Skipping export: Empty FGD name")
 
-		var fgd_file = fgd_output_folder + "/" + fgd_name + ".fgd"
+	var fgd_file = fgd_output_folder + "/" + fgd_name + ".fgd"
 
-		print("Exporting FGD to ", fgd_file)
-		var file_obj := FileAccess.open(fgd_file, FileAccess.WRITE)
-		file_obj.store_string(build_class_text(model_key_supported))
-		file_obj.close()
+	print("Exporting FGD to ", fgd_file)
+	var file_obj := FileAccess.open(fgd_file, FileAccess.WRITE)
+	file_obj.store_string(build_class_text(model_key_supported))
+	file_obj.close()
 
 @export_group("Map Editor")
 

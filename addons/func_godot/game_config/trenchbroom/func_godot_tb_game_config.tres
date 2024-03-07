@@ -2,17 +2,17 @@
 
 [ext_resource type="Resource" uid="uid://crgpdahjaj" path="res://addons/func_godot/fgd/func_godot_fgd.tres" id="1_8u1vq"]
 [ext_resource type="Resource" uid="uid://b4xhdj0e16lop" path="res://addons/func_godot/game_config/trenchbroom/tb_face_tag_clip.tres" id="1_rsp20"]
-[ext_resource type="Texture2D" uid="uid://cp2as6ujvknyu" path="res://addons/func_godot/icon.png" id="1_v6wej"]
 [ext_resource type="Resource" uid="uid://ca7377sfgj074" path="res://addons/func_godot/game_config/trenchbroom/tb_face_tag_skip.tres" id="2_166i2"]
 [ext_resource type="Script" path="res://addons/func_godot/src/trenchbroom/trenchbroom_game_config.gd" id="2_ns6ah"]
 [ext_resource type="Resource" uid="uid://37iduqf7tpxq" path="res://addons/func_godot/game_config/trenchbroom/tb_brush_tag_func.tres" id="3_mbuv7"]
 [ext_resource type="Resource" uid="uid://co2sb1ng7cw4i" path="res://addons/func_godot/game_config/trenchbroom/tb_brush_tag_trigger.tres" id="4_y0tjm"]
+[ext_resource type="Texture2D" uid="uid://decwujsyhj0qy" path="res://addons/func_godot/icon32.png" id="6_tex5j"]
 
 [resource]
 script = ExtResource("2_ns6ah")
 export_file = false
 game_name = "FuncGodot"
-icon = ExtResource("1_v6wej")
+icon = ExtResource("6_tex5j")
 map_formats = Array[Dictionary]([{
 "format": "Valve",
 "initialmap": "initial_valve.map"

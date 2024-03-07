@@ -7,7 +7,7 @@ extends Resource
 @export var inverse_scale_factor: float = 32.0
 
 ## [FuncGodotFGDFile] that translates map file classnames into Godot nodes and packed scenes.
-@export var entity_fgd: FuncGodotFGDFile = load("res://addons/func_godot/fgd/func_godot_fgd.tres")
+@export var entity_fgd: FuncGodotFGDFile = preload("res://addons/func_godot/fgd/func_godot_fgd.tres")
 
 ## Default class property to use in naming generated nodes. This setting is overridden by `name_property` in [FuncGodotFGDEntityClass].
 ## Naming occurs before adding to the [SceneTree] and applying properties.
@@ -36,11 +36,8 @@ extends Resource
 ## File extension to search for [Material] definitions
 @export var material_file_extension: String = "tres"
 
-## If true, all materials will be unshaded, ignoring light. Also known as "fullbright".
-@export var unshaded: bool = false
-
 ## [Material] used as template when generating missing materials.
-@export var default_material: Material = StandardMaterial3D.new()
+@export var default_material: Material = preload("res://addons/func_godot/textures/default_material.tres")
 
 ## Sampler2D uniform that supplies the Albedo in a custom shader when [member default_material] is a [ShaderMaterial].
 @export var default_material_albedo_uniform: String = ""
@@ -59,6 +56,9 @@ extends Resource
 @export var ao_map_pattern: String = "%s_ao.%s"
 ## Automatic PBR material generation height map pattern
 @export var height_map_pattern: String = "%s_height.%s"
+
+## If true, all materials will be unshaded, ignoring light. Also known as "fullbright".
+@export var unshaded: bool = false
 
 ## Save automatically generated materials to disk, allowing reuse across [FuncGodotMap] nodes. [i]NOTE: Materials do not use the Default Material settings after saving.[/i]
 @export var save_generated_materials: bool = true

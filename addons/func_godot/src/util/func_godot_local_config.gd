@@ -121,7 +121,8 @@ func _try_loading() -> void:
 	if not loaded: _load_settings()
 
 func _save_settings(_s = null) -> void:
-	if settings_dict.size() == 0: return
+	if settings_dict.size() == 0: 
+		return
 	var path = _get_path()
 	var file = FileAccess.open(path, FileAccess.WRITE)
 	var json = JSON.stringify(settings_dict)
@@ -130,5 +131,6 @@ func _save_settings(_s = null) -> void:
 	print("Saved settings to ", path)
 
 func _get_path() -> String:
-	var application_name = ProjectSettings.get('application/config/name')
-	return 'user://' + application_name  + 'FuncGodotConfig.json'
+	var application_name: String = ProjectSettings.get('application/config/name')
+	application_name = application_name.replace(" ", "_")
+	return 'user://' + application_name  + '_FuncGodotConfig.json'
