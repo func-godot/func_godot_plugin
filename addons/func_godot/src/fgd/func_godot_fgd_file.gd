@@ -16,11 +16,6 @@ extends Resource
 func do_export_file(model_key_supported: bool = true, fgd_output_folder: String = "") -> void:
 	if not Engine.is_editor_hint():
 		return
-	for base_fgd in base_fgd_files:
-		if base_fgd.get_fgd_classes().is_empty():
-			return
-	if base_fgd_files.is_empty() and get_fgd_classes().is_empty():
-		return
 	
 	if fgd_output_folder.is_empty():
 		fgd_output_folder = FuncGodotLocalConfig.get_setting(FuncGodotLocalConfig.PROPERTY.FGD_OUTPUT_FOLDER) as String
