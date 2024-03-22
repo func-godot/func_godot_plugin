@@ -115,7 +115,7 @@ func build_class_text() -> String:
 			%s
 		]
 	},
-	"faceeattribs": { 
+	"faceattribs": { 
 		"defaults": {
 			%s
 		},
