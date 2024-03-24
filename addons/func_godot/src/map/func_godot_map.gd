@@ -915,9 +915,10 @@ func apply_properties_and_finish() -> void:
 									prop_color.g8 = prop_comps[1].to_int()
 									prop_color.b8 = prop_comps[2].to_int()
 									prop_color.a = 1.0
+									properties[property] = prop_color
 								else:
 									push_error("Invalid Color format for \'" + property + "\' in entity \'" + classname + "\': " + prop_string)
-									properties[property] = prop_color
+									properties[property] = prop_default
 							TYPE_DICTIONARY:
 								var prop_desc = entity_definition.class_property_descriptions[property]
 								if prop_desc is Array and prop_desc.size() > 1 and prop_desc[1] is int:
