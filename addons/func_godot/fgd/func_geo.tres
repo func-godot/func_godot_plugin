@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="FuncGodotFGDSolidClass" load_steps=3 format=3 uid="uid://b70vf4t5dc70t"]
+
+[ext_resource type="Resource" uid="uid://nayxb8n7see2" path="res://addons/func_godot/fgd/phong_base.tres" id="1_5mwee"]
+[ext_resource type="Script" path="res://addons/func_godot/src/fgd/func_godot_fgd_solid_class.gd" id="2_8o081"]
+
+[resource]
+script = ExtResource("2_8o081")
+spawn_type = 2
+origin_type = 0
+build_visuals = true
+use_in_baked_light = true
+shadow_casting_setting = 1
+build_occlusion = true
+render_layers = 1
+collision_shape_type = 2
+collision_layer = 1
+collision_mask = 0
+collision_priority = 1.0
+collision_shape_margin = 0.04
+classname = "func_geo"
+description = "Static collidable geometry. Builds a StaticBody3D with a MeshInstance3D, a single concave CollisionShape3D, and an OccluderInstance3D."
+func_godot_internal = false
+base_classes = Array[Resource]([ExtResource("1_5mwee")])
+class_properties = {}
+class_property_descriptions = {}
+meta_properties = {
+"color": Color(0.8, 0.8, 0.8, 1)
+}
+node_class = "StaticBody3D"
+name_property = ""
