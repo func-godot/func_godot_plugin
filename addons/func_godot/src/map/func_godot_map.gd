@@ -386,6 +386,7 @@ func build_entity_nodes() -> Array:
 					node_name = "entity_" + name_prop
 				
 				if entity_definition is FuncGodotFGDSolidClass:
+					properties['textures_used'] = entity_dict['textures_used']
 					if entity_definition.spawn_type == FuncGodotFGDSolidClass.SpawnType.MERGE_WORLDSPAWN:
 						entity_nodes.append(null)
 						continue
