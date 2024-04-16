@@ -386,13 +386,14 @@ func build_entity_nodes() -> Array:
 					node_name = "entity_" + name_prop
 				
 				if entity_definition is FuncGodotFGDSolidClass:
-					properties['textures_used'] = entity_dict['textures_used']
 					if entity_definition.spawn_type == FuncGodotFGDSolidClass.SpawnType.MERGE_WORLDSPAWN:
 						entity_nodes.append(null)
 						continue
 					if entity_definition.node_class != "":
 						node.queue_free()
 						node = ClassDB.instantiate(entity_definition.node_class)
+					if entity_definition.pass_texture_list_to_metadata:
+						node.set_meta("textures_used", entity_dict['textures_used'])
 				elif entity_definition is FuncGodotFGDPointClass:
 					if entity_definition.scene_file:
 						var flag: PackedScene.GenEditState = PackedScene.GEN_EDIT_STATE_DISABLED

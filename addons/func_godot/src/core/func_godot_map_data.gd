@@ -98,6 +98,7 @@ class FuncGodotBrush:
 class FuncGodotEntity:
 	var properties: Dictionary
 	var brushes: Array[FuncGodotBrush]
+	var texture_ids: Array[int]
 	var center: Vector3
 	var spawn_type: FuncGodotEntitySpawnType
 	var origin_type: FuncGodotEntityOriginType

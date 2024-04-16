@@ -287,6 +287,7 @@ func commit_entity() -> void:
 	new_entity.spawn_type = FuncGodotMapData.FuncGodotEntitySpawnType.ENTITY
 	new_entity.properties = current_entity.properties
 	new_entity.brushes = current_entity.brushes
+	new_entity.texture_ids = current_entity.texture_ids
 	map_data.entities.append(new_entity)
 	
 	current_entity = FuncGodotMapData.FuncGodotEntity.new()
@@ -303,6 +304,7 @@ func commit_face() -> void:
 	current_face.is_valve_uv = valve_uvs
 	
 	current_brush.faces.append(current_face)
+	current_entity.textureIds.append(current_face.texture_idx)
 	current_face = FuncGodotMapData.FuncGodotFace.new()
 
 # Nested

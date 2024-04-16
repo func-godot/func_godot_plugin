@@ -49,13 +49,10 @@ func get_entity_dicts() -> Array:
 		dict["properties"] = entity.properties
 		
 		var textures_used_by_entity:Array = []
-		for i in range(entity.brushes.size()):
-			var faces = entity.brushes[i].faces
-			for j in range(faces.size()):
-				var texture_idx = faces[j].texture_idx
-				var texture_name = map_data.textures[texture_idx].name
-				if !textures_used_by_entity.has(texture_name):
-					textures_used_by_entity.append(texture_name)
+		for texture_id in entity.texture_ids:
+			var texture_to_add = map_data.textures[texture_id].name
+			if !textures_used_by_entity.has(texture_to_add):
+				textures_used_by_entity.append(texture_to_add)
 		dict["textures_used"] = textures_used_by_entity
 		
 		ent_dicts.append(dict)
