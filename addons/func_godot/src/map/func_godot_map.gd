@@ -817,7 +817,7 @@ func add_children() -> void:
 					add_child_editor(data['parent'], data['node'], data['below'])
 					if data['relative']:
 						if (data['node'] is Node3D and data['parent'] is Node3D) or (data['node'] is Node2D and data['parent'] is Node2D):
-							data['node'].global_position -= data['parent'].global_position
+							data['node'].position -= data['parent'].position
 				continue
 			add_children_complete()
 			return
