@@ -26,5 +26,5 @@ emission_map_pattern = "%s_emission.%s"
 ao_map_pattern = "%s_ao.%s"
 height_map_pattern = "%s_height.%s"
 save_generated_materials = true
-uv_unwrap_texel_size = 1.0
+uv_unwrap_texel_size = 2.0
 use_trenchbroom_groups_hierarchy = false

@@ -66,8 +66,9 @@ extends Resource
 @export_category("UV Unwrap")
 
 ## Texel size for UV2 unwrapping.
-## A texel size of 1 will lead to a 1:1 correspondence between texture texels and lightmap texels. Larger values will produce less detailed lightmaps. To conserve memory and filesize, use the largest value that still looks good.
-@export var uv_unwrap_texel_size: float = 1.0
+## Actual texel size is uv_unwrap_texel_size / inverse_scale_factor. A ratio of 1/16 is usually a good place to start with (if inverse_scale_factor is 32, start with a uv_unwrap_texel_size of 2).
+## Larger values will produce less detailed lightmaps. To conserve memory and filesize, use the largest value that still looks good.
+@export var uv_unwrap_texel_size: float = 2.0
 
 @export_category("TrenchBroom")
 
