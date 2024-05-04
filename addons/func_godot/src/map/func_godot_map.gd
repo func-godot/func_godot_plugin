@@ -40,6 +40,16 @@ var _map_file_internal: String = ""
 @export var block_until_complete: bool = false
 ## How many nodes to set the owner of, or add children of, at once. Higher values may lead to quicker build times, but a less responsive editor.
 @export var set_owner_batch_size: int = 1000
+## If true, automatically builds this map when the relevant map file is reimported.
+## This means saving over the map file and tabbing into Godot will cause the map to update automatically.
+@export var auto_build: bool = true:
+	set(value):
+		auto_build = value
+		if auto_build && !EditorInterface.get_resource_filesystem().resources_reimported.is_connected(_on_reimport):
+			EditorInterface.get_resource_filesystem().resources_reimported.connect(_on_reimport)
+		
+		if !auto_build && EditorInterface.get_resource_filesystem().resources_reimported.is_connected(_on_reimport):
+			EditorInterface.get_resource_filesystem().resources_reimported.disconnect(_on_reimport)
 
 # Build context variables
 var func_godot: FuncGodot = null
@@ -67,6 +77,9 @@ var entity_collision_shapes: Array = []
 
 # Overrides
 func _ready() -> void:
+	if Engine.is_editor_hint() && auto_build:
+		verify_and_build()
+	
 	if not DEBUG:
 		return
 	
@@ -81,6 +94,11 @@ func verify_and_build() -> void:
 		build_map()
 	else:
 		emit_signal("build_failed")
+
+func _on_reimport(resources: PackedStringArray) -> void:
+	for resource in resources:
+		if resource == local_map_file:
+			verify_and_build()
 
 ## Build the map.
 func manual_build() -> void:
