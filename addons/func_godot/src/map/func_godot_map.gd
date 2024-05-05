@@ -43,7 +43,7 @@ var _map_file_internal: String = ""
 ## If true, automatically triggers a build on this Node when the relevant local map file is imported.
 ## An import can occur when the Resource is first added, when the resource is updated externally, or when an import is manually triggered.
 ## This means saving over the map file and tabbing into Godot will cause the map to update automatically.
-@export var auto_build_on_local_file_import: bool = false
+@export var auto_build_on_local_file_import: bool = true
 
 # Build context variables
 var func_godot: FuncGodot = null
