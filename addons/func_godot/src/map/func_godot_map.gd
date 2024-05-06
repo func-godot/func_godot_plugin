@@ -276,9 +276,10 @@ func unwrap_uv2(node: Node = null) -> void:
 		print("Unwrapping mesh UV2s")
 	
 	if target_node is MeshInstance3D:
-		var mesh: Mesh = target_node.get_mesh()
-		if mesh is ArrayMesh:
-			mesh.lightmap_unwrap(Transform3D.IDENTITY, map_settings.uv_unwrap_texel_size / map_settings.inverse_scale_factor)
+		if target_node.gi_mode == GeometryInstance3D.GI_MODE_STATIC:
+			var mesh: Mesh = target_node.get_mesh()
+			if mesh is ArrayMesh:
+				mesh.lightmap_unwrap(Transform3D.IDENTITY, map_settings.uv_unwrap_texel_size / map_settings.inverse_scale_factor)
 	
 	for child in target_node.get_children():
 		unwrap_uv2(child)

@@ -139,7 +139,8 @@ func func_godot_map_unwrap_uv2() -> void:
 		return
 
 	set_func_godot_map_control_disabled(true)
-	edited_object.connect("unwrap_uv2_complete", func_godot_map_build_complete.bind(edited_object))
+	if not edited_object.is_connected("unwrap_uv2_complete", func_godot_map_build_complete):
+		edited_object.connect("unwrap_uv2_complete", func_godot_map_build_complete.bind(edited_object))
 
 	edited_object.unwrap_uv2()
 
