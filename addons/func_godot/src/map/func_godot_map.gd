@@ -105,8 +105,11 @@ func verify_parameters() -> bool:
 		return false
 	
 	if not FileAccess.file_exists(_map_file_internal):
-		push_error("Error: No such file %s" % _map_file_internal)
-		return false
+		if FileAccess.file_exists(_map_file_internal + ".import"):
+			_map_file_internal = _map_file_internal + ".import"
+		else:
+			push_error("Error: No such file %s" % _map_file_internal)
+			return false
 	
 	return true
 

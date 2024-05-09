@@ -6,7 +6,7 @@ var geo_generator = preload("res://addons/func_godot/src/core/func_godot_geo_gen
 var surface_gatherer:= FuncGodotSurfaceGatherer.new(map_data)
 
 func load_map(filename: String, keep_tb_groups: bool) -> void:
-	map_parser.load(filename, keep_tb_groups)
+	map_parser.load_map(filename, keep_tb_groups)
 
 func get_texture_list() -> PackedStringArray:
 	var g_textures: PackedStringArray

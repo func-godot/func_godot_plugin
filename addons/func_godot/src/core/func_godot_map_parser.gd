@@ -20,7 +20,7 @@ var _keep_tb_groups: bool = false
 func _init(in_map_data: FuncGodotMapData) -> void:
 	map_data = in_map_data
 
-func load(map_file: String, keep_tb_groups: bool) -> bool:
+func load_map(map_file: String, keep_tb_groups: bool) -> bool:
 	current_face = FuncGodotMapData.FuncGodotFace.new()
 	current_brush = FuncGodotMapData.FuncGodotBrush.new()
 	current_entity = FuncGodotMapData.FuncGodotEntity.new()
@@ -34,16 +34,35 @@ func load(map_file: String, keep_tb_groups: bool) -> bool:
 	valve_uvs = false
 	_keep_tb_groups = keep_tb_groups
 	
+	var lines: PackedStringArray = []
+	
 	var map: FileAccess = FileAccess.open(map_file, FileAccess.READ)
+	
 	if map == null:
 		printerr("Error: Failed to open map file (" + map_file + ")")
 		return false
 	
-	while not map.eof_reached():
-		var line: String = map.get_line()
+	if map_file.ends_with(".import"):
+		while not map.eof_reached():
+			var line: String = map.get_line()
+			if line.begins_with("path"):
+				map.close()
+				line = line.replace("path=", "");
+				line = line.replace('"', '')
+				var map_data: String = (load(line) as QuakeMapFile).map_data
+				if map_data.is_empty():
+					printerr("Error: Failed to open map file (" + line + ")")
+					return false
+				lines = map_data.split("\n")
+				break
+	else:
+		while not map.eof_reached():
+			var line: String = map.get_line()
+			lines.append(line)
+	
+	for line in lines:
 		if comment:
 			comment = false
-		
 		var tokens := split_string(line, [" ", "\t"], true)
 		for s in tokens:
 			token(s)
