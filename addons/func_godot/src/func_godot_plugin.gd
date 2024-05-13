@@ -79,7 +79,8 @@ func _exit_tree() -> void:
 	FuncGodotLocalConfig.remove_editor_settings()
 	
 	# Cleanup Project Settings
-	FuncGodotProjectConfig.remove_project_settings()
+	#INFO: I realized that doing this defeats the purpose of using EditorSettings
+	# FuncGodotProjectConfig.remove_project_settings()
 
 ## Create the toolbar controls for [FuncGodotMap] instances in the editor
 func create_func_godot_map_control() -> Control:
