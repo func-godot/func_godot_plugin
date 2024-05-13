@@ -31,7 +31,7 @@ signal unwrap_uv2_complete()
 var _map_file_internal: String = ""
 
 ## Map settings resource that defines map build scale, textures location, and more.
-@export var map_settings: FuncGodotMapSettings = load("res://addons/func_godot/func_godot_default_map_settings.tres")
+@export var map_settings: FuncGodotMapSettings = FuncGodotProjectConfig.get_setting(FuncGodotProjectConfig.PROPERTY.DEFAULT_MAP_CONFIG)
 
 @export_category("Build")
 ## If true, print profiling data before and after each build step.

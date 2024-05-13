@@ -50,6 +50,9 @@ func _enter_tree() -> void:
 	# Setup Editor Settings
 	FuncGodotLocalConfig.setup_editor_settings()
 	FuncGodotLocalConfig.cleanup_legacy()
+	
+	# Setup Project Settings
+	FuncGodotProjectConfig.setup_project_settings()
 
 func _exit_tree() -> void:
 	remove_custom_type("FuncGodotMap")
@@ -72,7 +75,11 @@ func _exit_tree() -> void:
 		func_godot_map_progress_bar.queue_free()
 		func_godot_map_progress_bar = null
 	
+	# Cleanup Editor Settings
 	FuncGodotLocalConfig.remove_editor_settings()
+	
+	# Cleanup Project Settings
+	FuncGodotProjectConfig.remove_project_settings()
 
 ## Create the toolbar controls for [FuncGodotMap] instances in the editor
 func create_func_godot_map_control() -> Control:
