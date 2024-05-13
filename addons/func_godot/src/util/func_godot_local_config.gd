@@ -14,54 +14,51 @@ enum PROPERTY {
 
 const BASE_PATH: String = "func_godot/local_config/"
 
-const CONFIG_PROPERTIES: Array[Dictionary] = [
-	{
-		"name": "fgd_output_folder",
+const CONFIG_PROPERTIES: Dictionary = {
+	PROPERTY.FGD_OUTPUT_FOLDER: {
 		"usage": PROPERTY_USAGE_EDITOR,
 		"type": TYPE_STRING,
 		"hint": PROPERTY_HINT_GLOBAL_DIR,
-		"func_godot_type": PROPERTY.FGD_OUTPUT_FOLDER
+		"default": "",
 	},
-	{
-		"name": "trenchbroom_game_config_folder",
+	PROPERTY.TRENCHBROOM_GAME_CONFIG_FOLDER: {
 		"usage": PROPERTY_USAGE_EDITOR,
 		"type": TYPE_STRING,
 		"hint": PROPERTY_HINT_GLOBAL_DIR,
-		"func_godot_type": PROPERTY.TRENCHBROOM_GAME_CONFIG_FOLDER
+		"default": "",
 	},
-	{
-		"name": "netradiant_custom_gamepacks_folder",
+	PROPERTY.NETRADIANT_CUSTOM_GAMEPACKS_FOLDER: {
 		"usage": PROPERTY_USAGE_EDITOR,
 		"type": TYPE_STRING,
 		"hint": PROPERTY_HINT_GLOBAL_DIR,
-		"func_godot_type": PROPERTY.NETRADIANT_CUSTOM_GAMEPACKS_FOLDER
+		"default": "",
 	},
-	{
-		"name": "map_editor_game_path",
+	PROPERTY.MAP_EDITOR_GAME_PATH: {
 		"usage": PROPERTY_USAGE_EDITOR,
 		"type": TYPE_STRING,
 		"hint": PROPERTY_HINT_GLOBAL_DIR,
-		"func_godot_type": PROPERTY.MAP_EDITOR_GAME_PATH
+		"default": "",
 	},
-	{
-		"name": "game_path_models_folder",
+	PROPERTY.GAME_PATH_MODELS_FOLDER: {
 		"usage": PROPERTY_USAGE_EDITOR,
 		"type": TYPE_STRING,
-		"func_godot_type": PROPERTY.GAME_PATH_MODELS_FOLDER
+		"hint": PROPERTY_HINT_GLOBAL_DIR,
+		"default": "",
 	},
-	{
-		"name": "default_inverse_scale_factor",
+	PROPERTY.DEFAULT_INVERSE_SCALE: {
 		"usage": PROPERTY_USAGE_EDITOR,
 		"type": TYPE_FLOAT,
-		"func_godot_type": PROPERTY.DEFAULT_INVERSE_SCALE
-	}
-]
+		"hint": PROPERTY_HINT_RANGE,
+		"hint_string": "8.0,64,8.0",
+		"default": 32,
+	},
+}
 
-static func get_setting(name: PROPERTY) -> Variant:
-	return EditorInterface.get_editor_settings().get_setting(BASE_PATH + str(name))
+static func get_setting(property: PROPERTY) -> Variant:
+	return EditorInterface.get_editor_settings().get_setting(_get_path(property))
 
-static func set_setting(name: PROPERTY, value: Variant) -> void:
-	EditorInterface.get_editor_settings().set_setting(BASE_PATH + str(name), value)
+static func set_setting(property: PROPERTY, value: Variant) -> void:
+	EditorInterface.get_editor_settings().set_setting(_get_path(property), value)
 
 func _get(property: StringName) -> Variant:
 	return get_setting(PROPERTY[property])
@@ -70,44 +67,31 @@ func _set(property: StringName, value: Variant) -> bool:
 	set_setting(PROPERTY[property], value)
 	return true
 
-static func _get_default_value(type) -> Variant:
-	match type:
-		TYPE_STRING: return ''
-		TYPE_INT: return 0
-		TYPE_FLOAT: return 0.0
-		TYPE_BOOL: return false
-		TYPE_VECTOR2: return Vector2.ZERO
-		TYPE_VECTOR3: return Vector3.ZERO
-		TYPE_ARRAY: return []
-		TYPE_DICTIONARY: return {}
-	push_error("Invalid setting type. Returning null")
-	return null
-
 static func setup_editor_settings() -> void:
 	var edit_setts := EditorInterface.get_editor_settings()
 	
-	for prop in CONFIG_PROPERTIES:
-		var path = BASE_PATH + prop["name"]
+	for key in CONFIG_PROPERTIES:
+		var prop = CONFIG_PROPERTIES[key]
+		var path = _get_path(key)
 		
 		if not edit_setts.has_setting(path):
-			var info := {
-				"name": path,
-				"type": prop["type"],
-				"hint": prop["hint"] if "hint" in prop else PROPERTY_HINT_NONE,
-				"usage": prop["usage"],
-			}
+			var info = prop.duplicate()
+			info["name"] = path
 			
-			edit_setts.set(path, _get_default_value(prop["type"]))
+			edit_setts.set(path, prop["default"])
 			edit_setts.add_property_info(info)
 
 static func remove_editor_settings() -> void:
 	for prop in CONFIG_PROPERTIES:
-		EditorInterface.get_editor_settings().erase(BASE_PATH + prop["name"])
+		EditorInterface.get_editor_settings().erase(_get_path(prop))
+
+static func _get_path(property: PROPERTY) -> String:
+	return BASE_PATH + PROPERTY.keys()[property].to_lower()
 
 # Legacy compatibility
 
 static func cleanup_legacy() -> void:
-	var path = _get_path()
+	var path = _get_legacy_path()
 	if not FileAccess.file_exists(path):
 		return
 	
@@ -120,7 +104,7 @@ static func cleanup_legacy() -> void:
 	
 	DirAccess.remove_absolute(path)
 
-static func _get_path() -> String:
+static func _get_legacy_path() -> String:
 	var application_name: String = ProjectSettings.get('application/config/name')
 	application_name = application_name.replace(" ", "_")
 	return 'user://' + application_name  + '_FuncGodotConfig.json'

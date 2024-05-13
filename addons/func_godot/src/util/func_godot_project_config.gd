@@ -29,7 +29,7 @@ static func set_setting(property: PROPERTY, value):
 	ProjectSettings.set_setting(BASE_PATH + str(property).to_lower(), value)
 
 static func setup_project_settings():
-	for property in CONFIG_PROPERTIES.keys():
+	for property in CONFIG_PROPERTIES:
 		var name := _get_path(property)
 		
 		if ProjectSettings.has_setting(name):
@@ -48,9 +48,7 @@ static func setup_project_settings():
 
 static func remove_project_settings():
 	for property in CONFIG_PROPERTIES.keys():
-		print("REMOVING: " + _get_path(property))
 		ProjectSettings.set_setting(_get_path(property), null)
 
 static func _get_path(property: PROPERTY) -> String:
-	print("GETTING PATH: " + BASE_PATH + PROPERTY.keys()[property].to_lower())
 	return BASE_PATH + PROPERTY.keys()[property].to_lower()
