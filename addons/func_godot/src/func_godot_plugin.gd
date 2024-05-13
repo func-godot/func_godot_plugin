@@ -49,6 +49,7 @@ func _enter_tree() -> void:
 	
 	# Setup Editor Settings
 	FuncGodotLocalConfig.setup_editor_settings()
+	FuncGodotLocalConfig.cleanup_legacy()
 
 func _exit_tree() -> void:
 	remove_custom_type("FuncGodotMap")

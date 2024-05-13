@@ -1,8 +1,6 @@
 @tool
 @icon("res://addons/func_godot/icons/icon_godot_ranger.svg")
-## Local machine project wide settings. Can define global defaults for some FuncGodot properties.
-## DO NOT CREATE A NEW RESOURCE! This resource works by saving a configuration file to your game's *user://* folder and pulling the properties from that config file rather than this resource.
-## Use the premade `addons/func_godot/func_godot_local_config.tres` instead.
+## Local machine map editor settings. Can define global defaults for some FuncGodot properties.
 class_name FuncGodotLocalConfig
 
 enum PROPERTY {
@@ -59,8 +57,6 @@ const CONFIG_PROPERTIES: Array[Dictionary] = [
 	}
 ]
 
-var settings_dict: Dictionary
-
 static func get_setting(name: PROPERTY) -> Variant:
 	return EditorInterface.get_editor_settings().get_setting(BASE_PATH + str(name))
 
@@ -107,3 +103,24 @@ static func setup_editor_settings() -> void:
 static func remove_editor_settings() -> void:
 	for prop in CONFIG_PROPERTIES:
 		EditorInterface.get_editor_settings().erase(BASE_PATH + prop["name"])
+
+# Legacy compatibility
+
+static func cleanup_legacy() -> void:
+	var path = _get_path()
+	if not FileAccess.file_exists(path):
+		return
+	
+	# Set the EditorSettings based on the contents of the json file.
+	var settings := FileAccess.get_file_as_string(path)
+	if settings:
+		var settings_dict = JSON.parse_string(settings)
+		for key in settings_dict:
+			set_setting(PROPERTY[key], settings_dict[key])
+	
+	DirAccess.remove_absolute(path)
+
+static func _get_path() -> String:
+	var application_name: String = ProjectSettings.get('application/config/name')
+	application_name = application_name.replace(" ", "_")
+	return 'user://' + application_name  + '_FuncGodotConfig.json'
