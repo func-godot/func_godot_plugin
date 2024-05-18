@@ -56,6 +56,8 @@ extends Resource
 @export var ao_map_pattern: String = "%s_ao.%s"
 ## Automatic PBR material generation height map pattern
 @export var height_map_pattern: String = "%s_height.%s"
+## Automatic PBR material generation ORM map pattern
+@export var orm_map_pattern: String = "%s_orm.%s"
 
 ## If true, all materials will be unshaded, ignoring light. Also known as "fullbright".
 @export var unshaded: bool = false
