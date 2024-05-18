@@ -5,8 +5,8 @@ var map_parser:= FuncGodotMapParser.new(map_data)
 var geo_generator = preload("res://addons/func_godot/src/core/func_godot_geo_generator.gd").new(map_data)
 var surface_gatherer:= FuncGodotSurfaceGatherer.new(map_data)
 
-func load_map(filename: String, keep_tb_groups: bool) -> void:
-	map_parser.load_map(filename, keep_tb_groups)
+func load_map(filename: String, keep_tb_groups: bool, entity_definitions: Dictionary) -> void:
+	map_parser.load_map(filename, keep_tb_groups, entity_definitions)
 
 func get_texture_list() -> PackedStringArray:
 	var g_textures: PackedStringArray
@@ -49,11 +49,12 @@ func get_entity_dicts() -> Array:
 		dict["properties"] = entity.properties
 		
 		var textures_used_by_entity:Array = []
-		for texture_id in entity.texture_ids:
-			var texture_to_add = map_data.textures[texture_id].name
-			if !textures_used_by_entity.has(texture_to_add):
-				textures_used_by_entity.append(texture_to_add)
-		dict["textures_used"] = textures_used_by_entity
+		if entity.texture_ids && entity.texture_ids.size() > 0: # May be initialised as null, or empty array
+			for texture_id in entity.texture_ids:
+				var texture_to_add = map_data.textures[texture_id].name
+				if !textures_used_by_entity.has(texture_to_add):
+					textures_used_by_entity.append(texture_to_add)
+			dict["textures_used"] = textures_used_by_entity
 		
 		ent_dicts.append(dict)
 	

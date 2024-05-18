@@ -230,13 +230,13 @@ func run_build_steps(post_attach : bool = false) -> void:
 ## Register all steps for the build. See [method register_build_step] and [method run_build_steps]
 func register_build_steps() -> void:
 	register_build_step('remove_children')
+	register_build_step('fetch_entity_definitions', [], 'entity_definitions')
 	register_build_step('load_map')
 	register_build_step('fetch_texture_list', [], 'texture_list')
 	register_build_step('init_texture_loader', [], 'texture_loader')
 	register_build_step('load_textures', [], 'texture_dict')
 	register_build_step('build_texture_size_dict', [], 'texture_size_dict')
 	register_build_step('build_materials', [], 'material_dict')
-	register_build_step('fetch_entity_definitions', [], 'entity_definitions')
 	register_build_step('set_func_godot_entity_definitions', [])
 	register_build_step('generate_geometry', [])
 	register_build_step('fetch_entity_dicts', [], 'entity_dicts')
@@ -301,7 +301,7 @@ func remove_children() -> void:
 ## Parse and load [member map_file]
 func load_map() -> void:
 	var file: String = _map_file_internal
-	func_godot.load_map(file, map_settings.use_trenchbroom_groups_hierarchy)
+	func_godot.load_map(file, map_settings.use_trenchbroom_groups_hierarchy, entity_definitions)
 
 ## Get textures found in [member map_file]
 func fetch_texture_list() -> Array:
