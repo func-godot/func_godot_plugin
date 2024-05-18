@@ -52,6 +52,8 @@ enum CollisionShapeType {
 @export var collision_shape_margin: float = 0.04
 
 @export_group("Scripting")
+## Option to include the texture list in the metadata of a solid class
+@export var pass_texture_list_to_metadata: bool = false
 ## An optional script file to attach to the node generated on map build.
 @export var script_class: Script
 
