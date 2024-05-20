@@ -25,27 +25,10 @@ func filter_entity(entity_idx: int) -> bool:
 	if entity_filter_idx != -1 and entity_idx != entity_filter_idx:
 		return true
 	return false
-	
-func filter_brush(entity_idx: int, brush_idx: int) -> bool:
-	var entity:= map_data.entities[entity_idx]
-	var brush:= entity.brushes[brush_idx]
-	
-	# omit brushes that are fully-textured with clip
-	if clip_filter_texture_idx != -1:
-		var fully_textured: bool = true
-		for face in brush.faces:
-			if face.texture_idx != clip_filter_texture_idx:
-				fully_textured = false
-				break
-		
-		if fully_textured:
-			return true
-	
-	return false
 
 func filter_face(entity_idx: int, brush_idx: int, face_idx: int) -> bool:
-	var face:= map_data.entities[entity_idx].brushes[brush_idx].faces[face_idx]
-	var face_geo:= map_data.entity_geo[entity_idx].brushes[brush_idx].faces[face_idx]
+	var face: FuncGodotMapData.FuncGodotFace = map_data.entities[entity_idx].brushes[brush_idx].faces[face_idx]
+	var face_geo: FuncGodotMapData.FuncGodotFaceGeometry = map_data.entity_geo[entity_idx].brushes[brush_idx].faces[face_idx]
 	
 	if face_geo.vertices.size() < 3:
 		return true
@@ -90,9 +73,6 @@ func run() -> void:
 				index_offset = surf.vertices.size()
 				
 		for b in range(entity.brushes.size()):
-			if filter_brush(e, b):
-				continue
-			
 			var brush:= entity.brushes[b]
 			var brush_geo:= entity_geo.brushes[b]
 			
@@ -101,19 +81,19 @@ func run() -> void:
 				surf = add_surface()
 				
 			for f in range(brush.faces.size()):
-				var face_geo:= brush_geo.faces[f]
+				var face_geo: FuncGodotMapData.FuncGodotFaceGeometry = brush_geo.faces[f]
 				
 				if filter_face(e, b, f):
 					continue
 				
 				for v in range(face_geo.vertices.size()):
-					var vert:= face_geo.vertices[v].duplicate()
+					var vert: FuncGodotMapData.FuncGodotFaceVertex = face_geo.vertices[v].duplicate()
 					
 					if entity.spawn_type == FuncGodotMapData.FuncGodotEntitySpawnType.ENTITY:
 						vert.vertex -= entity.center
 					
 					surf.vertices.append(vert)
-					
+				
 				for i in range((face_geo.vertices.size() - 2) * 3):
 					surf.indicies.append(face_geo.indicies[i] + index_offset)
 				
