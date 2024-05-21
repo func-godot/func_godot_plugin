@@ -231,10 +231,13 @@ func do_export_file() -> void:
 				
 				else:
 					push_error("Variable key '%s' value '%s' is invalid type: %s; should be: String" % [
-						key, default_build_variables[key], type_string(typeof(default_build_variables[key]))
+						key, default_build_variables[key], 
+						type_string(typeof(default_build_variables[key]))
 						])
 			else:
-				push_error("Variable '%s' is an invalid key type: %s; should be: String" % [key, type_string(typeof(key))])
+				push_error("Variable '%s' is an invalid key type: %s; should be: String" % [
+						key, type_string(typeof(key))
+						])
 			
 			
 		for key in default_build_commands.keys():
@@ -249,12 +252,16 @@ func do_export_file() -> void:
 						if step is String:
 							file.store_string('\t\t<command>%s</command>\n' % step)
 						else:
-							push_error("Command '%s' has invalid step: %s with type: %s; should be: String" % [key, step, type_string(typeof(step))])	
+							push_error("Command '%s' has invalid step: %s with type: %s; should be: String" % [
+								key, step, type_string(typeof(step))
+								])	
 						
 					file.store_string('\t</build>\n')
 			
 			else:
-				push_error("Command '%s' is an invalid type: %s; should be: String" % [key, type_string(typeof(key))])
+				push_error("Command '%s' is an invalid type: %s; should be: String" % [
+					key, type_string(typeof(key))
+					])
 		
 		file.store_string("</project>")
 	
