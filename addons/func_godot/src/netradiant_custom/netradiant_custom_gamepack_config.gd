@@ -219,12 +219,12 @@ func do_export_file() -> void:
 		for v in build_xml_variables:
 			if !(v is Array) || v.size() != 2:
 				continue
-			file.store_string('	<var name="%s">%s</var>\n' % [v[0], v[1]])
+			file.store_string('\t<var name="%s">%s</var>\n' % [v[0], v[1]])
 
 		for c in build_xml_commands:
 			if !(c is Array) || c.size() != 2:
 				continue
-			file.store_string('	<build name="%s">\n		<command>%s</command>\n	</build>\n' % [c[0], c[1]])
+			file.store_string('\t<build name="%s">\n\t\t<command>%s</command>\n\t</build>\n' % [c[0], c[1]])
 
 		file.store_string("</project>")
 		file.close()
