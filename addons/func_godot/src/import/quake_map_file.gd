@@ -3,3 +3,4 @@ class_name QuakeMapFile
 extends Resource
 
 @export var revision: int = 0
+@export_multiline var map_data: String = ""

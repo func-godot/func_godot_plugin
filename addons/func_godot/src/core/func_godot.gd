@@ -4,9 +4,10 @@ var map_data:= FuncGodotMapData.new()
 var map_parser:= FuncGodotMapParser.new(map_data)
 var geo_generator = preload("res://addons/func_godot/src/core/func_godot_geo_generator.gd").new(map_data)
 var surface_gatherer:= FuncGodotSurfaceGatherer.new(map_data)
+var map_settings: FuncGodotMapSettings = null
 
 func load_map(filename: String, keep_tb_groups: bool) -> void:
-	map_parser.load(filename, keep_tb_groups)
+	map_parser.load_map(filename, keep_tb_groups)
 
 func get_texture_list() -> PackedStringArray:
 	var g_textures: PackedStringArray
@@ -52,33 +53,31 @@ func get_entity_dicts() -> Array:
 	
 	return ent_dicts
 
-func gather_texture_surfaces_mt(texture_name: String, clip_filter_texture: String, skip_filter_texture: String, inverse_scale_factor: float) -> Array:
+func gather_texture_surfaces(texture_name: String) -> Array:
 	var sg: FuncGodotSurfaceGatherer = FuncGodotSurfaceGatherer.new(map_data)
 	sg.reset_params()
 	sg.split_type = FuncGodotSurfaceGatherer.SurfaceSplitType.ENTITY
 	sg.set_texture_filter(texture_name)
-	sg.set_clip_filter_texture(clip_filter_texture)
-	sg.set_skip_filter_texture(skip_filter_texture)
+	sg.set_clip_filter_texture(map_settings.clip_texture)
+	sg.set_skip_filter_texture(map_settings.skip_texture)
 	sg.run()
-	return _fetch_surfaces_internal(sg, inverse_scale_factor)
-
-func gather_worldspawn_layer_surfaces(texture_name: String, clip_filter_texture: String, skip_filter_texture: String) -> void:
-	_gather_texture_surfaces_internal(texture_name, clip_filter_texture, skip_filter_texture)
+	return fetch_surfaces(sg)
 
 func gather_entity_convex_collision_surfaces(entity_idx: int) -> void:
-	_gather_convex_collision_surfaces(entity_idx)
-	
-func gather_entity_concave_collision_surfaces(entity_idx: int, skip_filter_texture: String) -> void:
-	_gather_concave_collision_surfaces(entity_idx, skip_filter_texture)
-	
-func gather_worldspawn_layer_collision_surfaces(entity_idx: int) -> void:
-	_gather_convex_collision_surfaces(entity_idx)
+	surface_gatherer.reset_params()
+	surface_gatherer.split_type = FuncGodotSurfaceGatherer.SurfaceSplitType.BRUSH
+	surface_gatherer.entity_filter_idx = entity_idx
+	surface_gatherer.run()
 
-func fetch_surfaces(inverse_scale_factor: float) -> Array:	
-	return _fetch_surfaces_internal(surface_gatherer, inverse_scale_factor)
+func gather_entity_concave_collision_surfaces(entity_idx: int) -> void:
+	surface_gatherer.reset_params()
+	surface_gatherer.split_type = FuncGodotSurfaceGatherer.SurfaceSplitType.NONE
+	surface_gatherer.entity_filter_idx = entity_idx
+	surface_gatherer.set_skip_filter_texture(map_settings.skip_texture)
+	surface_gatherer.run()
 
-func _fetch_surfaces_internal(surf_gatherer: FuncGodotSurfaceGatherer, inverse_scale_factor: float) -> Array:	
-	var surfs: Array[FuncGodotMapData.FuncGodotFaceGeometry] = surf_gatherer.out_surfaces
+func fetch_surfaces(sg: FuncGodotSurfaceGatherer) -> Array:
+	var surfs: Array[FuncGodotMapData.FuncGodotFaceGeometry] = sg.out_surfaces
 	var surf_array: Array
 	
 	for surf in surfs:
@@ -91,7 +90,7 @@ func _fetch_surfaces_internal(surf_gatherer: FuncGodotSurfaceGatherer, inverse_s
 		var tangents: PackedFloat64Array
 		var uvs: PackedVector2Array
 		for v in surf.vertices:
-			vertices.append(Vector3(v.vertex.y, v.vertex.z, v.vertex.x) / inverse_scale_factor)
+			vertices.append(Vector3(v.vertex.y, v.vertex.z, v.vertex.x) / map_settings.inverse_scale_factor)
 			normals.append(Vector3(v.normal.y, v.normal.z, v.normal.x))
 			tangents.append(v.tangent.y)
 			tangents.append(v.tangent.z)
@@ -115,25 +114,3 @@ func _fetch_surfaces_internal(surf_gatherer: FuncGodotSurfaceGatherer, inverse_s
 		surf_array.append(brush_array)
 		
 	return surf_array
-
-# internal
-func _gather_texture_surfaces_internal(texture_name: String, clip_filter_texture: String, skip_filter_texture: String) -> void:
-	surface_gatherer.reset_params()
-	surface_gatherer.split_type = FuncGodotSurfaceGatherer.SurfaceSplitType.ENTITY
-	surface_gatherer.set_texture_filter(texture_name)
-	surface_gatherer.set_clip_filter_texture(clip_filter_texture)
-	surface_gatherer.set_skip_filter_texture(skip_filter_texture)	
-	surface_gatherer.run()
-
-func _gather_convex_collision_surfaces(entity_idx: int) -> void:
-	surface_gatherer.reset_params()
-	surface_gatherer.split_type = FuncGodotSurfaceGatherer.SurfaceSplitType.BRUSH
-	surface_gatherer.entity_filter_idx = entity_idx	
-	surface_gatherer.run()
-	
-func _gather_concave_collision_surfaces(entity_idx: int, skip_filter_texture: String) -> void:
-	surface_gatherer.reset_params()
-	surface_gatherer.split_type = FuncGodotSurfaceGatherer.SurfaceSplitType.NONE
-	surface_gatherer.entity_filter_idx = entity_idx
-	surface_gatherer.set_skip_filter_texture(skip_filter_texture)	
-	surface_gatherer.run()

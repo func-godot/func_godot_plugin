@@ -4,8 +4,6 @@
 ## To use this node, select an instance of the node in the Godot editor and select "Quick Build", "Full Build", or "Unwrap UV2" from the toolbar. Alternatively, call [method manual_build] from code.
 class_name FuncGodotMap extends Node3D
 
-## Force reinitialization of Qodot on map build
-const DEBUG := false
 ## How long to wait between child/owner batches
 const YIELD_DURATION := 0.0
 
@@ -43,15 +41,11 @@ var _map_file_internal: String = ""
 
 # Build context variables
 var func_godot: FuncGodot = null
-
 var profile_timestamps: Dictionary = {}
-
 var add_child_array: Array = []
 var set_owner_array: Array = []
-
 var should_add_children: bool = true
 var should_set_owners: bool = true
-
 var texture_list: Array = []
 var texture_loader = null
 var texture_dict: Dictionary = {}
@@ -64,15 +58,6 @@ var entity_nodes: Array = []
 var entity_mesh_instances: Dictionary = {}
 var entity_occluder_instances: Dictionary = {}
 var entity_collision_shapes: Array = []
-
-# Overrides
-func _ready() -> void:
-	if not DEBUG:
-		return
-	
-	if not Engine.is_editor_hint():
-		if verify_parameters():
-			build_map()
 
 # Utility
 ## Verify that FuncGodot is functioning and that [member map_file] exists. If so, build the map. If not, signal [signal build_failed]
@@ -90,13 +75,6 @@ func manual_build() -> void:
 
 ## Return true if parameters are valid; FuncGodot should be functioning and [member map_file] should exist.
 func verify_parameters() -> bool:
-	if not func_godot or DEBUG:
-		func_godot = load("res://addons/func_godot/src/core/func_godot.gd").new()
-	
-	if not func_godot:
-		push_error("Error: Failed to load func_godot.")
-		return false
-	
 	# Prioritize global map file path for building at runtime
 	_map_file_internal = global_map_file if global_map_file != "" else local_map_file
 
@@ -105,7 +83,21 @@ func verify_parameters() -> bool:
 		return false
 	
 	if not FileAccess.file_exists(_map_file_internal):
-		push_error("Error: No such file %s" % _map_file_internal)
+		if FileAccess.file_exists(_map_file_internal + ".import"):
+			_map_file_internal = _map_file_internal + ".import"
+		else:
+			push_error("Error: No such file %s" % _map_file_internal)
+			return false
+	
+	if not map_settings:
+		push_error("Error: Map settings not set")
+		return false
+	
+	if not func_godot:
+		func_godot = load("res://addons/func_godot/src/core/func_godot.gd").new()
+	
+	if not func_godot:
+		push_error("Error: Failed to load func_godot.")
 		return false
 	
 	return true
@@ -114,7 +106,6 @@ func verify_parameters() -> bool:
 func reset_build_context() -> void:
 	add_child_array = []
 	set_owner_array = []
-	
 	texture_list = []
 	texture_loader = null
 	texture_dict = {}
@@ -127,12 +118,11 @@ func reset_build_context() -> void:
 	entity_mesh_instances = {}
 	entity_occluder_instances = {}
 	entity_collision_shapes = []
-	
 	build_step_index = 0
 	build_step_count = 0
-	
 	if func_godot:
 		func_godot = load("res://addons/func_godot/src/core/func_godot.gd").new()
+		func_godot.map_settings = map_settings
 		
 ## Record the start time of a build step for profiling
 func start_profile(item_name: String) -> void:
@@ -145,15 +135,13 @@ func stop_profile(item_name: String) -> void:
 	if print_profiling_data:
 		if item_name in profile_timestamps:
 			var delta: float = Time.get_unix_time_from_system() - profile_timestamps[item_name]
-			print("Done in %s sec.\n" % snapped(delta, 0.01))
+			print("Completed in %s sec." % snapped(delta, 0.0001))
 			profile_timestamps.erase(item_name)
 
-## Run a build step. [code]step_name[/code] is the method corresponding to the step, [code]params[/code] are parameters to pass to the step, and [code]func_name[/code] does nothing.
-func run_build_step(step_name: String, params: Array = [], func_name: String = "") -> Variant:
+## Run a build step. [code]step_name[/code] is the method corresponding to the step.
+func run_build_step(step_name: String) -> Variant:
 	start_profile(step_name)
-	if func_name == "":
-		func_name = step_name
-	var result : Variant = callv(step_name, params)
+	var result : Variant = call(step_name)
 	stop_profile(step_name)
 	return result
 
@@ -191,8 +179,8 @@ var post_attach_steps : Array = []
 
 ## Register a build step.
 ## [code]build_step[/code] is a string that corresponds to a method on this class, [code]arguments[/code] a list of arguments to pass to this method, and [code]target[/code] is a property on this class to save the return value of the build step in. If [code]post_attach[/code] is true, the step will be run after the scene hierarchy is completed.
-func register_build_step(build_step: String, arguments: Array = [], target: String = "", post_attach: bool = false) -> void:
-	(post_attach_steps if post_attach else build_steps).append([build_step, arguments, target])
+func register_build_step(build_step: String, target: String = "", post_attach: bool = false) -> void:
+	(post_attach_steps if post_attach else build_steps).append([build_step, target])
 	build_step_count += 1
 
 ## Run all build steps. Emits [signal build_progress] after each step.
@@ -208,8 +196,8 @@ func run_build_steps(post_attach : bool = false) -> void:
 		if scene_tree and not block_until_complete:
 			await get_tree().create_timer(YIELD_DURATION).timeout
 		
-		var result : Variant = run_build_step(build_step[0], build_step[1])
-		var target : String = build_step[2]
+		var result : Variant = run_build_step(build_step[0])
+		var target : String = build_step[1]
 		if target != "":
 			set(target, result)
 			
@@ -228,28 +216,28 @@ func run_build_steps(post_attach : bool = false) -> void:
 func register_build_steps() -> void:
 	register_build_step('remove_children')
 	register_build_step('load_map')
-	register_build_step('fetch_texture_list', [], 'texture_list')
-	register_build_step('init_texture_loader', [], 'texture_loader')
-	register_build_step('load_textures', [], 'texture_dict')
-	register_build_step('build_texture_size_dict', [], 'texture_size_dict')
-	register_build_step('build_materials', [], 'material_dict')
-	register_build_step('fetch_entity_definitions', [], 'entity_definitions')
-	register_build_step('set_func_godot_entity_definitions', [])
-	register_build_step('generate_geometry', [])
-	register_build_step('fetch_entity_dicts', [], 'entity_dicts')
-	register_build_step('build_entity_nodes', [], 'entity_nodes')
-	register_build_step('resolve_trenchbroom_group_hierarchy', [])
-	register_build_step('build_entity_mesh_dict', [], 'entity_mesh_dict')
-	register_build_step('build_entity_mesh_instances', [], 'entity_mesh_instances')
-	register_build_step('build_entity_occluder_instances', [], 'entity_occluder_instances')
-	register_build_step('build_entity_collision_shape_nodes', [], 'entity_collision_shapes')
+	register_build_step('fetch_texture_list', 'texture_list')
+	register_build_step('init_texture_loader', 'texture_loader')
+	register_build_step('load_textures', 'texture_dict')
+	register_build_step('build_texture_size_dict', 'texture_size_dict')
+	register_build_step('build_materials', 'material_dict')
+	register_build_step('fetch_entity_definitions', 'entity_definitions')
+	register_build_step('set_core_entity_definitions')
+	register_build_step('generate_geometry')
+	register_build_step('fetch_entity_dicts', 'entity_dicts')
+	register_build_step('build_entity_nodes', 'entity_nodes')
+	register_build_step('resolve_trenchbroom_group_hierarchy')
+	register_build_step('build_entity_mesh_dict', 'entity_mesh_dict')
+	register_build_step('build_entity_mesh_instances', 'entity_mesh_instances')
+	register_build_step('build_entity_occluder_instances', 'entity_occluder_instances')
+	register_build_step('build_entity_collision_shape_nodes', 'entity_collision_shapes')
 
 ## Register all post-attach steps for the build. See [method register_build_step] and [method run_build_steps]
 func register_post_attach_steps() -> void:
-	register_build_step('build_entity_collision_shapes', [], "", true)
-	register_build_step('apply_entity_meshes', [], "", true)
-	register_build_step('apply_entity_occluders', [], "", true)
-	register_build_step('apply_properties_and_finish', [], "", true)
+	register_build_step('build_entity_collision_shapes', "", true)
+	register_build_step('apply_entity_meshes', "", true)
+	register_build_step('apply_entity_occluders', "", true)
+	register_build_step('apply_properties_and_finish', "", true)
 
 # Actions
 ## Build the map
@@ -259,7 +247,9 @@ func build_map() -> void:
 		printerr("Skipping build process: No map settings resource!")
 		emit_signal("build_complete")
 		return
-	print('Building %s\n' % _map_file_internal)
+	print('Building %s' % _map_file_internal)
+	#if print_profiling_data:
+		#print('\n')
 	start_profile('build_map')
 	register_build_steps()
 	register_post_attach_steps()
@@ -276,9 +266,10 @@ func unwrap_uv2(node: Node = null) -> void:
 		print("Unwrapping mesh UV2s")
 	
 	if target_node is MeshInstance3D:
-		var mesh: Mesh = target_node.get_mesh()
-		if mesh is ArrayMesh:
-			mesh.lightmap_unwrap(Transform3D.IDENTITY, map_settings.uv_unwrap_texel_size / map_settings.inverse_scale_factor)
+		if target_node.gi_mode == GeometryInstance3D.GI_MODE_STATIC:
+			var mesh: Mesh = target_node.get_mesh()
+			if mesh is ArrayMesh:
+				mesh.lightmap_unwrap(Transform3D.IDENTITY, map_settings.uv_unwrap_texel_size / map_settings.inverse_scale_factor)
 	
 	for child in target_node.get_children():
 		unwrap_uv2(child)
@@ -296,8 +287,7 @@ func remove_children() -> void:
 
 ## Parse and load [member map_file]
 func load_map() -> void:
-	var file: String = _map_file_internal
-	func_godot.load_map(file, map_settings.use_trenchbroom_groups_hierarchy)
+	func_godot.load_map(_map_file_internal, map_settings.use_trenchbroom_groups_hierarchy)
 
 ## Get textures found in [member map_file]
 func fetch_texture_list() -> Array:
@@ -320,14 +310,20 @@ func fetch_entity_definitions() -> Dictionary:
 	return map_settings.entity_fgd.get_entity_definitions()
 
 ## Hand the FuncGodot core the entity definitions
-func set_func_godot_entity_definitions() -> void:
-	func_godot.set_entity_definitions(build_libmap_entity_definitions(entity_definitions))
+func set_core_entity_definitions() -> void:
+	var core_ent_defs: Dictionary = {}
+	for classname in entity_definitions:
+		core_ent_defs[classname] = {}
+		if entity_definitions[classname] is FuncGodotFGDSolidClass:
+			core_ent_defs[classname]['spawn_type'] = entity_definitions[classname].spawn_type
+			core_ent_defs[classname]['origin_type'] = entity_definitions[classname].origin_type
+	func_godot.set_entity_definitions(core_ent_defs)
 
 ## Generate geometry from map file
 func generate_geometry() -> void:
 	func_godot.generate_geometry(texture_size_dict);
 
-## Get a list of dictionaries representing each entity from the FuncGodot C# core
+## Get a list of dictionaries representing each entity from the FuncGodot core
 func fetch_entity_dicts() -> Array:
 	return func_godot.get_entity_dicts()
 
@@ -343,16 +339,6 @@ func build_texture_size_dict() -> Dictionary:
 			texture_size_dict[tex_key] = Vector2.ONE
 	
 	return texture_size_dict
-
-## Marshall FuncGodot FGD definitions for transfer to libmap
-func build_libmap_entity_definitions(entity_definitions: Dictionary) -> Dictionary:
-	var libmap_entity_definitions: Dictionary = {}
-	for classname in entity_definitions:
-		libmap_entity_definitions[classname] = {}
-		if entity_definitions[classname] is FuncGodotFGDSolidClass:
-			libmap_entity_definitions[classname]['spawn_type'] = entity_definitions[classname].spawn_type
-			libmap_entity_definitions[classname]['origin_type'] = entity_definitions[classname].origin_type
-	return libmap_entity_definitions
 
 ## Build nodes from the entities in [member entity_dicts]
 func build_entity_nodes() -> Array:
@@ -540,11 +526,10 @@ func build_entity_collision_shapes() -> void:
 			continue
 		
 		if concave:
-			func_godot.gather_entity_concave_collision_surfaces(entity_idx, map_settings.skip_texture)
+			func_godot.gather_entity_concave_collision_surfaces(entity_idx)
 		else:
 			func_godot.gather_entity_convex_collision_surfaces(entity_idx)
-		
-		var entity_surfaces: Array = func_godot.fetch_surfaces(map_settings.inverse_scale_factor) as Array
+		var entity_surfaces: Array = func_godot.fetch_surfaces(func_godot.surface_gatherer)
 		
 		var entity_verts: PackedVector3Array = PackedVector3Array()
 		
@@ -593,7 +578,7 @@ func build_entity_mesh_dict() -> Dictionary:
 	
 	var gather_task = func(i):
 		var texture: String = texture_dict.keys()[i]
-		texture_surf_map[texture] = func_godot.gather_texture_surfaces_mt(texture, map_settings.clip_texture, map_settings.skip_texture, map_settings.inverse_scale_factor)
+		texture_surf_map[texture] = func_godot.gather_texture_surfaces(texture)
 	
 	var task_id: int = WorkerThreadPool.add_group_task(gather_task, texture_dict.keys().size(), 4, true)
 	WorkerThreadPool.wait_for_group_task_completion(task_id)
@@ -1001,10 +986,6 @@ func apply_properties_and_finish() -> void:
 # Cleanup after build is finished (internal)
 func _build_complete():
 	reset_build_context()
-	
 	stop_profile('build_map')
-	if not print_profiling_data:
-		print('\n')
 	print('Build complete\n')
-	
 	emit_signal("build_complete")

@@ -7,7 +7,8 @@ enum PBRSuffix {
 	ROUGHNESS,
 	EMISSION,
 	AO,
-	HEIGHT
+	HEIGHT,
+	ORM
 }
 
 # Suffix string / Godot enum / StandardMaterial3D property
@@ -19,6 +20,7 @@ const PBR_SUFFIX_NAMES: Dictionary = {
 	PBRSuffix.EMISSION: 'emission',
 	PBRSuffix.AO: 'ao',
 	PBRSuffix.HEIGHT: 'height',
+	PBRSuffix.ORM: 'orm'
 }
 
 const PBR_SUFFIX_PATTERNS: Dictionary = {
@@ -28,7 +30,8 @@ const PBR_SUFFIX_PATTERNS: Dictionary = {
 	PBRSuffix.ROUGHNESS: '%s_roughness.%s',
 	PBRSuffix.EMISSION: '%s_emission.%s',
 	PBRSuffix.AO: '%s_ao.%s',
-	PBRSuffix.HEIGHT: '%s_height.%s'
+	PBRSuffix.HEIGHT: '%s_height.%s',
+	PBRSuffix.ORM: '%s_orm.%s'
 }
 
 var PBR_SUFFIX_TEXTURES: Dictionary = {
@@ -38,7 +41,8 @@ var PBR_SUFFIX_TEXTURES: Dictionary = {
 	PBRSuffix.ROUGHNESS: StandardMaterial3D.TEXTURE_ROUGHNESS,
 	PBRSuffix.EMISSION: StandardMaterial3D.TEXTURE_EMISSION,
 	PBRSuffix.AO: StandardMaterial3D.TEXTURE_AMBIENT_OCCLUSION,
-	PBRSuffix.HEIGHT: StandardMaterial3D.TEXTURE_HEIGHTMAP
+	PBRSuffix.HEIGHT: StandardMaterial3D.TEXTURE_HEIGHTMAP,
+	PBRSuffix.ORM: ORMMaterial3D.TEXTURE_ORM
 }
 
 const PBR_SUFFIX_PROPERTIES: Dictionary = {
@@ -73,7 +77,7 @@ func load_texture(texture_name: String) -> Texture2D:
 	# Load albedo texture if it exists
 	for texture_extension in map_settings.texture_file_extensions:
 		var texture_path: String = "%s/%s.%s" % [map_settings.base_texture_dir, texture_name, texture_extension]
-		if ResourceLoader.exists(texture_path, "Texture2D"):
+		if ResourceLoader.exists(texture_path, "Texture2D") or ResourceLoader.exists(texture_path + ".import", "Texture2D"):
 			return load(texture_path) as Texture2D
 	
 	var texture_name_lower: String = texture_name.to_lower()
@@ -95,7 +99,7 @@ func create_material(texture_name: String) -> Material:
 	var material_dict: Dictionary = {}
 	
 	var material_path: String = "%s/%s.%s" % [map_settings.base_texture_dir, texture_name, map_settings.material_file_extension]
-	if not material_path in material_dict and FileAccess.file_exists(material_path):
+	if not material_path in material_dict and (FileAccess.file_exists(material_path) or FileAccess.file_exists(material_path + ".remap")):
 		var loaded_material: Material = load(material_path)
 		if loaded_material:
 			material_dict[material_path] = loaded_material
@@ -121,6 +125,8 @@ func create_material(texture_name: String) -> Material:
 		material.set_texture(StandardMaterial3D.TEXTURE_ALBEDO, texture)
 	elif material is ShaderMaterial && map_settings.default_material_albedo_uniform != "":
 		material.set_shader_parameter(map_settings.default_material_albedo_uniform, texture)
+	elif material is ORMMaterial3D:
+		material.set_texture(ORMMaterial3D.TEXTURE_ALBEDO, texture)
 	
 	var pbr_textures : Dictionary = get_pbr_textures(texture_name)
 	
