@@ -49,6 +49,12 @@ extends Resource
 ## Skip texture path that gets applied to caulk and nodrawnonsolid shaders.
 @export var skip_texture: String = "textures/special/skip"
 
+## Optional variables to include in the build profile.
+@export var build_xml_variables: Array[Array]
+
+## Optional commands to include in the build profile.
+@export var build_xml_commands: Array[Array]
+
 ## Generates completed text for a .shader file.
 func build_shader_text() -> String:
 	var shader_text: String = ""
@@ -66,23 +72,23 @@ func build_gamepack_text() -> String:
 		texturetypes_str += texture_type
 		if texture_type != texture_types[-1]:
 			texturetypes_str += " "
-	
+
 	var modeltypes_str: String = ""
 	for model_type in model_types:
 		modeltypes_str += model_type
 		if model_type != model_types[-1]:
 			modeltypes_str += " "
-	
+
 	var soundtypes_str: String = ""
 	for sound_type in sound_types:
 		soundtypes_str += sound_type
 		if sound_type != sound_types[-1]:
 			soundtypes_str += " "
-	
+
 	var gamepack_text: String = """<?xml version="1.0"?>
 <game
   type="q3"
-  index="1" 
+  index="1"
   name="%s"
   enginepath_win32="C:/%s/"
   engine_win32="%s.exe"
@@ -113,7 +119,7 @@ func build_gamepack_text() -> String:
   common_shaders_dir="common/"
 />
 """
-	
+
 	return gamepack_text % [
 		game_name,
 		game_name,
@@ -138,22 +144,22 @@ func do_export_file() -> void:
 	if (FuncGodotLocalConfig.get_setting(FuncGodotLocalConfig.PROPERTY.MAP_EDITOR_GAME_PATH) as String).is_empty():
 		printerr("Skipping export: Map Editor Game Path not set in Project Configuration")
 		return
-	
+
 	var gamepacks_folder: String = FuncGodotLocalConfig.get_setting(FuncGodotLocalConfig.PROPERTY.NETRADIANT_CUSTOM_GAMEPACKS_FOLDER) as String
 	if gamepacks_folder.is_empty():
 		printerr("Skipping export: No NetRadiant Custom gamepacks folder")
 		return
-	
+
 	# Make sure FGD file is set
 	if !fgd_file:
 		printerr("Skipping export: No FGD file")
 		return
-	
+
 	# Make sure we're actually in the NetRadiant Custom gamepacks folder
 	if DirAccess.open(gamepacks_folder + "/games") == null:
 		printerr("Skipping export: No \'games\' folder. Is this the NetRadiant Custom gamepacks folder?")
 		return
-	
+
 	# Create gamepack folders in case they do not exist
 	var gamepack_dir_paths: Array = [
 		gamepacks_folder + "/" + gamepack_name + ".game",
@@ -161,7 +167,7 @@ func do_export_file() -> void:
 		gamepacks_folder + "/" + gamepack_name + ".game/scripts"
 	]
 	var err: Error
-	
+
 	for path in gamepack_dir_paths:
 		if DirAccess.open(path) == null:
 			print("Couldn't open " + path + ", creating...")
@@ -169,10 +175,10 @@ func do_export_file() -> void:
 			if err != OK:
 				printerr("Skipping export: Failed to create directory")
 				return
-	
+
 	var target_file_path: String
 	var file: FileAccess
-	
+
 	# .gamepack
 	target_file_path = gamepacks_folder + "/games/" + gamepack_name + ".game"
 	print("Exporting NetRadiant Custom Gamepack to ", target_file_path)
@@ -182,7 +188,7 @@ func do_export_file() -> void:
 		file.close()
 	else:
 		printerr("Error: Could not modify " + target_file_path)
-	
+
 	# .shader
 	target_file_path = gamepacks_folder + "/" + gamepack_name + ".game/scripts/" + gamepack_name + ".shader"
 	print("Exporting NetRadiant Custom Shader to ", target_file_path)
@@ -192,27 +198,39 @@ func do_export_file() -> void:
 		file.close()
 	else:
 		printerr("Error: Could not modify " + target_file_path)
-	
+
 	# shaderlist.txt
 	target_file_path = gamepacks_folder + "/" + gamepack_name + ".game/scripts/shaderlist.txt"
-	print("Exporting NetRadiant Custom Default Buld Menu to ", target_file_path)
+	print("Exporting NetRadiant Custom Default Build Menu to ", target_file_path)
 	file = FileAccess.open(target_file_path, FileAccess.WRITE)
 	if file != null:
 		file.store_string(gamepack_name)
 		file.close()
 	else:
 		printerr("Error: Could not modify " + target_file_path)
-	
+
 	# default_build_menu.xml
 	target_file_path = gamepacks_folder + "/" + gamepack_name + ".game/default_build_menu.xml"
-	print("Exporting NetRadiant Custom Default Buld Menu to ", target_file_path)
+	print("Exporting NetRadiant Custom Default Build Menu to ", target_file_path)
 	file = FileAccess.open(target_file_path, FileAccess.WRITE)
 	if file != null:
-		file.store_string("<?xml version=\"1.0\"?><project version=\"2.0\"></project>")
+		file.store_string("<?xml version=\"1.0\"?>\n<project version=\"2.0\">\n")
+
+		for v in build_xml_variables:
+			if !(v is Array) || v.size() != 2:
+				continue
+			file.store_string('	<var name="%s">%s</var>\n' % [v[0], v[1]])
+
+		for c in build_xml_commands:
+			if !(c is Array) || c.size() != 2:
+				continue
+			file.store_string('	<build name="%s">\n		<command>%s</command>\n	</build>\n' % [c[0], c[1]])
+
+		file.store_string("</project>")
 		file.close()
 	else:
 		printerr("Error: Could not modify " + target_file_path)
-	
+
 	# FGD
 	var export_fgd : FuncGodotFGDFile = fgd_file.duplicate()
 	export_fgd.do_export_file(true, gamepacks_folder + "/" + gamepack_name + ".game/" + base_game_path)
