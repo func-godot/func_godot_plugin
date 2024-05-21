@@ -50,11 +50,10 @@ extends Resource
 @export var skip_texture: String = "textures/special/skip"
 
 ## Optional variables to include in the build profile.
-@export var build_xml_variables: Array[Array]
+@export var build_xml_variables: Dictionary
 
 ## Optional commands to include in the build profile.
-@export var build_xml_commands: Array[Array]
-
+@export var build_xml_commands: Dictionary
 
 ## Generates completed text for a .shader file.
 func build_shader_text() -> String:
@@ -217,15 +216,11 @@ func do_export_file() -> void:
 	if file != null:
 		file.store_string("<?xml version=\"1.0\"?>\n<project version=\"2.0\">\n")
 		
-		for v in build_xml_variables:
-			if !(v is Array) || v.size() != 2:
-				continue
-			file.store_string('\t<var name="%s">%s</var>\n' % [v[0], v[1]])
+		for key in build_xml_variables.keys():
+			file.store_string('\t<var name="%s">%s</var>\n' % [key, build_xml_variables[key]])
 			
-		for c in build_xml_commands:
-			if !(c is Array) || c.size() != 2:
-				continue
-			file.store_string('\t<build name="%s">\n\t\t<command>%s</command>\n\t</build>\n' % [c[0], c[1]])
+		for key in build_xml_commands.keys():
+			file.store_string('\t<build name="%s">\n\t\t<command>%s</command>\n\t</build>\n' % [key, build_xml_commands[key]])
 			
 		file.store_string("</project>")
 	
