@@ -217,5 +217,5 @@ func do_export_file() -> void:
 	
 	# FGD
 	var export_fgd : FuncGodotFGDFile = fgd_file.duplicate()
-	export_fgd.do_export_file(true, config_folder)
+	export_fgd.do_export_file(FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM, config_folder)
 	print("TrenchBroom Game Config export complete\n")

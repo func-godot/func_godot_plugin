@@ -41,37 +41,37 @@ var prefix: String = ""
 ## Nodes will be named `"entity_" + name_property`. An entity's name should be unique, otherwise you may run into unexpected behavior.
 @export var name_property := ""
 
-func build_def_text(model_key_supported: bool = true) -> String:
+func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM) -> String:
 	# Class prefix
 	var res : String = prefix
-
+	
 	# Meta properties
 	var base_str = ""
 	var meta_props = meta_properties.duplicate()
-
+	
 	for base_class in base_classes:
 		if not 'classname' in base_class:
 			continue
-
+			
 		base_str += base_class.classname
-
+		
 		if base_class != base_classes.back():
 			base_str += ", "
-
+			
 	if base_str != "":
 		meta_props['base'] = base_str
-
+		
 	for prop in meta_props:
 		if prefix == '@SolidClass':
 			if prop == "size" or prop == "model":
 				continue
 		
-		if prop == 'model' and not model_key_supported:
+		if prop == 'model' and target_editor != FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM:
 			continue
 		
 		var value = meta_props[prop]
 		res += " " + prop + "("
-
+		
 		if value is AABB:
 			res += "%s %s %s, %s %s %s" % [
 				value.position.x,
@@ -89,9 +89,9 @@ func build_def_text(model_key_supported: bool = true) -> String:
 			]
 		elif value is String:
 			res += value
-
+		
 		res += ")"
-
+	
 	res += " = " + classname
 	
 	if prefix != "@BaseClass": # having a description in BaseClasses crashes some editors
@@ -170,28 +170,40 @@ func build_def_text(model_key_supported: bool = true) -> String:
 			TYPE_NODE_PATH:
 				prop_type = "target_destination"
 			TYPE_OBJECT:
-				prop_type = "target_source"
-
+				if value is Resource:
+					prop_val = value.resource_path
+					if value is Material:
+						if target_editor != FuncGodotFGDFile.FuncGodotTargetMapEditors.JACK:
+							prop_type = "material"
+						else:
+							prop_type = "shader"
+					elif value is Texture2D:
+						prop_type = "decal"
+					elif value is AudioStream:
+						prop_type = "sound"
+				else:
+					prop_type = "target_source"
+		
 		if prop_val:
 			res += "\t"
 			res += prop
 			res += "("
 			res += prop_type
 			res += ")"
-
+			
 			if not value is Array:
 				if not value is Dictionary or prop_description != "":
 					res += " : "
 					res += prop_description
-
+			
 			if value is bool or value is Dictionary or value is Array:
 				res += " = "
 			else:
 				res += " : "
-
+			
 			res += prop_val
 			res += FuncGodotUtil.newline()
-
+	
 	res += "]" + FuncGodotUtil.newline()
-
+	
 	return res

@@ -869,7 +869,7 @@ func apply_properties_and_finish() -> void:
 					var prop_string = properties[property]
 					if property in entity_definition.class_properties:
 						var prop_default: Variant = entity_definition.class_properties[property]
-
+						
 						match typeof(prop_default):
 							TYPE_INT:
 								properties[property] = prop_string.to_int()
@@ -943,7 +943,9 @@ func apply_properties_and_finish() -> void:
 									push_error("Invalid Vector4i format for \'" + property + "\' in entity \'" + classname + "\': " + prop_string)
 								properties[property] = prop_vec
 							TYPE_NODE_PATH:
-								properties[property] = NodePath(prop_string)
+								properties[property] = prop_string
+							TYPE_OBJECT:
+								properties[property] = prop_string
 				
 				# Assign properties not defined with defaults from the entity definition
 				for property in entity_definitions[classname].class_properties:
@@ -964,6 +966,8 @@ func apply_properties_and_finish() -> void:
 								properties[property] = prop_desc[1]
 							else:
 								properties[property] = 0
+						elif prop_default is Resource:
+							properties[property] = prop_default.resource_path
 						# Everything else
 						else:
 							properties[property] = prop_default

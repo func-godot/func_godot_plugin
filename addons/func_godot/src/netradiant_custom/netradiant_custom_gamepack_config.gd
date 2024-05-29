@@ -215,5 +215,5 @@ func do_export_file() -> void:
 	
 	# FGD
 	var export_fgd : FuncGodotFGDFile = fgd_file.duplicate()
-	export_fgd.do_export_file(true, gamepacks_folder + "/" + gamepack_name + ".game/" + base_game_path)
+	export_fgd.do_export_file(FuncGodotFGDFile.FuncGodotTargetMapEditors.NET_RADIANT_CUSTOM, gamepacks_folder + "/" + gamepack_name + ".game/" + base_game_path)
 	print("NetRadiant Custom Gamepack export complete\n")
