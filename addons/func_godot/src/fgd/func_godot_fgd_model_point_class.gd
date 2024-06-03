@@ -32,7 +32,7 @@ enum TargetMapEditor {
 		file.store_string('')
 		file.close()
 
-func build_def_text(model_key_supported: bool = true) -> String:
+func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM) -> String:
 	_generate_model()
 	return super()
 
