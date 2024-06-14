@@ -46,6 +46,13 @@ func _enter_tree() -> void:
 	add_control_to_container(EditorPlugin.CONTAINER_INSPECTOR_BOTTOM, func_godot_map_progress_bar)
 	
 	add_custom_type("FuncGodotMap", "Node3D", preload("res://addons/func_godot/src/map/func_godot_map.gd"), null)
+	
+	# Setup Editor Settings
+	FuncGodotLocalConfig.setup_editor_settings()
+	FuncGodotLocalConfig.cleanup_legacy()
+	
+	# Setup Project Settings
+	FuncGodotProjectConfig.setup_project_settings()
 
 func _exit_tree() -> void:
 	remove_custom_type("FuncGodotMap")
@@ -67,6 +74,13 @@ func _exit_tree() -> void:
 		remove_control_from_container(EditorPlugin.CONTAINER_SPATIAL_EDITOR_BOTTOM, func_godot_map_progress_bar)
 		func_godot_map_progress_bar.queue_free()
 		func_godot_map_progress_bar = null
+	
+	# Cleanup Editor Settings
+	#INFO: I realized that doing this defeats the purpose of using EditorSettings
+	# FuncGodotLocalConfig.remove_editor_settings()
+	
+	# Cleanup Project Settings
+	FuncGodotProjectConfig.remove_project_settings()
 
 ## Create the toolbar controls for [FuncGodotMap] instances in the editor
 func create_func_godot_map_control() -> Control:
