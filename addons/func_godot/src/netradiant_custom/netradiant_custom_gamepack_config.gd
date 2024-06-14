@@ -49,6 +49,19 @@ extends Resource
 ## Skip texture path that gets applied to caulk and nodrawnonsolid shaders.
 @export var skip_texture: String = "textures/special/skip"
 
+## Variables to include in the exported gamepack's [code]default_build_menu.xml[/code].[br][br]
+## Each [String] key defines a variable name, and its corresponding [String] value as the literal command-line string to execute in place of this variable identifier[br][br]
+## Entries may be referred to by key in [member default_build_commands] values.
+@export var default_build_menu_variables: Dictionary
+
+## Commands to include in the exported gamepack's [code]default_build_menu.xml[/code].[br][br]
+## Keys, specified as a [String], define the build option name as you want it to appear in Radiant.[br][br]
+## Values represent commands taken within each option.[br][br]They may be either a [String] or an
+## [Array] of [String] elements that will be used as the full command-line text issued by each command [i]within[/i]
+## its associated build option key. [br][br]They may reference entries in [member default_build_variables]
+## by using brackets: [code][variable key name][/code]
+@export var default_build_menu_commands: Dictionary
+
 ## Generates completed text for a .shader file.
 func build_shader_text() -> String:
 	var shader_text: String = ""
@@ -207,11 +220,52 @@ func do_export_file() -> void:
 	target_file_path = gamepacks_folder + "/" + gamepack_name + ".game/default_build_menu.xml"
 	print("Exporting NetRadiant Custom Default Buld Menu to ", target_file_path)
 	file = FileAccess.open(target_file_path, FileAccess.WRITE)
+	
 	if file != null:
-		file.store_string("<?xml version=\"1.0\"?><project version=\"2.0\"></project>")
-		file.close()
-	else:
-		printerr("Error: Could not modify " + target_file_path)
+		file.store_string("<?xml version=\"1.0\"?>\n<project version=\"2.0\">\n")
+		
+		for key in default_build_menu_variables.keys():
+			if key is String:
+				if default_build_menu_variables[key] is String:
+					file.store_string('\t<var name="%s">%s</var>\n' % [key, default_build_menu_variables[key]])
+				
+				else:
+					push_error(
+						"Variable key '%s' value '%s' is invalid type: %s; should be: String" % [
+						key, default_build_menu_variables[key], 
+						type_string(typeof(default_build_menu_variables[key]))
+						])
+			else:
+				push_error(
+					"Variable '%s' is an invalid key type: %s; should be: String" % [
+						key, type_string(typeof(key))
+						])
+			
+			
+		for key in default_build_menu_commands.keys():
+			if key is String:
+				file.store_string('\t<build name="%s">\n' % key)
+				
+				if default_build_menu_commands[key] is String:
+					file.store_string('\t\t<command>%s</command>\n\t</build>\n' % default_build_menu_commands[key])
+				
+				elif default_build_menu_commands[key] is Array:
+					for command in default_build_menu_commands[key]:
+						if command is String:
+							file.store_string('\t\t<command>%s</command>\n' % command)
+						else:
+							push_error("Build option '%s' has invalid command: %s with type: %s; should be: String" % [
+								key, command, type_string(typeof(command))
+								])	
+						
+					file.store_string('\t</build>\n')
+			
+			else:
+				push_error("Build option '%s' is an invalid type: %s; should be: String" % [
+					key, type_string(typeof(key))
+					])
+		
+		file.store_string("</project>")
 	
 	# FGD
 	var export_fgd : FuncGodotFGDFile = fgd_file.duplicate()
