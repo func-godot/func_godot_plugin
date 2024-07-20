@@ -494,6 +494,7 @@ func build_entity_collision_shapes() -> void:
 	for entity_idx in range(0, entity_dicts.size()):
 		var entity_dict: Dictionary = entity_dicts[entity_idx] as Dictionary
 		var properties: Dictionary = entity_dict['properties']
+		var brushes: Array = entity_dict['brushes']
 		var entity_position: Vector3 = Vector3.ZERO
 		if entity_nodes[entity_idx] != null and entity_nodes[entity_idx].get("position"):
 			if entity_nodes[entity_idx].position is Vector3:
@@ -545,14 +546,18 @@ func build_entity_collision_shapes() -> void:
 				for vert_idx in indices:
 					entity_verts.append(vertices[vert_idx])
 			else:
+				# surface_idx only maps 1:1 with brush index if the surfaces were gathered using
+				# convex algorithm
+				var original_brush: FuncGodotMapData.FuncGodotBrush = brushes[surface_idx]
 				var shape_points = PackedVector3Array()
 				for vertex in surface_verts[Mesh.ARRAY_VERTEX]:
 					if not vertex in shape_points:
 						shape_points.append(vertex)
 				
-				var shape: ConvexPolygonShape3D = ConvexPolygonShape3D.new()
+				var shape := FuncGodotConvexPolygonShape3D.new()
 				shape.set_points(shape_points)
 				shape.margin = shape_margin
+				shape.populate_texture_info(original_brush, func_godot.map_data)
 				
 				var collision_shape: CollisionShape3D = entity_collision_shape[surface_idx]
 				collision_shape.set_shape(shape)

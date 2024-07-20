@@ -5,3 +5,4 @@
 [resource]
 script = ExtResource("1_g8kqj")
 export_func_godot_settings = false
+reload_func_godot_settings = false
