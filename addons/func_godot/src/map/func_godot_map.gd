@@ -535,6 +535,7 @@ func build_entity_collision_shapes() -> void:
 		
 		var entity_verts: PackedVector3Array = PackedVector3Array()
 		var brushes: Array = entity_dict['brushes']
+		
 		for surface_idx in range(0, entity_surfaces.size()):
 			if entity_surfaces[surface_idx] == null:
 				continue
