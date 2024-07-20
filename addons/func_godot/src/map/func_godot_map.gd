@@ -494,7 +494,6 @@ func build_entity_collision_shapes() -> void:
 	for entity_idx in range(0, entity_dicts.size()):
 		var entity_dict: Dictionary = entity_dicts[entity_idx] as Dictionary
 		var properties: Dictionary = entity_dict['properties']
-		var brushes: Array = entity_dict['brushes']
 		var entity_position: Vector3 = Vector3.ZERO
 		if entity_nodes[entity_idx] != null and entity_nodes[entity_idx].get("position"):
 			if entity_nodes[entity_idx].position is Vector3:
@@ -507,6 +506,7 @@ func build_entity_collision_shapes() -> void:
 		
 		var entity_collision_shape: Array = entity_collision_shapes[entity_idx]
 		var concave: bool = false
+		var bake_texture_names: bool = false
 		var shape_margin: float = 0.04
 		
 		if 'classname' in properties:
@@ -519,6 +519,7 @@ func build_entity_collision_shapes() -> void:
 							continue
 						FuncGodotFGDSolidClass.CollisionShapeType.CONVEX:
 							concave = false
+							bake_texture_names = entity_definition.bake_texture_names
 						FuncGodotFGDSolidClass.CollisionShapeType.CONCAVE:
 							concave = true
 					shape_margin = entity_definition.collision_shape_margin
@@ -533,7 +534,7 @@ func build_entity_collision_shapes() -> void:
 		var entity_surfaces: Array = func_godot.fetch_surfaces(func_godot.surface_gatherer)
 		
 		var entity_verts: PackedVector3Array = PackedVector3Array()
-		
+		var brushes: Array = entity_dict['brushes']
 		for surface_idx in range(0, entity_surfaces.size()):
 			if entity_surfaces[surface_idx] == null:
 				continue
@@ -546,9 +547,6 @@ func build_entity_collision_shapes() -> void:
 				for vert_idx in indices:
 					entity_verts.append(vertices[vert_idx])
 			else:
-				# surface_idx only maps 1:1 with brush index if the surfaces were gathered using
-				# convex algorithm
-				var original_brush: FuncGodotMapData.FuncGodotBrush = brushes[surface_idx]
 				var shape_points = PackedVector3Array()
 				for vertex in surface_verts[Mesh.ARRAY_VERTEX]:
 					if not vertex in shape_points:
@@ -557,7 +555,11 @@ func build_entity_collision_shapes() -> void:
 				var shape := FuncGodotConvexPolygonShape3D.new()
 				shape.set_points(shape_points)
 				shape.margin = shape_margin
-				shape.populate_texture_info(original_brush, func_godot.map_data)
+				if bake_texture_names:
+					# surface_idx only maps 1:1 with brush index if the surfaces
+					# were gathered using convex algorithm
+					var original_brush: FuncGodotMapData.FuncGodotBrush = brushes[surface_idx]
+					shape.populate_texture_info(original_brush, func_godot.map_data)
 				
 				var collision_shape: CollisionShape3D = entity_collision_shape[surface_idx]
 				collision_shape.set_shape(shape)
