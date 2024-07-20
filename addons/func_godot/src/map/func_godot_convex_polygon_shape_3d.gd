@@ -8,7 +8,8 @@ const FLOATING_POINT_ERROR_EPSILON := 0.0001
 @export var _generated_texture_lookup := {}
 
 # Get the texture of a face on this shape, given the normal of collisions
-# with this shape. Accounts for floating point innaccuracies
+# with this shape. Returns empty string if the normal is invalid / not found
+# on the brush
 func get_texture_of_collision(normal: Vector3) -> String:
 	if _generated_texture_lookup.has(normal):
 		return _generated_texture_lookup[normal]
@@ -19,7 +20,6 @@ func get_texture_of_collision(normal: Vector3) -> String:
 		if tex_normal.dot(normal) > 1 - FLOATING_POINT_ERROR_EPSILON:
 			return _generated_texture_lookup[tex_normal]
 
-	# TODO: return another texture in the brush a best match?
 	return ""
 
 func populate_texture_info(brush: FuncGodotMapData.FuncGodotBrush, map_data: FuncGodotMapData) -> void:
