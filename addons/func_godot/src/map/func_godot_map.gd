@@ -528,7 +528,7 @@ func build_entity_collision_shapes() -> void:
 		if entity_collision_shapes[entity_idx] == null:
 			continue
 		
-		var entity_texture_info_concave: FuncGodotSurfaceGatherer.EntityTextureIndexRanges
+		var entity_texture_info_concave: Array[Dictionary]
 		var entity_texture_info_convex: Array
 		
 		if concave:
@@ -581,7 +581,7 @@ func build_entity_collision_shapes() -> void:
 			shape.set_faces(entity_verts)
 			shape.margin = shape_margin
 			if bake_texture_names:
-				shape.populate_texture_info(entity_texture_info_concave.ranges)
+				shape.populate_texture_info(entity_texture_info_concave)
 			
 			var collision_shape: CollisionShape3D = entity_collision_shapes[entity_idx][0]
 			collision_shape.set_shape(shape)

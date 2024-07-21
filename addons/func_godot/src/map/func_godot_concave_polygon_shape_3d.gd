@@ -20,12 +20,5 @@ func get_texture_of_collision(face_index: int) -> String:
 
 	return ""
 
-func populate_texture_info(index_ranges: Array[FuncGodotSurfaceGatherer.BrushTextureIndexRange]) -> void:
-	_generated_texture_lookup.clear()
-	# converting type -> serializable dict. could always be dict instead for better perf, worse readability
-	for index_range in index_ranges:
-		_generated_texture_lookup.append({
-			texture_name = index_range.texture_name,
-			start = index_range.start,
-			end = index_range.end,
-		})
+func populate_texture_info(index_ranges: Array[Dictionary]) -> void:
+	_generated_texture_lookup = index_ranges

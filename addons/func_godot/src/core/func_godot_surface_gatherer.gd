@@ -9,7 +9,8 @@ var skip_filter_texture_idx: int
 var include_face_texture_info: bool = false
 
 var out_surfaces: Array[FuncGodotMapData.FuncGodotFaceGeometry]
-var out_texture_info_split_none: Array[EntityTextureIndexRanges]
+# arrays of arrays of dictionaries. Dictionaries contain ranges of indicies which have textures
+var out_texture_info_split_none: Array[Array]
 # entities -> brushes -> dictionaries. Each dictionary maps normal vector -> texture name.
 var out_texture_info_split_brush: Array[Array]
 
@@ -71,7 +72,7 @@ func run() -> void:
 		
 		# used if tracking the ranges of mesh indices which correspond to
 		# textures in a concave mesh
-		var entity_index_texture_ranges := EntityTextureIndexRanges.new()
+		var entity_index_texture_ranges: Array[Dictionary]
 		var index_position: int = 0
 		# used if tracking the normals which correspond to textures in a convex
 		# brush
@@ -122,11 +123,12 @@ func run() -> void:
 					surf.indicies.append(face_geo.indicies[i] + index_offset)
 				
 				if include_face_texture_info and split_type == SurfaceSplitType.NONE:
-					var range := BrushTextureIndexRange.new()
-					range.texture_name = map_data.textures[face.texture_idx].name
-					range.start = index_position
-					range.end = index_position + num_tris
-					entity_index_texture_ranges.ranges.append(range)
+					var range := {
+						texture_name = map_data.textures[face.texture_idx].name,
+						start = index_position,
+						end = index_position + num_tris,
+					}
+					entity_index_texture_ranges.append(range)
 					index_position += num_tris
 				
 				index_offset += face_geo.vertices.size()
@@ -151,14 +153,6 @@ func reset_params() -> void:
 	texture_filter_idx = -1
 	clip_filter_texture_idx = -1
 	skip_filter_texture_idx = -1
-
-class BrushTextureIndexRange:
-	var texture_name: String
-	var start: int
-	var end: int
-
-class EntityTextureIndexRanges:
-	var ranges: Array[BrushTextureIndexRange]
 
 # nested
 enum SurfaceSplitType{
