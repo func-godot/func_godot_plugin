@@ -13,6 +13,7 @@ shadow_casting_setting = 1
 build_occlusion = false
 render_layers = 1
 collision_shape_type = 0
+bake_texture_names = false
 collision_layer = 1
 collision_mask = 1
 collision_priority = 1.0

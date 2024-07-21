@@ -22,9 +22,5 @@ func get_texture_of_collision(normal: Vector3) -> String:
 
 	return ""
 
-func populate_texture_info(brush: FuncGodotMapData.FuncGodotBrush, map_data: FuncGodotMapData) -> void:
-	_generated_texture_lookup.clear()
-	for face in brush.faces:
-		var normal := face.plane_normal
-		normal = Vector3(normal.y, normal.z, normal.x)
-		_generated_texture_lookup[normal] = map_data.textures[face.texture_idx].name
+func populate_texture_info(normal_to_texture_map: Dictionary) -> void:
+	_generated_texture_lookup = normal_to_texture_map

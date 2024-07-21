@@ -42,7 +42,7 @@ enum CollisionShapeType {
 @export_group("Collision Build")
 ## Controls how collisions are built for this Solid Class.
 @export var collision_shape_type: CollisionShapeType = CollisionShapeType.CONVEX
-## If true, the generated collision shapes will have information about the textures on their faces. Only available if collision type is convex.
+## If true, the generated collision shapes will have information about the textures on their faces.
 @export var bake_texture_names: bool = false
 ## The physics layers this Solid Class can be detected in.
 @export_flags_3d_physics var collision_layer: int = 1
