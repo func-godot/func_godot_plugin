@@ -10,7 +10,7 @@ var include_face_texture_info: bool = false
 
 var out_surfaces: Array[FuncGodotMapData.FuncGodotFaceGeometry]
 var out_texture_info_split_none: Array[EntityTextureIndexRanges]
-# entities -> brushes -> dictionaries. Each dictionary maps normal vector -> texture idx.
+# entities -> brushes -> dictionaries. Each dictionary maps normal vector -> texture name.
 var out_texture_info_split_brush: Array[Array]
 
 func _init(in_map_data: FuncGodotMapData) -> void:
