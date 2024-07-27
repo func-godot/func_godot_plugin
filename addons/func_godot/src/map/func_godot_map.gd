@@ -562,29 +562,31 @@ func build_entity_collision_shapes() -> void:
 					if not vertex in shape_points:
 						shape_points.append(vertex)
 				
-				var shape := FuncGodotConvexPolygonShape3D.new()
+				var shape := ConvexPolygonShape3D.new()
 				shape.set_points(shape_points)
 				shape.margin = shape_margin
-				if bake_texture_names:
-					# surface_idx only maps 1:1 with brush index if the surfaces
-					# were gathered using convex algorithm
-					shape.populate_texture_info(entity_texture_info_convex[surface_idx])
 				
 				var collision_shape: CollisionShape3D = entity_collision_shape[surface_idx]
 				collision_shape.set_shape(shape)
+				
+				if bake_texture_names:
+					# surface_idx only maps 1:1 with brush index if the surfaces
+					# were gathered using convex algorithm
+					collision_shape.set_meta("func_godot_normal_texture_lookup", entity_texture_info_convex[surface_idx])
 				
 		if concave:
 			if entity_verts.size() == 0:
 				continue
 			
-			var shape := FuncGodotConcavePolygonShape3D.new()
+			var shape := ConcavePolygonShape3D.new()
 			shape.set_faces(entity_verts)
 			shape.margin = shape_margin
-			if bake_texture_names:
-				shape.populate_texture_info(entity_texture_info_concave)
 			
 			var collision_shape: CollisionShape3D = entity_collision_shapes[entity_idx][0]
 			collision_shape.set_shape(shape)
+			
+			if bake_texture_names:
+				collision_shape.set_meta("func_godot_texture_index_ranges", entity_texture_info_concave)
 
 ## Build Dictionary from entity indices to [ArrayMesh] instances
 func build_entity_mesh_dict() -> Dictionary:
