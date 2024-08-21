@@ -220,7 +220,8 @@ func get_game_config_v4_text() -> String:
 	"textures": {
 		"package": { "type": "directory", "root": "textures" },
 		"format": { "extensions": ["jpg", "jpeg", "tga", "png"], "format": "image" },
-		"excludes": [ %s ]
+		"excludes": [ %s ],
+		"attribute": "_tb_textures"
 	},
 	"entities": {
 		"definitions": [ %s ],
