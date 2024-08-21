@@ -50,10 +50,7 @@ enum GameConfigVersion {
 @export_category("Editor Hint Tags")
 
 ## TrenchBroomTag resources that apply to brush entities.
-@export var brush_tags : Array[Resource] = [
-	preload("res://addons/func_godot/game_config/trenchbroom/tb_brush_tag_func.tres"),
-	preload("res://addons/func_godot/game_config/trenchbroom/tb_brush_tag_trigger.tres")
-]
+@export var brush_tags : Array[Resource] = []
 
 ## TrenchBroomTag resources that apply to brush faces.
 @export var brushface_tags : Array[Resource] = [
@@ -62,7 +59,7 @@ enum GameConfigVersion {
 ]
 
 @export_category("Compatibility")
-## Keeps track of current Trenchbroom version. It's located above the New Map button when you open Trenchbroom.
+## Game configuration format compatible with the version of TrenchBroom being used.
 @export var game_config_version: GameConfigVersion = GameConfigVersion.Latest
 
 ## Matches tag key enum to the String name used in .cfg
@@ -100,7 +97,16 @@ func build_class_text() -> String:
 	var brushface_tags_str = parse_tags(brushface_tags)
 	var uv_scale_str = parse_default_uv_scale(default_uv_scale)
 	
-	var config_text : String = get_compatible_game_config_text()
+	var config_text : String = ""
+	match game_config_version:
+		GameConfigVersion.Latest:
+			config_text = get_game_config_v8_text()
+		GameConfigVersion.Version4:
+			config_text = get_game_config_v4_text()
+		GameConfigVersion.Version8:
+			config_text = get_game_config_v8_text()
+		_:
+			push_error("Unsupported Game Config Version!")
 	return config_text % [
 		game_name,
 		map_formats_str,
@@ -196,19 +202,6 @@ func do_export_file() -> void:
 	var export_fgd : FuncGodotFGDFile = fgd_file.duplicate()
 	export_fgd.do_export_file(FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM, config_folder)
 	print("TrenchBroom Game Config export complete\n")
-
-## Returns the specific config pattern, based on current trenchbroom_version.
-func get_compatible_game_config_text() -> String:
-	match game_config_version:
-		GameConfigVersion.Latest:
-			return get_game_config_v8_text()
-		GameConfigVersion.Version4:
-			return get_game_config_v4_text()
-		GameConfigVersion.Version8:
-			return get_game_config_v8_text()
-		_:
-			push_error("Unsupported Game Config Version!")
-			return ""
 
 #region GameConfigDeclarations
 func get_game_config_v4_text() -> String:
