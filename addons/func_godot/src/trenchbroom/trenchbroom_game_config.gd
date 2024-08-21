@@ -4,6 +4,12 @@
 class_name TrenchBroomGameConfig
 extends Resource
 
+## Keeps track of each individual version
+const game_config_dict: Dictionary = {
+	"latest": "res://addons/func_godot/game_config/trenchbroom/config_texts/00-latest.txt",
+	"2021.1": "res://addons/func_godot/game_config/trenchbroom/config_texts/01-2021_1.txt"
+}
+
 ## Button to export / update this game's configuration and FGD file in the TrenchBroom Games Path.
 @export var export_file: bool:
 	get:
@@ -43,13 +49,19 @@ extends Resource
 @export_category("Editor Hint Tags")
 
 ## TrenchBroomTag resources that apply to brush entities.
-@export var brush_tags : Array[Resource] = []
+@export var brush_tags : Array[Resource] = [
+	preload("res://addons/func_godot/game_config/trenchbroom/tb_brush_tag_func.tres"),
+	preload("res://addons/func_godot/game_config/trenchbroom/tb_brush_tag_trigger.tres")
+]
 
 ## TrenchBroomTag resources that apply to brush faces.
 @export var brushface_tags : Array[Resource] = [
 	preload("res://addons/func_godot/game_config/trenchbroom/tb_face_tag_clip.tres"),
 	preload("res://addons/func_godot/game_config/trenchbroom/tb_face_tag_skip.tres")
 ]
+
+## Keeps track of current Trenchbroom version. It's located above the New Map button when you open Trenchbroom.
+var trenchbroom_version: int = 0
 
 ## Matches tag key enum to the String name used in .cfg
 static func get_match_key(tag_match_type: int) -> String:
@@ -86,44 +98,7 @@ func build_class_text() -> String:
 	var brushface_tags_str = parse_tags(brushface_tags)
 	var uv_scale_str = parse_default_uv_scale(default_uv_scale)
 	
-	var config_text : String = """{
-	"version": 8,
-	"name": "%s",
-	"icon": "icon.png",
-	"fileformats": [
-		%s
-	],
-	"filesystem": {
-		"searchpath": ".",
-		"packageformat": { "extension": ".zip", "format": "zip" }
-	},
-	"textures": {
-		"root": "textures",
-		"extensions": [".bmp", ".exr", ".hdr", ".jpeg", ".jpg", ".png", ".tga", ".webp"],
-		"excludes": [ %s ]
-	},
-	"entities": {
-		"definitions": [ %s ],
-		"defaultcolor": "0.6 0.6 0.6 1.0",
-		"scale": %s
-	},
-	"tags": {
-		"brush": [
-			%s
-		],
-		"brushface": [
-			%s
-		]
-	},
-	"faceattribs": { 
-		"defaults": {
-			%s
-		},
-		"contentflags": [],
-		"surfaceflags": []
-	}
-}
-"""
+	var config_text : String = get_compatible_game_config_text()
 	return config_text % [
 		game_name,
 		map_formats_str,
@@ -219,3 +194,37 @@ func do_export_file() -> void:
 	var export_fgd : FuncGodotFGDFile = fgd_file.duplicate()
 	export_fgd.do_export_file(FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM, config_folder)
 	print("TrenchBroom Game Config export complete\n")
+
+## Returns the specific config pattern, based on current trenchbroom_version.
+func get_compatible_game_config_text() -> String:
+	var path: String = game_config_dict.values()[trenchbroom_version]
+	assert(FileAccess.file_exists(path), "File not located at: " + path)
+	var file := FileAccess.open(path, FileAccess.READ)
+	var content: String = file.get_as_text()
+	file.close()
+	return content
+
+## Updates the dropdown menu for trenchbroom_version variable
+func _get_property_list() -> Array[Dictionary]:
+	var properties: Array[Dictionary] = []
+	
+	var hint_string: String = ""
+	for index in game_config_dict.size():
+		var version = game_config_dict.keys()[index]
+		hint_string += version
+		if index < game_config_dict.size() - 1:
+			hint_string += ","
+	
+	properties.append({
+		name = "Compatibility",
+		usage = PROPERTY_USAGE_CATEGORY,
+		type = TYPE_NIL,
+	})
+	properties.append({
+		name = "trenchbroom_version",
+		usage = PROPERTY_USAGE_DEFAULT,
+		type = TYPE_INT,
+		hint = PROPERTY_HINT_ENUM,
+		hint_string = hint_string
+	})
+	return properties
