@@ -5,9 +5,10 @@ class_name TrenchBroomGameConfig
 extends Resource
 
 ## Keeps track of each individual version
-const game_config_dict: Dictionary = {
-	"latest": "res://addons/func_godot/game_config/trenchbroom/config_texts/00-latest.txt",
-	"2021.1": "res://addons/func_godot/game_config/trenchbroom/config_texts/01-2021_1.txt"
+enum GameConfigVersion {
+	Latest,
+	Version4,
+	Version8
 }
 
 ## Button to export / update this game's configuration and FGD file in the TrenchBroom Games Path.
@@ -60,8 +61,9 @@ const game_config_dict: Dictionary = {
 	preload("res://addons/func_godot/game_config/trenchbroom/tb_face_tag_skip.tres")
 ]
 
+@export_category("Compatibility")
 ## Keeps track of current Trenchbroom version. It's located above the New Map button when you open Trenchbroom.
-var trenchbroom_version: int = 0
+@export var game_config_version: GameConfigVersion = GameConfigVersion.Latest
 
 ## Matches tag key enum to the String name used in .cfg
 static func get_match_key(tag_match_type: int) -> String:
@@ -197,34 +199,97 @@ func do_export_file() -> void:
 
 ## Returns the specific config pattern, based on current trenchbroom_version.
 func get_compatible_game_config_text() -> String:
-	var path: String = game_config_dict.values()[trenchbroom_version]
-	assert(FileAccess.file_exists(path), "File not located at: " + path)
-	var file := FileAccess.open(path, FileAccess.READ)
-	var content: String = file.get_as_text()
-	file.close()
-	return content
+	match game_config_version:
+		GameConfigVersion.Latest:
+			return get_game_config_v8_text()
+		GameConfigVersion.Version4:
+			return get_game_config_v4_text()
+		GameConfigVersion.Version8:
+			return get_game_config_v8_text()
+		_:
+			push_error("Unsupported Game Config Version!")
+			return ""
 
-## Updates the dropdown menu for trenchbroom_version variable
-func _get_property_list() -> Array[Dictionary]:
-	var properties: Array[Dictionary] = []
-	
-	var hint_string: String = ""
-	for index in game_config_dict.size():
-		var version = game_config_dict.keys()[index]
-		hint_string += version
-		if index < game_config_dict.size() - 1:
-			hint_string += ","
-	
-	properties.append({
-		name = "Compatibility",
-		usage = PROPERTY_USAGE_CATEGORY,
-		type = TYPE_NIL,
-	})
-	properties.append({
-		name = "trenchbroom_version",
-		usage = PROPERTY_USAGE_DEFAULT,
-		type = TYPE_INT,
-		hint = PROPERTY_HINT_ENUM,
-		hint_string = hint_string
-	})
-	return properties
+#region GameConfigDeclarations
+func get_game_config_v4_text() -> String:
+	return """\
+{
+	"version": 4,
+	"name": "%s",
+	"icon": "icon.png",
+	"fileformats": [
+		%s
+	],
+	"filesystem": {
+		"searchpath": ".",
+		"packageformat": { "extension": ".zip", "format": "zip" }
+	},
+	"textures": {
+		"package": { "type": "directory", "root": "textures" },
+		"format": { "extensions": ["jpg", "jpeg", "tga", "png"], "format": "image" },
+		"excludes": [ %s ]
+	},
+	"entities": {
+		"definitions": [ %s ],
+		"defaultcolor": "0.6 0.6 0.6 1.0",
+		"modelformats": [ "bsp, mdl, md2" ],
+		"scale": %s
+	},
+	"tags": {
+		"brush": [
+			%s
+		],
+		"brushface": [
+			%s
+		]
+	},
+	"faceattribs": { 
+		"defaults": {
+			%s
+		},
+		"contentflags": [],
+		"surfaceflags": []
+	}
+}
+	"""
+func get_game_config_v8_text() -> String:
+	return """\
+{
+	"version": 8,
+	"name": "%s",
+	"icon": "icon.png",
+	"fileformats": [
+		%s
+	],
+	"filesystem": {
+		"searchpath": ".",
+		"packageformat": { "extension": ".zip", "format": "zip" }
+	},
+	"textures": {
+		"root": "textures",
+		"extensions": [".bmp", ".exr", ".hdr", ".jpeg", ".jpg", ".png", ".tga", ".webp"],
+		"excludes": [ %s ]
+	},
+	"entities": {
+		"definitions": [ %s ],
+		"defaultcolor": "0.6 0.6 0.6 1.0",
+		"scale": %s
+	},
+	"tags": {
+		"brush": [
+			%s
+		],
+		"brushface": [
+			%s
+		]
+	},
+	"faceattribs": { 
+		"defaults": {
+			%s
+		},
+		"contentflags": [],
+		"surfaceflags": []
+	}
+}
+	"""
+#endregion
