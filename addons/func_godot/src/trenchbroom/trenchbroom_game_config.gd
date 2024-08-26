@@ -4,6 +4,13 @@
 class_name TrenchBroomGameConfig
 extends Resource
 
+## Keeps track of each individual version
+enum GameConfigVersion {
+	Latest,
+	Version4,
+	Version8
+}
+
 ## Button to export / update this game's configuration and FGD file in the TrenchBroom Games Path.
 @export var export_file: bool:
 	get:
@@ -51,6 +58,10 @@ extends Resource
 	preload("res://addons/func_godot/game_config/trenchbroom/tb_face_tag_skip.tres")
 ]
 
+@export_category("Compatibility")
+## Game configuration format compatible with the version of TrenchBroom being used.
+@export var game_config_version: GameConfigVersion = GameConfigVersion.Latest
+
 ## Matches tag key enum to the String name used in .cfg
 static func get_match_key(tag_match_type: int) -> String:
 	match tag_match_type:
@@ -86,44 +97,16 @@ func build_class_text() -> String:
 	var brushface_tags_str = parse_tags(brushface_tags)
 	var uv_scale_str = parse_default_uv_scale(default_uv_scale)
 	
-	var config_text : String = """{
-	"version": 8,
-	"name": "%s",
-	"icon": "icon.png",
-	"fileformats": [
-		%s
-	],
-	"filesystem": {
-		"searchpath": ".",
-		"packageformat": { "extension": ".zip", "format": "zip" }
-	},
-	"textures": {
-		"root": "textures",
-		"extensions": [".bmp", ".exr", ".hdr", ".jpeg", ".jpg", ".png", ".tga", ".webp"],
-		"excludes": [ %s ]
-	},
-	"entities": {
-		"definitions": [ %s ],
-		"defaultcolor": "0.6 0.6 0.6 1.0",
-		"scale": %s
-	},
-	"tags": {
-		"brush": [
-			%s
-		],
-		"brushface": [
-			%s
-		]
-	},
-	"faceattribs": { 
-		"defaults": {
-			%s
-		},
-		"contentflags": [],
-		"surfaceflags": []
-	}
-}
-"""
+	var config_text : String = ""
+	match game_config_version:
+		GameConfigVersion.Latest:
+			config_text = get_game_config_v8_text()
+		GameConfigVersion.Version4:
+			config_text = get_game_config_v4_text()
+		GameConfigVersion.Version8:
+			config_text = get_game_config_v8_text()
+		_:
+			push_error("Unsupported Game Config Version!")
 	return config_text % [
 		game_name,
 		map_formats_str,
@@ -219,3 +202,88 @@ func do_export_file() -> void:
 	var export_fgd : FuncGodotFGDFile = fgd_file.duplicate()
 	export_fgd.do_export_file(FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM, config_folder)
 	print("TrenchBroom Game Config export complete\n")
+
+#region GameConfigDeclarations
+func get_game_config_v4_text() -> String:
+	return """\
+{
+	"version": 4,
+	"name": "%s",
+	"icon": "icon.png",
+	"fileformats": [
+		%s
+	],
+	"filesystem": {
+		"searchpath": ".",
+		"packageformat": { "extension": ".zip", "format": "zip" }
+	},
+	"textures": {
+		"package": { "type": "directory", "root": "textures" },
+		"format": { "extensions": ["jpg", "jpeg", "tga", "png"], "format": "image" },
+		"excludes": [ %s ],
+		"attribute": "_tb_textures"
+	},
+	"entities": {
+		"definitions": [ %s ],
+		"defaultcolor": "0.6 0.6 0.6 1.0",
+		"modelformats": [ "bsp, mdl, md2" ],
+		"scale": %s
+	},
+	"tags": {
+		"brush": [
+			%s
+		],
+		"brushface": [
+			%s
+		]
+	},
+	"faceattribs": { 
+		"defaults": {
+			%s
+		},
+		"contentflags": [],
+		"surfaceflags": []
+	}
+}
+	"""
+func get_game_config_v8_text() -> String:
+	return """\
+{
+	"version": 8,
+	"name": "%s",
+	"icon": "icon.png",
+	"fileformats": [
+		%s
+	],
+	"filesystem": {
+		"searchpath": ".",
+		"packageformat": { "extension": ".zip", "format": "zip" }
+	},
+	"textures": {
+		"root": "textures",
+		"extensions": [".bmp", ".exr", ".hdr", ".jpeg", ".jpg", ".png", ".tga", ".webp"],
+		"excludes": [ %s ]
+	},
+	"entities": {
+		"definitions": [ %s ],
+		"defaultcolor": "0.6 0.6 0.6 1.0",
+		"scale": %s
+	},
+	"tags": {
+		"brush": [
+			%s
+		],
+		"brushface": [
+			%s
+		]
+	},
+	"faceattribs": { 
+		"defaults": {
+			%s
+		},
+		"contentflags": [],
+		"surfaceflags": []
+	}
+}
+	"""
+#endregion
