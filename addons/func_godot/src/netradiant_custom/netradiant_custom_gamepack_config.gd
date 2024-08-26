@@ -51,14 +51,14 @@ extends Resource
 
 ## Variables to include in the exported gamepack's [code]default_build_menu.xml[/code].[br][br]
 ## Each [String] key defines a variable name, and its corresponding [String] value as the literal command-line string to execute in place of this variable identifier[br][br]
-## Entries may be referred to by key in [member default_build_commands] values.
+## Entries may be referred to by key in [member default_build_menu_commands] values.
 @export var default_build_menu_variables: Dictionary
 
 ## Commands to include in the exported gamepack's [code]default_build_menu.xml[/code].[br][br]
 ## Keys, specified as a [String], define the build option name as you want it to appear in Radiant.[br][br]
 ## Values represent commands taken within each option.[br][br]They may be either a [String] or an
 ## [Array] of [String] elements that will be used as the full command-line text issued by each command [i]within[/i]
-## its associated build option key. [br][br]They may reference entries in [member default_build_variables]
+## its associated build option key. [br][br]They may reference entries in [member default_build_menu_variables]
 ## by using brackets: [code][variable key name][/code]
 @export var default_build_menu_commands: Dictionary
 
