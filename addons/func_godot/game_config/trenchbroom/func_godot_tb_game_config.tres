@@ -4,8 +4,6 @@
 [ext_resource type="Resource" uid="uid://b4xhdj0e16lop" path="res://addons/func_godot/game_config/trenchbroom/tb_face_tag_clip.tres" id="1_rsp20"]
 [ext_resource type="Resource" uid="uid://ca7377sfgj074" path="res://addons/func_godot/game_config/trenchbroom/tb_face_tag_skip.tres" id="2_166i2"]
 [ext_resource type="Script" path="res://addons/func_godot/src/trenchbroom/trenchbroom_game_config.gd" id="2_ns6ah"]
-[ext_resource type="Resource" uid="uid://37iduqf7tpxq" path="res://addons/func_godot/game_config/trenchbroom/tb_brush_tag_func.tres" id="3_mbuv7"]
-[ext_resource type="Resource" uid="uid://co2sb1ng7cw4i" path="res://addons/func_godot/game_config/trenchbroom/tb_brush_tag_trigger.tres" id="4_y0tjm"]
 [ext_resource type="Texture2D" uid="uid://decwujsyhj0qy" path="res://addons/func_godot/icon32.png" id="6_tex5j"]
 
 [resource]
@@ -29,6 +27,6 @@ texture_exclusion_patterns = Array[String](["*_albedo", "*_ao", "*_emission", "*
 fgd_file = ExtResource("1_8u1vq")
 entity_scale = "32"
 default_uv_scale = Vector2(1, 1)
-brush_tags = Array[Resource]([ExtResource("3_mbuv7"), ExtResource("4_y0tjm")])
+brush_tags = Array[Resource]([])
 brushface_tags = Array[Resource]([ExtResource("1_rsp20"), ExtResource("2_166i2")])
 game_config_version = 0
