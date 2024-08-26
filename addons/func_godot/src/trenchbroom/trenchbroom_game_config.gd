@@ -64,7 +64,7 @@ enum GameConfigVersion {
 
 @export_category("Face Attributes")
 
-## Default texture scale on brushes.
+## Default scale of textures on new brushes and when UV scale is reset.
 @export var default_uv_scale : Vector2 = Vector2(1, 1)
 
 @export_category("Compatibility")
