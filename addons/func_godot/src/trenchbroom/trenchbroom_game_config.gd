@@ -34,8 +34,15 @@ enum GameConfigVersion {
 	{ "format": "Quake3" }
 ]
 
+@export_category("Textures")
+
+## Path to top level textures folder relative to the game path.
+@export var textures_root_folder: String = "textures"
+
 ## Textures matching these patterns will be hidden from TrenchBroom.
 @export var texture_exclusion_patterns: Array[String] = ["*_albedo", "*_ao", "*_emission", "*_height", "*_metallic", "*_normal", "*_orm", "*_roughness", "*_sss"]
+
+@export_category("Entities")
 
 ## FGD resource to include with this game. If using multiple FGD resources, this should be the master FGD that contains them in the `base_fgd_files` resource array.
 @export var fgd_file : FuncGodotFGDFile = preload("res://addons/func_godot/fgd/func_godot_fgd.tres")
@@ -43,11 +50,8 @@ enum GameConfigVersion {
 ## Scale expression that modifies the default display scale of entities in TrenchBroom. See the [**TrenchBroom Documentation**](https://trenchbroom.github.io/manual/latest/#game_configuration_files_entities) for more information.
 @export var entity_scale: String = "32"
 
-## Scale of textures on new brushes.
-@export var default_uv_scale : Vector2 = Vector2(1, 1)
-
 ## Arrays containing the TrenchBroomTag resource type.
-@export_category("Editor Hint Tags")
+@export_category("Tags")
 
 ## TrenchBroomTag resources that apply to brush entities.
 @export var brush_tags : Array[Resource] = []
@@ -58,7 +62,13 @@ enum GameConfigVersion {
 	preload("res://addons/func_godot/game_config/trenchbroom/tb_face_tag_skip.tres")
 ]
 
+@export_category("Face Attributes")
+
+## Default texture scale on brushes.
+@export var default_uv_scale : Vector2 = Vector2(1, 1)
+
 @export_category("Compatibility")
+
 ## Game configuration format compatible with the version of TrenchBroom being used.
 @export var game_config_version: GameConfigVersion = GameConfigVersion.Latest
 
@@ -110,6 +120,7 @@ func build_class_text() -> String:
 	return config_text % [
 		game_name,
 		map_formats_str,
+		textures_root_folder,
 		texture_exclusion_patterns_str,
 		fgd_filename_str,
 		entity_scale,
@@ -218,7 +229,7 @@ func get_game_config_v4_text() -> String:
 		"packageformat": { "extension": ".zip", "format": "zip" }
 	},
 	"textures": {
-		"package": { "type": "directory", "root": "textures" },
+		"package": { "type": "directory", "root": "%s" },
 		"format": { "extensions": ["jpg", "jpeg", "tga", "png"], "format": "image" },
 		"excludes": [ %s ],
 		"attribute": "_tb_textures"
@@ -260,7 +271,7 @@ func get_game_config_v8_text() -> String:
 		"packageformat": { "extension": ".zip", "format": "zip" }
 	},
 	"textures": {
-		"root": "textures",
+		"root": "%s",
 		"extensions": [".bmp", ".exr", ".hdr", ".jpeg", ".jpg", ".png", ".tga", ".webp"],
 		"excludes": [ %s ]
 	},
