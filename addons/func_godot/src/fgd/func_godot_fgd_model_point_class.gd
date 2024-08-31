@@ -19,18 +19,22 @@ enum TargetMapEditor {
 @export var generate_size_property : bool = false
 ## Creates a .gdignore file in the model export folder to prevent Godot importing the display models. Only needs to be generated once.
 @export var generate_gd_ignore_file : bool = false :
+	get:
+		return generate_gd_ignore_file
 	set(ignore):
-		var path: String = _get_game_path().path_join(_get_model_folder())
-		var error: Error = DirAccess.make_dir_recursive_absolute(path)
-		if error != Error.OK:
-			printerr("Failed creating dir for GDIgnore file", error)
-			return
-		path = path.path_join('.gdignore')
-		if FileAccess.file_exists(path):
-			return
-		var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
-		file.store_string('')
-		file.close()
+		if (ignore != generate_gd_ignore_file):
+			if Engine.is_editor_hint():
+				var path: String = _get_game_path().path_join(_get_model_folder())
+				var error: Error = DirAccess.make_dir_recursive_absolute(path)
+				if error != Error.OK:
+					printerr("Failed creating dir for GDIgnore file", error)
+					return
+				path = path.path_join('.gdignore')
+				if FileAccess.file_exists(path):
+					return
+				var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+				file.store_string('')
+				file.close()
 
 func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM) -> String:
 	_generate_model()
