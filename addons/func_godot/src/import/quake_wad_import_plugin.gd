@@ -26,7 +26,7 @@ func _get_importer_name() -> String:
 	return 'func_godot.wad'
 
 func _get_visible_name() -> String:
-	return 'Texture2D WAD'
+	return 'Quake WAD'
 
 func _get_resource_type() -> String:
 	return 'Resource'

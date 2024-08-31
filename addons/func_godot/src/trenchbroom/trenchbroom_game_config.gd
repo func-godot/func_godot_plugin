@@ -42,6 +42,9 @@ enum GameConfigVersion {
 ## Textures matching these patterns will be hidden from TrenchBroom.
 @export var texture_exclusion_patterns: Array[String] = ["*_albedo", "*_ao", "*_emission", "*_height", "*_metallic", "*_normal", "*_orm", "*_roughness", "*_sss"]
 
+## Palette path relative to your Game Path. Only needed for Quake WAD2 files. Half-Life WAD3 files contain the palettes within the texture information.
+@export var palette_path: String = "textures/palette.lmp"
+
 @export_category("Entities")
 
 ## FGD resource to include with this game. If using multiple FGD resources, this should be the master FGD that contains them in the `base_fgd_files` resource array.
@@ -109,25 +112,38 @@ func build_class_text() -> String:
 	
 	var config_text : String = ""
 	match game_config_version:
-		GameConfigVersion.Latest:
-			config_text = get_game_config_v8_text()
+		GameConfigVersion.Latest, GameConfigVersion.Version8:
+			config_text = get_game_config_v8_text() % [
+				game_name,
+				map_formats_str,
+				textures_root_folder,
+				texture_exclusion_patterns_str,
+				palette_path,
+				fgd_filename_str,
+				entity_scale,
+				brush_tags_str,
+				brushface_tags_str,
+				uv_scale_str
+			]
+
 		GameConfigVersion.Version4:
-			config_text = get_game_config_v4_text()
-		GameConfigVersion.Version8:
-			config_text = get_game_config_v8_text()
+			config_text = get_game_config_v4_text() % [
+				game_name,
+				map_formats_str,
+				textures_root_folder,
+				texture_exclusion_patterns_str,
+				palette_path,
+				fgd_filename_str,
+				entity_scale,
+				brush_tags_str,
+				brushface_tags_str,
+				uv_scale_str
+			]
+
 		_:
 			push_error("Unsupported Game Config Version!")
-	return config_text % [
-		game_name,
-		map_formats_str,
-		textures_root_folder,
-		texture_exclusion_patterns_str,
-		fgd_filename_str,
-		entity_scale,
-		brush_tags_str,
-		brushface_tags_str,
-		uv_scale_str
-	]
+	
+	return config_text
 
 ## Converts brush, FuncGodotFace, and attribute tags into a .cfg-usable String.
 func parse_tags(tags: Array) -> String:
@@ -230,9 +246,10 @@ func get_game_config_v4_text() -> String:
 	},
 	"textures": {
 		"package": { "type": "directory", "root": "%s" },
-		"format": { "extensions": ["jpg", "jpeg", "tga", "png"], "format": "image" },
+		"format": { "extensions": ["jpg", "jpeg", "tga", "png", "D", "C"], "format": "image" },
 		"excludes": [ %s ],
-		"attribute": "_tb_textures"
+		"palette": "%s",
+		"attribute": ["_tb_textures", "wad"]
 	},
 	"entities": {
 		"definitions": [ %s ],
@@ -257,6 +274,7 @@ func get_game_config_v4_text() -> String:
 	}
 }
 	"""
+
 func get_game_config_v8_text() -> String:
 	return """\
 {
@@ -272,8 +290,10 @@ func get_game_config_v8_text() -> String:
 	},
 	"textures": {
 		"root": "%s",
-		"extensions": [".bmp", ".exr", ".hdr", ".jpeg", ".jpg", ".png", ".tga", ".webp"],
-		"excludes": [ %s ]
+		"extensions": [".bmp", ".exr", ".hdr", ".jpeg", ".jpg", ".png", ".tga", ".webp", ".D", ".C"],
+		"excludes": [ %s ],
+		"palette": "%s",
+		"attribute": "wad"
 	},
 	"entities": {
 		"definitions": [ %s ],
@@ -297,4 +317,5 @@ func get_game_config_v8_text() -> String:
 	}
 }
 	"""
+
 #endregion
