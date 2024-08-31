@@ -981,9 +981,6 @@ func apply_properties_and_finish() -> void:
 		var entity_node: Node = entity_nodes[entity_idx] as Node
 		if entity_node and entity_node.has_method("_func_godot_apply_properties"):
 			entity_node._func_godot_apply_properties(properties_arr[entity_idx])
-	
-	for entity_idx in range(0, entity_nodes.size()):
-		var entity_node: Node = entity_nodes[entity_idx] as Node
 		if entity_node and entity_node.has_method("_func_godot_build_complete"):
 			entity_node.call_deferred("_func_godot_build_complete")
 
