@@ -4,5 +4,5 @@ extends Resource
 
 @export var textures: Dictionary
 
-func _init(textures: Dictionary):
+func _init(textures: Dictionary = Dictionary()):
 	self.textures = textures
