@@ -101,6 +101,13 @@ func create_material(texture_name: String) -> Material:
 	var material_path: String = "%s/%s.%s" % [map_settings.base_texture_dir, texture_name, map_settings.material_file_extension]
 	if not material_path in material_dict and (FileAccess.file_exists(material_path) or FileAccess.file_exists(material_path + ".remap")):
 		var loaded_material: Material = load(material_path)
+
+		#Set Material Texture Sampling Filter
+		if map_settings.nearest_filtering == true:
+			loaded_material.set_texture_filter(BaseMaterial3D.TEXTURE_FILTER_NEAREST)
+		else:
+			loaded_material.set_texture_filter(BaseMaterial3D.TEXTURE_FILTER_LINEAR)
+		
 		if loaded_material:
 			material_dict[material_path] = loaded_material
 	
