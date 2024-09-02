@@ -62,6 +62,9 @@ extends Resource
 ## If true, all materials will be unshaded, ignoring light. Also known as "fullbright".
 @export var unshaded: bool = false
 
+## If true, all materials will use Nearest sampling, if false materials will use Linear
+@export var nearest_filtering: bool = true
+
 ## Save automatically generated materials to disk, allowing reuse across [FuncGodotMap] nodes. [i]NOTE: Materials do not use the Default Material settings after saving.[/i]
 @export var save_generated_materials: bool = true
 
