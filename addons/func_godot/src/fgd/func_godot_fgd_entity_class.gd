@@ -159,6 +159,9 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 				prop_val = FuncGodotUtil.newline() + "\t[" + FuncGodotUtil.newline()
 				for choice in value:
 					var choice_val = value[choice]
+					if typeof(choice_val) == TYPE_STRING:
+						if not (choice_val as String).begins_with("\""):
+							choice_val = "\"" + choice_val + "\""
 					prop_val += "\t\t" + str(choice_val) + " : \"" + choice + "\"" + FuncGodotUtil.newline()
 				prop_val += "\t]"
 			TYPE_ARRAY:
