@@ -701,13 +701,15 @@ func apply_entity_occluders() -> void:
 		
 		var verts: PackedVector3Array
 		var indices: PackedInt32Array
+		var index: int = 0
 		for surf_idx in range(mesh.get_surface_count()):
 			var vert_count: int = verts.size()
 			var surf_array: Array = mesh.surface_get_arrays(surf_idx)
 			verts.append_array(surf_array[Mesh.ARRAY_VERTEX])
 			indices.resize(indices.size() + surf_array[Mesh.ARRAY_INDEX].size())
 			for new_index in surf_array[Mesh.ARRAY_INDEX]:
-				indices.append(new_index + vert_count)
+				indices[index] = (new_index + vert_count)
+				index += 1
 		
 		var occluder: ArrayOccluder3D = ArrayOccluder3D.new()
 		occluder.set_arrays(verts, indices)
