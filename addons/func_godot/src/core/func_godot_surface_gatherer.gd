@@ -6,8 +6,13 @@ var entity_filter_idx: int = -1
 var texture_filter_idx: int = -1
 var clip_filter_texture_idx: int
 var skip_filter_texture_idx: int
+var include_face_texture_info: bool = false
 
 var out_surfaces: Array[FuncGodotMapData.FuncGodotFaceGeometry]
+# arrays of arrays of dictionaries. Dictionaries contain ranges of indicies which have textures
+var out_texture_info_split_none: Array[Array]
+# entities -> brushes -> dictionaries. Each dictionary maps normal vector -> texture name.
+var out_texture_info_split_brush: Array[Array]
 
 func _init(in_map_data: FuncGodotMapData) -> void:
 	map_data = in_map_data
@@ -48,6 +53,8 @@ func filter_face(entity_idx: int, brush_idx: int, face_idx: int) -> bool:
 
 func run() -> void:
 	out_surfaces.clear()
+	out_texture_info_split_none.clear()
+	out_texture_info_split_brush.clear()
 	
 	var index_offset: int = 0
 	var surf: FuncGodotMapData.FuncGodotFaceGeometry
@@ -62,7 +69,15 @@ func run() -> void:
 		
 		if filter_entity(e):
 			continue
-			
+		
+		# used if tracking the ranges of mesh indices which correspond to
+		# textures in a concave mesh
+		var entity_index_texture_ranges: Array[Dictionary]
+		var index_position: int = 0
+		# used if tracking the normals which correspond to textures in a convex
+		# brush
+		var brushes_normal_to_texture_map: Array[Dictionary]
+		
 		if split_type == SurfaceSplitType.ENTITY:
 			if entity.spawn_type == FuncGodotMapData.FuncGodotEntitySpawnType.MERGE_WORLDSPAWN:
 				add_surface()
@@ -71,10 +86,11 @@ func run() -> void:
 			else:
 				surf = add_surface()
 				index_offset = surf.vertices.size()
-				
+		
 		for b in range(entity.brushes.size()):
 			var brush:= entity.brushes[b]
 			var brush_geo:= entity_geo.brushes[b]
+			var normal_to_texture_map := {}
 			
 			if split_type == SurfaceSplitType.BRUSH:
 				index_offset = 0
@@ -82,6 +98,14 @@ func run() -> void:
 				
 			for f in range(brush.faces.size()):
 				var face_geo: FuncGodotMapData.FuncGodotFaceGeometry = brush_geo.faces[f]
+				var face := brush.faces[f]
+				
+				if include_face_texture_info and split_type == SurfaceSplitType.BRUSH:
+					# include textures in normal -> texture map even if filtered, as this
+					# information corresponds with convex collision shapes whose faces are not
+					# filtered
+					var godot_normal := Vector3(face.plane_normal.y, face.plane_normal.z, face.plane_normal.x)
+					normal_to_texture_map[godot_normal] = map_data.textures[face.texture_idx].name
 				
 				if filter_face(e, b, f):
 					continue
@@ -94,10 +118,29 @@ func run() -> void:
 					
 					surf.vertices.append(vert)
 				
-				for i in range((face_geo.vertices.size() - 2) * 3):
+				var num_tris: int = face_geo.vertices.size() - 2
+				for i in range(num_tris * 3):
 					surf.indicies.append(face_geo.indicies[i] + index_offset)
 				
+				if include_face_texture_info and split_type == SurfaceSplitType.NONE:
+					var range := {
+						texture_name = map_data.textures[face.texture_idx].name,
+						start = index_position,
+						end = index_position + num_tris,
+					}
+					entity_index_texture_ranges.append(range)
+					index_position += num_tris
+				
 				index_offset += face_geo.vertices.size()
+			
+			if include_face_texture_info:
+				brushes_normal_to_texture_map.append(normal_to_texture_map)
+		
+		if include_face_texture_info:
+			if split_type == SurfaceSplitType.NONE:
+				out_texture_info_split_none.append(entity_index_texture_ranges)
+			elif split_type == SurfaceSplitType.BRUSH:
+				out_texture_info_split_brush.append(brushes_normal_to_texture_map)
 
 func add_surface() -> FuncGodotMapData.FuncGodotFaceGeometry:
 	var surf:= FuncGodotMapData.FuncGodotFaceGeometry.new()

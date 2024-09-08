@@ -506,6 +506,7 @@ func build_entity_collision_shapes() -> void:
 		
 		var entity_collision_shape: Array = entity_collision_shapes[entity_idx]
 		var concave: bool = false
+		var bake_texture_names: bool = false
 		var shape_margin: float = 0.04
 		
 		if 'classname' in properties:
@@ -518,20 +519,31 @@ func build_entity_collision_shapes() -> void:
 							continue
 						FuncGodotFGDSolidClass.CollisionShapeType.CONVEX:
 							concave = false
+							bake_texture_names = entity_definition.bake_texture_names
 						FuncGodotFGDSolidClass.CollisionShapeType.CONCAVE:
 							concave = true
+							bake_texture_names = entity_definition.bake_texture_names
 					shape_margin = entity_definition.collision_shape_margin
 		
 		if entity_collision_shapes[entity_idx] == null:
 			continue
 		
-		if concave:
-			func_godot.gather_entity_concave_collision_surfaces(entity_idx)
-		else:
-			func_godot.gather_entity_convex_collision_surfaces(entity_idx)
-		var entity_surfaces: Array = func_godot.fetch_surfaces(func_godot.surface_gatherer)
+		var entity_texture_info_concave: Array[Dictionary]
+		var entity_texture_info_convex: Array
 		
+		if concave:
+			func_godot.gather_entity_concave_collision_surfaces(entity_idx, bake_texture_names)
+			if bake_texture_names:
+				entity_texture_info_concave = func_godot.surface_gatherer.out_texture_info_split_none[0]
+		else:
+			func_godot.gather_entity_convex_collision_surfaces(entity_idx, bake_texture_names)
+			if bake_texture_names:
+				entity_texture_info_convex = func_godot.surface_gatherer.out_texture_info_split_brush[0]
+		var entity_surfaces: Array = func_godot.fetch_surfaces(func_godot.surface_gatherer)
+
 		var entity_verts: PackedVector3Array = PackedVector3Array()
+		var entity_tri_index_texture_map: Dictionary
+		var brushes: Array = entity_dict['brushes']
 		
 		for surface_idx in range(0, entity_surfaces.size()):
 			if entity_surfaces[surface_idx] == null:
@@ -550,23 +562,31 @@ func build_entity_collision_shapes() -> void:
 					if not vertex in shape_points:
 						shape_points.append(vertex)
 				
-				var shape: ConvexPolygonShape3D = ConvexPolygonShape3D.new()
+				var shape := ConvexPolygonShape3D.new()
 				shape.set_points(shape_points)
 				shape.margin = shape_margin
 				
 				var collision_shape: CollisionShape3D = entity_collision_shape[surface_idx]
 				collision_shape.set_shape(shape)
 				
+				if bake_texture_names:
+					# surface_idx only maps 1:1 with brush index if the surfaces
+					# were gathered using convex algorithm
+					collision_shape.set_meta("func_godot_normal_texture_lookup", entity_texture_info_convex[surface_idx])
+				
 		if concave:
 			if entity_verts.size() == 0:
 				continue
 			
-			var shape: ConcavePolygonShape3D = ConcavePolygonShape3D.new()
+			var shape := ConcavePolygonShape3D.new()
 			shape.set_faces(entity_verts)
 			shape.margin = shape_margin
 			
 			var collision_shape: CollisionShape3D = entity_collision_shapes[entity_idx][0]
 			collision_shape.set_shape(shape)
+			
+			if bake_texture_names:
+				collision_shape.set_meta("func_godot_texture_index_ranges", entity_texture_info_concave)
 
 ## Build Dictionary from entity indices to [ArrayMesh] instances
 func build_entity_mesh_dict() -> Dictionary:
