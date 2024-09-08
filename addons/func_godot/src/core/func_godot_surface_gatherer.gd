@@ -44,7 +44,7 @@ func filter_face(entity_idx: int, brush_idx: int, face_idx: int) -> bool:
 	if skip_filter_texture_idx != -1 and face.texture_idx == skip_filter_texture_idx:
 		return true
 
-	# omit faces textured with skip
+	# omit faces textured with origin
 	if origin_filter_texture_idx != -1 and face.texture_idx == origin_filter_texture_idx:
 		return true
 	
