@@ -6,6 +6,7 @@ var entity_filter_idx: int = -1
 var texture_filter_idx: int = -1
 var clip_filter_texture_idx: int
 var skip_filter_texture_idx: int
+var origin_filter_texture_idx: int
 
 var out_surfaces: Array[FuncGodotMapData.FuncGodotFaceGeometry]
 
@@ -20,6 +21,9 @@ func set_clip_filter_texture(texture_name: String) -> void:
 	
 func set_skip_filter_texture(texture_name: String) -> void:
 	skip_filter_texture_idx = map_data.find_texture(texture_name)
+
+func set_origin_filter_texture(texture_name: String) -> void:
+	origin_filter_texture_idx = map_data.find_texture(texture_name)
 
 func filter_entity(entity_idx: int) -> bool:
 	if entity_filter_idx != -1 and entity_idx != entity_filter_idx:
@@ -38,6 +42,10 @@ func filter_face(entity_idx: int, brush_idx: int, face_idx: int) -> bool:
 		
 	# omit faces textured with skip
 	if skip_filter_texture_idx != -1 and face.texture_idx == skip_filter_texture_idx:
+		return true
+
+	# omit faces textured with origin
+	if origin_filter_texture_idx != -1 and face.texture_idx == origin_filter_texture_idx:
 		return true
 	
 	# omit filtered texture indices

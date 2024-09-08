@@ -28,6 +28,9 @@ extends Resource
 ## Optional path for the skip texture, relative to [member base_texture_dir]. Brush faces textured with the skip texture will have those Faces removed from the generated [MeshInstance3D]. If the [FuncGodotFGDSolidClass] `collision_shape_type` is set to concave then it will also remove collision from those faces in the generated [CollisionShape3D].
 @export var skip_texture: String = "special/skip"
 
+## Optional path for the origin texture, relative to [member base_texture_dir]. Brush faces textured with the clip texture will have those Faces removed from the generated [MeshInstance3D]. The bounds of these faces will be used to calculate the origin point of the entity.
+@export var origin_texture: String = "special/origin"
+
 ## Optional [QuakeWADFile] resources to apply textures from. See the [Quake Wiki](https://quakewiki.org/wiki/Texture_Wad) for more information on Quake Texture WADs.
 @export var texture_wads: Array[Resource] = []
 

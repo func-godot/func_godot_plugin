@@ -12,11 +12,12 @@ func register_texture(name: String) -> int:
 	textures.append(FuncGodotTextureData.new(name))
 	return textures.size() - 1
 
-func set_texture_size(name: String, width: int, height: int) -> void:
+func set_texture_info(name: String, width: int, height: int, type: FuncGodotTextureType) -> void:
 	for i in range(textures.size()):
 		if textures[i].name == name:
 			textures[i].width = width
 			textures[i].height = height
+			textures[i].type = type
 			return
 
 func find_texture(texture_name: String) -> int:
@@ -51,7 +52,13 @@ enum FuncGodotEntitySpawnType {
 enum FuncGodotEntityOriginType {
 	IGNORE = 0,
 	ABSOLUTE = 1,
-	RELATIVE = 2
+	RELATIVE = 2,
+	BRUSH = 3
+}
+
+enum FuncGodotTextureType {
+	NORMAL = 0,
+	ORIGIN = 1
 }
 
 class FuncGodotFacePoints:
@@ -130,6 +137,7 @@ class FuncGodotTextureData:
 	var name: String
 	var width: int
 	var height: int
+	var type: FuncGodotTextureType
 	
 	func _init(in_name: String):
 		name = in_name
