@@ -26,11 +26,16 @@ func set_entity_definitions(entity_defs: Dictionary) -> void:
 		var origin_type: int = entity_defs.values()[i].get("origin_type", FuncGodotMapData.FuncGodotEntityOriginType.IGNORE)
 		map_data.set_entity_types_by_classname(classname, spawn_type, origin_type)
 
+func get_texture_info(texture_name: String) -> FuncGodotMapData.FuncGodotTextureType:
+	if texture_name == map_settings.origin_texture:
+		return FuncGodotMapData.FuncGodotTextureType.ORIGIN
+	return FuncGodotMapData.FuncGodotTextureType.NORMAL
+
 func generate_geometry(texture_dict: Dictionary) -> void:
 	var keys: Array = texture_dict.keys()
 	for key in keys:
 		var val: Vector2 = texture_dict[key]
-		map_data.set_texture_size(key, val.x, val.y)
+		map_data.set_texture_info(key, val.x, val.y, get_texture_info(key))
 	geo_generator.run()
 
 func get_entity_dicts() -> Array:
@@ -60,6 +65,7 @@ func gather_texture_surfaces(texture_name: String) -> Array:
 	sg.set_texture_filter(texture_name)
 	sg.set_clip_filter_texture(map_settings.clip_texture)
 	sg.set_skip_filter_texture(map_settings.skip_texture)
+	sg.set_origin_filter_texture(map_settings.origin_texture)
 	sg.run()
 	return fetch_surfaces(sg)
 
@@ -67,6 +73,7 @@ func gather_entity_convex_collision_surfaces(entity_idx: int) -> void:
 	surface_gatherer.reset_params()
 	surface_gatherer.split_type = FuncGodotSurfaceGatherer.SurfaceSplitType.BRUSH
 	surface_gatherer.entity_filter_idx = entity_idx
+	surface_gatherer.set_origin_filter_texture(map_settings.origin_texture)
 	surface_gatherer.run()
 
 func gather_entity_concave_collision_surfaces(entity_idx: int) -> void:
@@ -74,6 +81,7 @@ func gather_entity_concave_collision_surfaces(entity_idx: int) -> void:
 	surface_gatherer.split_type = FuncGodotSurfaceGatherer.SurfaceSplitType.NONE
 	surface_gatherer.entity_filter_idx = entity_idx
 	surface_gatherer.set_skip_filter_texture(map_settings.skip_texture)
+	surface_gatherer.set_origin_filter_texture(map_settings.origin_texture)
 	surface_gatherer.run()
 
 func fetch_surfaces(sg: FuncGodotSurfaceGatherer) -> Array:
