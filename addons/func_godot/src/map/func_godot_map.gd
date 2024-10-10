@@ -147,6 +147,9 @@ func run_build_step(step_name: String) -> Variant:
 
 ## Add [code]node[/code] as a child of parent, or as a child of [code]below[/code] if non-null. Also queue for ownership assignment.
 func add_child_editor(parent: Node, node: Node, below: Node = null) -> void:
+	if not node or not parent:
+		return
+	
 	var prev_parent = node.get_parent()
 	if prev_parent:
 		prev_parent.remove_child(node)
@@ -343,12 +346,50 @@ func build_texture_size_dict() -> Dictionary:
 ## Build nodes from the entities in [member entity_dicts]
 func build_entity_nodes() -> Array:
 	var entity_nodes : Array = []
+	entity_nodes.resize(entity_dicts.size())
+	
+	# TrenchBroom: Prevent generation of omitted layers
+	var omitted_entities : Array[int] = []
+	var omitted_groups: Array[String] = []
+	
+	if map_settings.use_trenchbroom_groups_hierarchy:
+		# Omit layers
+		for entity_idx in range(0, entity_dicts.size()):
+			var entity_dict: Dictionary = entity_dicts[entity_idx] as Dictionary
+			var properties: Dictionary = entity_dict['properties'] as Dictionary
+			
+			if '_tb_type' in properties and properties['_tb_type'] == '_tb_layer':
+				if '_tb_layer_omit_from_export' in properties and properties['_tb_layer_omit_from_export'] == "1":
+					omitted_entities.append(entity_idx)
+					omitted_groups.append("layer_" + str(properties.get('_tb_id', "-1")))
+		
+		# Omit groups and top-level entities
+		for entity_idx in range(0, entity_dicts.size()):
+			if omitted_entities.find(entity_idx) != -1:
+				continue
+			
+			var entity_dict: Dictionary = entity_dicts[entity_idx] as Dictionary
+			var properties: Dictionary = entity_dict['properties'] as Dictionary
+			
+			if '_tb_layer' in properties:
+				if omitted_groups.find("layer_" + str(properties['_tb_layer'])) != -1:
+					omitted_entities.append(entity_idx)
+					if '_tb_id' in properties and properties['_tb_type'] == '_tb_group':
+						omitted_groups.append("group_" + str(properties.get('_tb_id', "-1")))
 
 	for entity_idx in range(0, entity_dicts.size()):
 		var entity_dict: Dictionary = entity_dicts[entity_idx] as Dictionary
 		var properties: Dictionary = entity_dict['properties'] as Dictionary
-		
-		var node: Node = Node3D.new()
+
+		if map_settings.use_trenchbroom_groups_hierarchy:
+			if omitted_entities.find(entity_idx) != -1:
+				entity_nodes[entity_idx] = null
+				continue
+			if '_tb_group' in properties and omitted_groups.find("group_" + str(properties['_tb_group'])) != -1:
+				entity_nodes[entity_idx] = null
+				continue
+
+		var node: Node = null
 		var node_name: String = "entity_%s" % entity_idx
 		
 		var should_add_child: bool = should_add_children
@@ -369,20 +410,17 @@ func build_entity_nodes() -> Array:
 				
 				if entity_definition is FuncGodotFGDSolidClass:
 					if entity_definition.spawn_type == FuncGodotFGDSolidClass.SpawnType.MERGE_WORLDSPAWN:
-						entity_nodes.append(null)
+						entity_nodes[entity_idx] = null
 						continue
 					if entity_definition.node_class != "":
-						node.queue_free()
 						node = ClassDB.instantiate(entity_definition.node_class)
 				elif entity_definition is FuncGodotFGDPointClass:
 					if entity_definition.scene_file:
 						var flag: PackedScene.GenEditState = PackedScene.GEN_EDIT_STATE_DISABLED
 						if Engine.is_editor_hint():
 							flag = PackedScene.GEN_EDIT_STATE_INSTANCE
-						node.queue_free()
 						node = entity_definition.scene_file.instantiate(flag)
 					elif entity_definition.node_class != "":
-						node.queue_free()
 						node = ClassDB.instantiate(entity_definition.node_class)
 					if 'rotation_degrees' in node and entity_definition.apply_rotation_on_map_build:
 						var angles := Vector3.ZERO
@@ -407,8 +445,12 @@ func build_entity_nodes() -> Array:
 							angles.y += angle
 						angles.y += 180
 						node.rotation_degrees = angles
+				else:
+					node = Node3D.new()
 				if entity_definition.script_class:
 					node.set_script(entity_definition.script_class)
+		if not node:
+			node = Node3d.new()
 		
 		node.name = node_name
 		
@@ -429,7 +471,7 @@ func build_entity_nodes() -> Array:
 				if node.position is Vector3:
 					node.position = entity_dict['center'] / map_settings.inverse_scale_factor
 		
-		entity_nodes.append(node)
+		entity_nodes[entity_idx] = node
 		
 		if should_add_child:
 			queue_add_child(self, node)
@@ -769,18 +811,15 @@ func resolve_trenchbroom_group_hierarchy() -> void:
 		var parent_entity = null
 		var parent_idx = null
 		
-		#...identify its direct parent out of the parent_entities array
+		# ...identify its direct parent out of the parent_entities array
 		for possible_parent in parent_entities:
 			parent_entity = parent_entities[possible_parent]
-			parent_properties = entity_dicts[possible_parent]['properties']
-			
+			parent_properties = entity_dicts[possible_parent]['properties']			
 			if parent_properties['_tb_id'] == tb_group:
-				if '_tb_layer_omit_from_export' in parent_properties:
-					properties['_tb_layer_omit_from_export'] = parent_properties['_tb_layer_omit_from_export']
 				parent = parent_entity
 				parent_idx = possible_parent
 				break
-		#if there's a match, pass it on to the child-parent relationship map
+		# If there's a match, pass it on to the child-parent relationship map
 		if parent:
 			child_to_parent_map[node_idx] = parent_idx 
 	
@@ -856,11 +895,6 @@ func apply_properties_and_finish() -> void:
 		
 		var entity_dict: Dictionary = entity_dicts[entity_idx] as Dictionary
 		var properties: Dictionary = entity_dict['properties'] as Dictionary
-		
-		if '_tb_layer_omit_from_export' in properties and properties['_tb_layer_omit_from_export'] == "1":
-			entity_node.queue_free()
-			properties_arr.append({})
-			continue
 		
 		if 'classname' in properties:
 			var classname: String = properties['classname']
