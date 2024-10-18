@@ -450,7 +450,7 @@ func build_entity_nodes() -> Array:
 				if entity_definition.script_class:
 					node.set_script(entity_definition.script_class)
 		if not node:
-			node = Node3d.new()
+			node = Node3D.new()
 		
 		node.name = node_name
 		
