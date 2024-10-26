@@ -22,6 +22,9 @@ var prefix: String = ""
 ## Key value pair properties that will appear in the map editor. After building the FuncGodotMap in Godot, these properties will be added to a Dictionary that gets applied to the generated Node, as long as that Node is a tool script with an exported `func_godot_properties` Dictionary.
 @export var class_properties : Dictionary = {}
 
+## Used to automatically apply properties to node.
+@export var override_node_properties : bool = false
+
 ## Descriptions for previously defined key value pair properties.
 @export var class_property_descriptions : Dictionary = {}
 
