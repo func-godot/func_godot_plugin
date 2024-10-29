@@ -8,7 +8,8 @@ extends Resource
 enum GameConfigVersion {
 	Latest,
 	Version4,
-	Version8
+	Version8,
+	Version9
 }
 
 ## Button to export / update this game's configuration and FGD file in the TrenchBroom Games Path.
@@ -36,7 +37,7 @@ enum GameConfigVersion {
 
 @export_category("Textures")
 
-## Path to top level textures folder relative to the game path.
+## Path to top level textures folder relative to the game path. Also referred to as materials in the latest versions of TrenchBroom.
 @export var textures_root_folder: String = "textures"
 
 ## Textures matching these patterns will be hidden from TrenchBroom.
@@ -79,7 +80,7 @@ enum GameConfigVersion {
 static func get_match_key(tag_match_type: int) -> String:
 	match tag_match_type:
 		TrenchBroomTag.TagMatchType.TEXTURE:
-			return "texture"
+			return "material"
 		TrenchBroomTag.TagMatchType.CLASSNAME:
 			return "classname"
 		_:
@@ -112,8 +113,8 @@ func build_class_text() -> String:
 	
 	var config_text : String = ""
 	match game_config_version:
-		GameConfigVersion.Latest, GameConfigVersion.Version8:
-			config_text = get_game_config_v8_text() % [
+		GameConfigVersion.Latest, GameConfigVersion.Version8, GameConfigVersion.Version9:
+			config_text = get_game_config_v9v8_text() % [
 				game_name,
 				map_formats_str,
 				textures_root_folder,
@@ -163,11 +164,13 @@ func parse_tags(tags: Array) -> String:
 		tags_str += "\t\t\t\t\"pattern\": \"%s\"" % brush_tag.tag_pattern
 		if brush_tag.texture_name != "":
 			tags_str += ",\n"
-			tags_str += "\t\t\t\t\"texture\": \"%s\"" % brush_tag.texture_name
+			tags_str += "\t\t\t\t\"material\": \"%s\"" % brush_tag.texture_name
 		tags_str += "\n"
 		tags_str += "\t\t\t}"
 		if brush_tag != tags[-1]:
 			tags_str += ","
+	if game_config_version < GameConfigVersion.Version9:
+		tags_str = tags_str.replace("material", "texture")
 	return tags_str
 
 ## Converts array of flags to .cfg String.
@@ -275,10 +278,10 @@ func get_game_config_v4_text() -> String:
 }
 	"""
 
-func get_game_config_v8_text() -> String:
-	return """\
+func get_game_config_v9v8_text() -> String:
+	var config_text: String = """\
 {
-	"version": 8,
+	"version": 9,
 	"name": "%s",
 	"icon": "icon.png",
 	"fileformats": [
@@ -288,7 +291,7 @@ func get_game_config_v8_text() -> String:
 		"searchpath": ".",
 		"packageformat": { "extension": ".zip", "format": "zip" }
 	},
-	"textures": {
+	"materials": {
 		"root": "%s",
 		"extensions": [".bmp", ".exr", ".hdr", ".jpeg", ".jpg", ".png", ".tga", ".webp", ".D", ".C"],
 		"excludes": [ %s ],
@@ -317,5 +320,11 @@ func get_game_config_v8_text() -> String:
 	}
 }
 	"""
+	
+	if game_config_version != GameConfigVersion.Version9: # Change this to check if == Version8 when TB 2024.2 hits Stable
+		config_text = config_text.replace(": 9,", ": 8,")
+		config_text = config_text.replace("material", "texture")
+	
+	return config_text
 
 #endregion
