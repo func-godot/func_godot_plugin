@@ -1,10 +1,15 @@
 @icon("res://addons/func_godot/icons/icon_godot_ranger.svg")
+@tool
 ## Reusable map settings configuration for [FuncGodotMap] nodes.
 class_name FuncGodotMapSettings
 extends Resource
 
 ## Ratio between map editor units and Godot units. FuncGodot will divide brush coordinates by this number when building. This does not affect entity properties unless scripted to do so.
-@export var inverse_scale_factor: float = 32.0
+var scale_factor: float = 0.03125
+@export var inverse_scale_factor: float = 32.0 :
+	set(value):
+		inverse_scale_factor = value
+		scale_factor = 1.0 / value
 
 ## [FuncGodotFGDFile] that translates map file classnames into Godot nodes and packed scenes.
 @export var entity_fgd: FuncGodotFGDFile = preload("res://addons/func_godot/fgd/func_godot_fgd.tres")
