@@ -67,9 +67,6 @@ var scale_factor: float = 0.03125
 ## Automatic PBR material generation ORM map pattern
 @export var orm_map_pattern: String = "%s_orm.%s"
 
-## If true, all materials will be unshaded, ignoring light. Also known as "fullbright".
-@export var unshaded: bool = false
-
 ## Save automatically generated materials to disk, allowing reuse across [FuncGodotMap] nodes. [i]NOTE: Materials do not use the Default Material settings after saving.[/i]
 @export var save_generated_materials: bool = true
 
