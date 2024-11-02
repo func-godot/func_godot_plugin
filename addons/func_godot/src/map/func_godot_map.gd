@@ -272,7 +272,7 @@ func unwrap_uv2(node: Node = null) -> void:
 		if target_node.gi_mode == GeometryInstance3D.GI_MODE_STATIC:
 			var mesh: Mesh = target_node.get_mesh()
 			if mesh is ArrayMesh:
-				mesh.lightmap_unwrap(Transform3D.IDENTITY, map_settings.uv_unwrap_texel_size / map_settings.inverse_scale_factor)
+				mesh.lightmap_unwrap(Transform3D.IDENTITY, map_settings.uv_unwrap_texel_size * map_settings.scale_factor)
 	
 	for child in target_node.get_children():
 		unwrap_uv2(child)
@@ -463,13 +463,13 @@ func build_entity_nodes() -> Array:
 				push_error("Invalid vector format for \'origin\' in " + node.name)
 			if 'position' in node:
 				if node.position is Vector3:
-					node.position = origin_vec / map_settings.inverse_scale_factor
+					node.position = origin_vec * map_settings.scale_factor
 				elif node.position is Vector2:
 					node.position = Vector2(origin_vec.z, -origin_vec.y)
 		else:
 			if entity_idx != 0 and 'position' in node:
 				if node.position is Vector3:
-					node.position = entity_dict['center'] / map_settings.inverse_scale_factor
+					node.position = entity_dict['center'] * map_settings.scale_factor
 		
 		entity_nodes[entity_idx] = node
 		
