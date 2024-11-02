@@ -81,4 +81,5 @@ var scale_factor: float = 0.03125
 
 ## If true, will organize Scene Tree using Trenchbroom Layers and Groups. Layers and Groups will be generated as [Node3D] nodes. 
 ## All structural brushes will be moved out of the Layers and Groups and merged into the Worldspawn entity.
+## Any Layers toggled to be omitted from export in TrenchBroom will not be built.
 @export var use_trenchbroom_groups_hierarchy: bool = false
