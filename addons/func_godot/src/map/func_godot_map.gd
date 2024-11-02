@@ -885,9 +885,6 @@ func set_owners_complete() -> void:
 ## Apply Map File properties to [Node3D] instances, transferring Map File dictionaries to [Node3D.func_godot_properties]
 ## and then calling the appropriate callbacks.
 func apply_properties_and_finish() -> void:
-	# Array of all entities' properties
-	var properties_arr: Array[Dictionary] = []
-	
 	for entity_idx in range(0, entity_nodes.size()):
 		var entity_node: Node = entity_nodes[entity_idx] as Node
 		if not entity_node:
@@ -1011,13 +1008,10 @@ func apply_properties_and_finish() -> void:
 		if 'func_godot_properties' in entity_node:
 			entity_node.func_godot_properties = properties
 		
-		properties_arr.append(properties.duplicate(true))
-	
-	for entity_idx in range(0, entity_nodes.size()):
-		var entity_node: Node = entity_nodes[entity_idx] as Node
-		if entity_node and entity_node.has_method("_func_godot_apply_properties"):
-			entity_node._func_godot_apply_properties(properties_arr[entity_idx])
-		if entity_node and entity_node.has_method("_func_godot_build_complete"):
+		if entity_node.has_method("_func_godot_apply_properties"):
+			entity_node.call("_func_godot_apply_properties", properties)
+		
+		if entity_node.has_method("_func_godot_build_complete"):
 			entity_node.call_deferred("_func_godot_build_complete")
 
 # Cleanup after build is finished (internal)
