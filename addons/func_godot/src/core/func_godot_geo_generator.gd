@@ -237,6 +237,8 @@ func run() -> void:
 	var generate_vertices_task = func(e):
 		var entity: FuncGodotMapData.FuncGodotEntity = map_data.entities[e]
 		var entity_geo: FuncGodotMapData.FuncGodotEntityGeometry = map_data.entity_geo[e]
+		var entity_mins: Vector3 = Vector3.ZERO
+		var entity_maxs: Vector3 = Vector3.ZERO
 		var origin_mins: Vector3 = Vector3.INF
 		var origin_maxs: Vector3 = -Vector3.INF
 		
@@ -263,6 +265,9 @@ func run() -> void:
 			var brush_geo: FuncGodotMapData.FuncGodotBrushGeometry = map_data.entity_geo[e].brushes[b]
 			for face in brush_geo.faces:
 				for vert in face.vertices:
+					entity_mins = entity_mins.min(vert.vertex)
+					entity_maxs = entity_maxs.max(vert.vertex)
+					
 					if brush_texture_type == FuncGodotMapData.FuncGodotTextureType.ORIGIN:
 						origin_mins = origin_mins.min(vert.vertex)
 						origin_maxs = origin_maxs.max(vert.vertex)
@@ -272,22 +277,36 @@ func run() -> void:
 			
 			if vert_count > 0:
 				brush.center /= float(vert_count)
-			
-			entity.center += brush.center
 		
-		if entity.brushes.size() > 0:
-			entity.center /= float(entity.brushes.size())
-			if entity.origin_type != FuncGodotMapData.FuncGodotEntityOriginType.IGNORE:
-				if entity.origin_type == FuncGodotMapData.FuncGodotEntityOriginType.BRUSH:
+		# Default origin type is BOUNDS_CENTER
+		entity.center = entity_maxs - ((entity_maxs - entity_mins) * 0.5)
+		
+		if entity.origin_type != FuncGodotMapData.FuncGodotEntityOriginType.BOUNDS_CENTER and entity.brushes.size() > 0:
+			match entity.origin_type:
+				FuncGodotMapData.FuncGodotEntityOriginType.ABSOLUTE, FuncGodotMapData.FuncGodotEntityOriginType.RELATIVE:
+					if 'origin' in entity.properties:
+						var origin_comps: PackedFloat64Array = entity.properties['origin'].split_floats(' ')
+						if origin_comps.size() > 2:
+							if entity.origin_type == FuncGodotMapData.FuncGodotEntityOriginType.ABSOLUTE:
+								entity.center = Vector3(origin_comps[0], origin_comps[1], origin_comps[2])
+							else: # OriginType.RELATIVE
+								entity.center += Vector3(origin_comps[0], origin_comps[1], origin_comps[2])
+				
+				FuncGodotMapData.FuncGodotEntityOriginType.BRUSH:
 					if origin_mins != Vector3.INF:
-						entity.center = origin_maxs - ((origin_maxs - origin_mins) / 2)
-				elif 'origin' in entity.properties:
-					var origin_comps: PackedFloat64Array = entity.properties['origin'].split_floats(' ')
-					if origin_comps.size() > 2:
-						if entity.origin_type == FuncGodotMapData.FuncGodotEntityOriginType.ABSOLUTE:
-							entity.center = Vector3(origin_comps[0], origin_comps[1], origin_comps[2])
-						elif entity.origin_type == FuncGodotMapData.FuncGodotEntityOriginType.RELATIVE:
-							entity.center += Vector3(origin_comps[0], origin_comps[1], origin_comps[2])
+						entity.center = origin_maxs - ((origin_maxs - origin_mins) * 0.5)
+				
+				FuncGodotMapData.FuncGodotEntityOriginType.BOUNDS_MINS:
+					entity.center = entity_mins
+				
+				FuncGodotMapData.FuncGodotEntityOriginType.BOUNDS_MAXS:
+					entity.center = entity_maxs
+				
+				FuncGodotMapData.FuncGodotEntityOriginType.AVERAGED:
+					entity.center = Vector3.ZERO
+					for b in range(entity.brushes.size()):
+						entity.center += entity.brushes[b].center
+					entity.center /= float(entity.brushes.size())
 	
 	var generate_vertices_task_id:= WorkerThreadPool.add_group_task(generate_vertices_task, map_data.entities.size(), 4, true)
 	WorkerThreadPool.wait_for_group_task_completion(generate_vertices_task_id)

@@ -11,10 +11,13 @@ enum SpawnType {
 }
 
 enum OriginType {
-	IGNORE = 0, ## Ignore origin property and only use averaged brush vertices for positioning. Standard Quake 1 / Half-Life behavior.
-	ABSOLUTE = 1, ## Use origin property for position center, ignoring brush vertice positions.
-	RELATIVE = 2, ## Use origin relative to averaged brush vertice positions. Use this setting if brush entity vertices have coordinates local to the origin.
-	BRUSH = 3 ## Use origin based on the center of the brushes which have the special 'origin' texture.
+	AVERAGED = 0, ## Use averaged brush vertices for positioning. This is the old Qodot behavior.
+	ABSOLUTE = 1, ## Use origin property in global coordinates as the position center.
+	RELATIVE = 2, ## Calculate position center using origin as an offset to the entity's bounding box center.
+	BRUSH = 3, ## Use origin based on the center of the brushes which have the special 'origin' texture.
+	BOUNDS_CENTER = 4, ## Use the center of the entity's bounding box for position center. This is the default option and recommended for most entities.
+	BOUNDS_MINS = 5, ## Use the lowest bounding box coordinates for position center. This is standard Quake and Half-Life brush entity behavior.
+	BOUNDS_MAXS = 6, ## Use the highest bounding box coordinates for position center.
 }
 
 enum CollisionShapeType {
@@ -26,7 +29,7 @@ enum CollisionShapeType {
 ## Controls whether this Solid Class is the worldspawn, is combined with the worldspawn, or is spawned as its own free-standing entity.
 @export var spawn_type: SpawnType = SpawnType.ENTITY
 ## Controls how this Solid Class utilizes the `origin` key value pair to find its position.
-@export var origin_type: OriginType = OriginType.IGNORE
+@export var origin_type: OriginType = OriginType.BOUNDS_CENTER
 
 @export_group("Visual Build")
 ## Controls whether a [MeshInstance3D] is built for this Solid Class.
