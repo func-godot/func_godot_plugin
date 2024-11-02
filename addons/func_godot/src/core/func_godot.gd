@@ -23,7 +23,7 @@ func set_entity_definitions(entity_defs: Dictionary) -> void:
 	for i in range(entity_defs.size()):
 		var classname: String = entity_defs.keys()[i]
 		var spawn_type: int = entity_defs.values()[i].get("spawn_type", FuncGodotMapData.FuncGodotEntitySpawnType.ENTITY)
-		var origin_type: int = entity_defs.values()[i].get("origin_type", FuncGodotMapData.FuncGodotEntityOriginType.IGNORE)
+		var origin_type: int = entity_defs.values()[i].get("origin_type", FuncGodotMapData.FuncGodotEntityOriginType.BOUNDS_CENTER)
 		map_data.set_entity_types_by_classname(classname, spawn_type, origin_type)
 
 func get_texture_info(texture_name: String) -> FuncGodotMapData.FuncGodotTextureType:

@@ -33,7 +33,7 @@ func set_entity_types_by_classname(classname: String, spawn_type: int, origin_ty
 			if entity.spawn_type == FuncGodotMapData.FuncGodotEntitySpawnType.ENTITY:
 				entity.origin_type = origin_type as FuncGodotMapData.FuncGodotEntityOriginType
 			else:
-				entity.origin_type = FuncGodotMapData.FuncGodotEntityOriginType.IGNORE
+				entity.origin_type = FuncGodotMapData.FuncGodotEntityOriginType.AVERAGED
 
 func clear() -> void:
 	entities.clear()
@@ -50,10 +50,13 @@ enum FuncGodotEntitySpawnType {
 }
 
 enum FuncGodotEntityOriginType {
-	IGNORE = 0,
+	AVERAGED = 0,
 	ABSOLUTE = 1,
 	RELATIVE = 2,
-	BRUSH = 3
+	BRUSH = 3,
+	BOUNDS_CENTER = 4,
+	BOUNDS_MINS = 5,
+	BOUNDS_MAXS = 6,
 }
 
 enum FuncGodotTextureType {
