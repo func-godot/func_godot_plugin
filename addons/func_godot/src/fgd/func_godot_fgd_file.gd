@@ -71,6 +71,8 @@ func build_class_text(target_editor: FuncGodotTargetMapEditors = FuncGodotTarget
 	for base_fgd in base_fgd_files:
 		if base_fgd is FuncGodotFGDFile:
 			res += base_fgd.build_class_text(target_editor)
+		else:
+			printerr("Base Fgd Files contains incorrect resource type! Should only be type FuncGodotFGDFile.")
 	
 	var entities = get_fgd_classes()
 	for ent in entities:
