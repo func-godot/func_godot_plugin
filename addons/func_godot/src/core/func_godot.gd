@@ -98,7 +98,7 @@ func fetch_surfaces(sg: FuncGodotSurfaceGatherer) -> Array:
 		var tangents: PackedFloat64Array
 		var uvs: PackedVector2Array
 		for v in surf.vertices:
-			vertices.append(Vector3(v.vertex.y, v.vertex.z, v.vertex.x) / map_settings.inverse_scale_factor)
+			vertices.append(Vector3(v.vertex.y, v.vertex.z, v.vertex.x) * map_settings.scale_factor)
 			normals.append(Vector3(v.normal.y, v.normal.z, v.normal.x))
 			tangents.append(v.tangent.y)
 			tangents.append(v.tangent.z)
