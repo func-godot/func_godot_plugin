@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="TrenchBroomGameConfig" load_steps=8 format=3 uid="uid://b44ah5b2000wa"]
+[gd_resource type="Resource" script_class="TrenchBroomGameConfig" load_steps=7 format=3 uid="uid://b44ah5b2000wa"]
 
 [ext_resource type="Resource" uid="uid://crgpdahjaj" path="res://addons/func_godot/fgd/func_godot_fgd.tres" id="1_8u1vq"]
 [ext_resource type="Resource" uid="uid://b4xhdj0e16lop" path="res://addons/func_godot/game_config/trenchbroom/tb_face_tag_clip.tres" id="1_rsp20"]
 [ext_resource type="Resource" uid="uid://ca7377sfgj074" path="res://addons/func_godot/game_config/trenchbroom/tb_face_tag_skip.tres" id="2_166i2"]
 [ext_resource type="Script" path="res://addons/func_godot/src/trenchbroom/trenchbroom_game_config.gd" id="2_ns6ah"]
+[ext_resource type="Resource" uid="uid://bkjxc54mmdhbo" path="res://addons/func_godot/game_config/trenchbroom/tb_face_tag_origin.tres" id="3_stisi"]
 [ext_resource type="Texture2D" uid="uid://decwujsyhj0qy" path="res://addons/func_godot/icon32.png" id="6_tex5j"]
 
 [resource]
@@ -23,10 +24,12 @@ map_formats = Array[Dictionary]([{
 }, {
 "format": "Quake3"
 }])
+textures_root_folder = "textures"
 texture_exclusion_patterns = Array[String](["*_albedo", "*_ao", "*_emission", "*_height", "*_metallic", "*_normal", "*_orm", "*_roughness", "*_sss"])
+palette_path = "textures/palette.lmp"
 fgd_file = ExtResource("1_8u1vq")
 entity_scale = "32"
-default_uv_scale = Vector2(1, 1)
 brush_tags = Array[Resource]([])
-brushface_tags = Array[Resource]([ExtResource("1_rsp20"), ExtResource("2_166i2")])
+brushface_tags = Array[Resource]([ExtResource("1_rsp20"), ExtResource("2_166i2"), ExtResource("3_stisi")])
+default_uv_scale = Vector2(1, 1)
 game_config_version = 0

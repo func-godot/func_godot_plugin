@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="NetRadiantCustomGamePackConfig" load_steps=5 format=3 uid="uid://cv1k2e85fo2ax"]
+[gd_resource type="Resource" script_class="NetRadiantCustomGamePackConfig" load_steps=6 format=3 uid="uid://cv1k2e85fo2ax"]
 
 [ext_resource type="Resource" uid="uid://crgpdahjaj" path="res://addons/func_godot/fgd/func_godot_fgd.tres" id="1_gct4v"]
 [ext_resource type="Script" path="res://addons/func_godot/src/netradiant_custom/netradiant_custom_gamepack_config.gd" id="2_en8ro"]
 [ext_resource type="Resource" uid="uid://f5erfnvbg6b7" path="res://addons/func_godot/game_config/netradiant_custom/netradiant_custom_shader_clip.tres" id="2_w7psh"]
 [ext_resource type="Resource" uid="uid://cfhg30jclb4lw" path="res://addons/func_godot/game_config/netradiant_custom/netradiant_custom_shader_skip.tres" id="3_6gpk8"]
+[ext_resource type="Resource" uid="uid://bpnj14oaufdpt" path="res://addons/func_godot/game_config/netradiant_custom/netradiant_custom_shader_origin.tres" id="4_8rl60"]
 
 [resource]
 script = ExtResource("2_en8ro")
@@ -12,10 +13,12 @@ gamepack_name = "func_godot"
 game_name = "FuncGodot"
 base_game_path = ""
 fgd_file = ExtResource("1_gct4v")
-netradiant_custom_shaders = Array[Resource]([ExtResource("2_w7psh"), ExtResource("3_6gpk8")])
+netradiant_custom_shaders = Array[Resource]([ExtResource("2_w7psh"), ExtResource("3_6gpk8"), ExtResource("4_8rl60")])
 texture_types = PackedStringArray("png", "jpg", "jpeg", "bmp", "tga")
 model_types = PackedStringArray("glb", "gltf", "obj")
 sound_types = PackedStringArray("wav", "ogg")
 default_scale = "1.0"
 clip_texture = "textures/special/clip"
 skip_texture = "textures/special/skip"
+default_build_menu_variables = {}
+default_build_menu_commands = {}

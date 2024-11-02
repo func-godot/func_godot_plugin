@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="TrenchBroomTag" load_steps=2 format=3 uid="uid://bkjxc54mmdhbo"]
+
+[ext_resource type="Script" path="res://addons/func_godot/src/trenchbroom/trenchbroom_tag.gd" id="1_enkfc"]
+
+[resource]
+script = ExtResource("1_enkfc")
+tag_name = "Origin"
+tag_attributes = Array[String](["transparent"])
+tag_match_type = 0
+tag_pattern = "origin"
+texture_name = ""

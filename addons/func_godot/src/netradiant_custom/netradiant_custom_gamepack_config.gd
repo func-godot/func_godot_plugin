@@ -28,7 +28,8 @@ extends Resource
 ## [NetRadiantCustomShader] resources for shader file generation.
 @export var netradiant_custom_shaders : Array[Resource] = [
 	preload("res://addons/func_godot/game_config/netradiant_custom/netradiant_custom_shader_clip.tres"),
-	preload("res://addons/func_godot/game_config/netradiant_custom/netradiant_custom_shader_skip.tres")
+	preload("res://addons/func_godot/game_config/netradiant_custom/netradiant_custom_shader_skip.tres"),
+	preload("res://addons/func_godot/game_config/netradiant_custom/netradiant_custom_shader_origin.tres")
 ]
 
 ## Supported texture file types.
