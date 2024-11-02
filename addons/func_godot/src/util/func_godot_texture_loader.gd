@@ -118,9 +118,6 @@ func create_material(texture_name: String) -> Material:
 	if not texture:
 		return material
 	
-	if material is BaseMaterial3D:
-		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED if map_settings.unshaded else BaseMaterial3D.SHADING_MODE_PER_PIXEL
-	
 	if material is StandardMaterial3D:
 		material.set_texture(StandardMaterial3D.TEXTURE_ALBEDO, texture)
 	elif material is ShaderMaterial && map_settings.default_material_albedo_uniform != "":
