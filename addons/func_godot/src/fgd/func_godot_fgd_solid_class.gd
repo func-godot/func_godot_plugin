@@ -11,13 +11,13 @@ enum SpawnType {
 }
 
 enum OriginType {
-	AVERAGED = 0, ## Use averaged brush vertices for positioning. This is the old Qodot behavior.
-	ABSOLUTE = 1, ## Use origin property in global coordinates as the position center.
-	RELATIVE = 2, ## Calculate position center using origin as an offset to the entity's bounding box center.
-	BRUSH = 3, ## Use origin based on the center of the brushes which have the special 'origin' texture.
-	BOUNDS_CENTER = 4, ## Use the center of the entity's bounding box for position center. This is the default option and recommended for most entities.
-	BOUNDS_MINS = 5, ## Use the lowest bounding box coordinates for position center. This is standard Quake and Half-Life brush entity behavior.
-	BOUNDS_MAXS = 6, ## Use the highest bounding box coordinates for position center.
+	AVERAGED = 0, ## Use averaged brush vertices for center position. This is the old Qodot behavior.
+	ABSOLUTE = 1, ## Use `origin` class property in global coordinates as the center position.
+	RELATIVE = 2, ## Calculate center position using `origin` class property as an offset to the entity's bounding box center.
+	BRUSH = 3, ## Calculate center position based on the bounding box center of all brushes using the 'origin' texture specified in the [FuncGodotMapSettings].
+	BOUNDS_CENTER = 4, ## Use the center of the entity's bounding box for center position. This is the default option and recommended for most entities.
+	BOUNDS_MINS = 5, ## Use the lowest bounding box coordinates for center position. This is standard Quake and Half-Life brush entity behavior.
+	BOUNDS_MAXS = 6, ## Use the highest bounding box coordinates for center position.
 }
 
 enum CollisionShapeType {
@@ -28,7 +28,7 @@ enum CollisionShapeType {
 
 ## Controls whether this Solid Class is the worldspawn, is combined with the worldspawn, or is spawned as its own free-standing entity.
 @export var spawn_type: SpawnType = SpawnType.ENTITY
-## Controls how this Solid Class utilizes the `origin` key value pair to find its position.
+## Controls how this Solid Class determines its center position. Only valid if [member spawn_type] is set to ENTITY.
 @export var origin_type: OriginType = OriginType.BOUNDS_CENTER
 
 @export_group("Visual Build")
