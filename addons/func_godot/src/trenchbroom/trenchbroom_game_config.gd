@@ -58,10 +58,10 @@ enum GameConfigVersion {
 @export_category("Tags")
 
 ## TrenchBroomTag resources that apply to brush entities.
-@export var brush_tags : Array[Resource] = []
+@export var brush_tags : Array[TrenchBroomTag] = []
 
 ## TrenchBroomTag resources that apply to brush faces.
-@export var brushface_tags : Array[Resource] = [
+@export var brushface_tags : Array[TrenchBroomTag] = [
 	preload("res://addons/func_godot/game_config/trenchbroom/tb_face_tag_clip.tres"),
 	preload("res://addons/func_godot/game_config/trenchbroom/tb_face_tag_skip.tres"),
 	preload("res://addons/func_godot/game_config/trenchbroom/tb_face_tag_origin.tres")
