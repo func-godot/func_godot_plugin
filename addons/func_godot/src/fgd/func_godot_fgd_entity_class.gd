@@ -17,7 +17,7 @@ var prefix: String = ""
 @export var func_godot_internal : bool = false
 
 ## FuncGodotFGDBaseClass resources to inherit [member class_properties] and [member class_descriptions] from.
-@export var base_classes: Array[Resource] = []
+@export var base_classes: Array[FuncGodotFGDBaseClass] = []
 
 ## Key value pair properties that will appear in the map editor. After building the FuncGodotMap in Godot, these properties will be added to a Dictionary that gets applied to the generated Node, as long as that Node is a tool script with an exported `func_godot_properties` Dictionary.
 @export var class_properties : Dictionary = {}

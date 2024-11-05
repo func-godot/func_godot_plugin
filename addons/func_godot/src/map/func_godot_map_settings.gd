@@ -36,8 +36,8 @@ var scale_factor: float = 0.03125
 ## Optional path for the origin texture, relative to [member base_texture_dir]. Brush faces textured with the origin texture will have those faces removed from the generated [MeshInstance3D]. The bounds of these faces will be used to calculate the origin point of the entity.
 @export var origin_texture: String = "special/origin"
 
-## Optional [QuakeWADFile] resources to apply textures from. See the [Quake Wiki](https://quakewiki.org/wiki/Texture_Wad) for more information on Quake Texture WADs.
-@export var texture_wads: Array[Resource] = []
+## Optional [QuakeWadFile] resources to apply textures from. See the [Quake Wiki](https://quakewiki.org/wiki/Texture_Wad) for more information on Quake Texture WADs.
+@export var texture_wads: Array[QuakeWadFile] = []
 
 @export_category("Materials")
 
