@@ -1008,7 +1008,7 @@ func apply_properties_and_finish() -> void:
 		if 'func_godot_properties' in entity_node:
 			entity_node.func_godot_properties = properties
 
-		if override_node_properties:
+		if auto_apply_to_matching_node_properties:
 			for i in properties:
 				if i in entity_node:
 					entity_node[i] = properties[i]
