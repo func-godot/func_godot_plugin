@@ -1009,9 +1009,12 @@ func apply_properties_and_finish() -> void:
 			entity_node.func_godot_properties = properties
 
 		if auto_apply_to_matching_node_properties:
-			for i in properties:
-				if i in entity_node:
-					entity_node[i] = properties[i]
+			for property in properties:
+				if property in entity_node:
+					if typeof(entity_node.get(property)) == typeof(properties[property]):
+						entity_node.set(property, properties[property])
+					else:
+						push_error("Entity %s property \'%s\' type mismatch with matching generated node property." % [entity_node.name, property])
 		
 		if entity_node.has_method("_func_godot_apply_properties"):
 			entity_node.call("_func_godot_apply_properties", properties)
