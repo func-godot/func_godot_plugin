@@ -55,6 +55,31 @@ enum CollisionShapeType {
 ## The collision margin for the Solid Class' collision shapes. Not used in Godot Physics. See [Shape3D] for details.
 @export var collision_shape_margin: float = 0.04
 
+## The following properties tell FuncGodot to add data to the metadata of the generated node upon build. 
+## This data is parallelized, so that each element of the array is ordered to reference the same face in the mesh. 
+@export_category("Mesh Metadata")
+## Add a texture lookup table to the generated node's metadata on build. 
+## The data is split between an [Array] of [StringName] called `"texture_names"` containing all currently used texture materials 
+## and a [PackedInt32Array] called `"textures"` where each element is an index corresponding to the `"texture_names"` entries.
+@export var add_textures_metadata: bool = false
+## Add a [PackedVector3Array] called `"vertices"` in the generated node's metadata on build. 
+## This is a list of every vertex in the generated node's [MeshInstance3D]. Every 3 vertices represent a single face.
+@export var add_vertex_metadata: bool = false
+## Add a [PackedVector3Array] called `"positions"` in the generated node's metadata on build. 
+## This is a list of positions for each face, local to the generated node, calculated by averaging the vertices to find the face's center.
+@export var add_face_position_metadata = false
+## Add a [PackedVector3Array] called `"normals"` in the generated node's metadata on build. 
+## Contains a list of each face's normal.
+@export var add_face_normal_metadata = false
+## Add a [Dictionary] called `"shape_index_to_faces_range_map"` in the generated node's metadata on build. 
+## Contains keys of strings, which are the names of child [CollisionShape3D] nodes, and values of
+## Vector2i, where the x represents the starting index of that child's faces and the y represents the
+## ending index.
+## For example: [code]{ "entity_1_brush_0_collision_shape" : Vector2i(0, 15) }[/code] shows that this
+## solid class has been generated with one child collision shape named entity_1_brush_0_collision_shape
+## which is handling collision for the first 15 faces of the mesh.
+@export var add_face_shape_index_metadata = false
+
 @export_group("Scripting")
 ## An optional script file to attach to the node generated on map build.
 @export var script_class: Script
