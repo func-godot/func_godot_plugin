@@ -317,9 +317,19 @@ func set_core_entity_definitions() -> void:
 	var core_ent_defs: Dictionary = {}
 	for classname in entity_definitions:
 		core_ent_defs[classname] = {}
-		if entity_definitions[classname] is FuncGodotFGDSolidClass:
-			core_ent_defs[classname]['spawn_type'] = entity_definitions[classname].spawn_type
-			core_ent_defs[classname]['origin_type'] = entity_definitions[classname].origin_type
+		var entity_definition: FuncGodotFGDEntityClass = entity_definitions[classname]
+		if entity_definition is FuncGodotFGDSolidClass:
+			core_ent_defs[classname]['spawn_type'] = entity_definition.spawn_type
+			core_ent_defs[classname]['origin_type'] = entity_definition.origin_type
+			
+			const MFlags = FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags
+			var flags := MFlags.NONE
+			if entity_definition.add_textures_metadata: flags |= MFlags.TEXTURES
+			if entity_definition.add_vertex_metadata: flags |= MFlags.VERTEX
+			if entity_definition.add_face_normal_metadata: flags |= MFlags.FACE_NORMAL
+			if entity_definition.add_face_position_metadata: flags |= MFlags.FACE_POSITION
+			if entity_definition.add_face_shape_index_metadata: flags |= MFlags.FACE_SHAPE_INDEX
+			core_ent_defs[classname]['metadata_inclusion_flags'] = flags
 	func_godot.set_entity_definitions(core_ent_defs)
 
 ## Generate geometry from map file
