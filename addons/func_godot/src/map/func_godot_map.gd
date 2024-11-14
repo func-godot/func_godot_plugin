@@ -559,11 +559,12 @@ func build_entity_collision_shapes() -> void:
 		var entity_collision_shape: Array = entity_collision_shapes[entity_idx]
 		var concave: bool = false
 		var shape_margin: float = 0.04
+		var entity_definition: FuncGodotFGDSolidClass
 		
 		if 'classname' in properties:
 			var classname: String = properties['classname']
 			if classname in entity_definitions:
-				var entity_definition: FuncGodotFGDSolidClass = entity_definitions[classname] as FuncGodotFGDSolidClass
+				entity_definition = entity_definitions[classname] as FuncGodotFGDSolidClass
 				if entity_definition:
 					match(entity_definition.collision_shape_type):
 						FuncGodotFGDSolidClass.CollisionShapeType.NONE:
@@ -582,6 +583,9 @@ func build_entity_collision_shapes() -> void:
 		else:
 			func_godot.gather_entity_convex_collision_surfaces(entity_idx)
 		var entity_surfaces: Array = func_godot.fetch_surfaces(func_godot.surface_gatherer)
+		var metadata := func_godot.surface_gatherer.out_metadata
+		var shape_index_to_faces_range_map := {}
+		var face_shape_indices: Array[Vector2i] = metadata["shape_index_ranges"]
 		
 		var entity_verts: PackedVector3Array = PackedVector3Array()
 		
@@ -609,6 +613,10 @@ func build_entity_collision_shapes() -> void:
 				var collision_shape: CollisionShape3D = entity_collision_shape[surface_idx]
 				collision_shape.set_shape(shape)
 				
+				# for face shape range metadata, we need to add info about child node names
+				if entity_definition and entity_definition.add_face_shape_index_metadata:
+					shape_index_to_faces_range_map[collision_shape.name] = face_shape_indices[surface_idx]
+				
 		if concave:
 			if entity_verts.size() == 0:
 				continue
@@ -619,6 +627,18 @@ func build_entity_collision_shapes() -> void:
 			
 			var collision_shape: CollisionShape3D = entity_collision_shapes[entity_idx][0]
 			collision_shape.set_shape(shape)
+			
+			if entity_definition and entity_definition.add_face_shape_index_metadata:
+				# TODO: face shape stuff gets thrown away here, building the array in surface gatherer could be avoided altogether for concave
+				shape_index_to_faces_range_map[collision_shape.name] = Vector2i(0, face_shape_indices.back().y)
+
+		if entity_definition and (
+			entity_definition.add_face_shape_index_metadata or entity_definition.add_face_normal_metadata
+			or entity_definition.add_face_position_metadata or entity_definition.add_textures_metadata
+			or entity_definition.add_vertex_metadata):
+			metadata.erase("shape_index_ranges") # cleanup intermediate / buffer
+			metadata["shape_index_to_faces_range_map"] = shape_index_to_faces_range_map
+			entity_nodes[entity_idx].set_meta("func_godot_mesh_data", metadata)
 
 ## Build Dictionary from entity indices to [ArrayMesh] instances
 func build_entity_mesh_dict() -> Dictionary:

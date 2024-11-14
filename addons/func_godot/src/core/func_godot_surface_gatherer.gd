@@ -1,6 +1,7 @@
 class_name FuncGodotSurfaceGatherer extends RefCounted
 
 var map_data: FuncGodotMapData
+var scale_factor: float
 var split_type: SurfaceSplitType = SurfaceSplitType.NONE
 var entity_filter_idx: int = -1
 var texture_filter_idx: int = -1
@@ -9,6 +10,7 @@ var skip_filter_texture_idx: int
 var origin_filter_texture_idx: int
 
 var out_surfaces: Array[FuncGodotMapData.FuncGodotFaceGeometry]
+var out_metadata: Dictionary
 
 func _init(in_map_data: FuncGodotMapData) -> void:
 	map_data = in_map_data
@@ -56,6 +58,12 @@ func filter_face(entity_idx: int, brush_idx: int, face_idx: int) -> bool:
 
 func run() -> void:
 	out_surfaces.clear()
+	var texture_names: Array[StringName] = []
+	var textures: PackedInt32Array = []
+	var vertices: PackedVector3Array = []
+	var positions: PackedVector3Array = []
+	var normals: PackedVector3Array = []
+	var shape_index_ranges: Array[Vector2i] = []
 	
 	var index_offset: int = 0
 	var surf: FuncGodotMapData.FuncGodotFaceGeometry
@@ -67,6 +75,7 @@ func run() -> void:
 	for e in range(map_data.entities.size()):
 		var entity:= map_data.entities[e]
 		var entity_geo:= map_data.entity_geo[e]
+		var entity_face_range := Vector2i.ZERO
 		
 		if filter_entity(e):
 			continue
@@ -83,6 +92,7 @@ func run() -> void:
 		for b in range(entity.brushes.size()):
 			var brush:= entity.brushes[b]
 			var brush_geo:= entity_geo.brushes[b]
+			var total_brush_tris:= 0
 			
 			if split_type == SurfaceSplitType.BRUSH:
 				index_offset = 0
@@ -90,6 +100,8 @@ func run() -> void:
 				
 			for f in range(brush.faces.size()):
 				var face_geo: FuncGodotMapData.FuncGodotFaceGeometry = brush_geo.faces[f]
+				var face: FuncGodotMapData.FuncGodotFace = brush.faces[f]
+				var num_tris = face_geo.vertices.size() - 2
 				
 				if filter_face(e, b, f):
 					continue
@@ -102,10 +114,61 @@ func run() -> void:
 					
 					surf.vertices.append(vert)
 				
-				for i in range((face_geo.vertices.size() - 2) * 3):
+				if entity.metadata_inclusion_flags & FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.FACE_NORMAL:
+					var normal := Vector3(face.plane_normal.y, face.plane_normal.z, face.plane_normal.x)
+					for i in num_tris:
+						normals.append(normal)
+				if entity.metadata_inclusion_flags & FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.FACE_SHAPE_INDEX:
+					total_brush_tris += num_tris
+				if entity.metadata_inclusion_flags & FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.TEXTURES:
+					var texname := StringName(map_data.textures[face.texture_idx].name)
+					var index: int
+					if texture_names.is_empty():
+						texture_names.append(texname)
+						index = 0
+					elif texture_names.back() == texname:
+						# common case, faces with textures are next to each other
+						index = texture_names.size() - 1
+					else:
+						var texture_name_index := texture_names.find(texname)
+						if texture_name_index == -1:
+							index = texture_names.size()
+							texture_names.append(texname)
+						else:
+							index = texture_name_index
+					# metadata addresses triangles, so we have to duplicate the info for each tri
+					for i in num_tris:
+						textures.append(index)
+				if entity.metadata_inclusion_flags & FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.FACE_POSITION:
+					var avg_vertexpos := Vector3.ZERO
+					# NOTE: averaging face_geo.vertices to get face position assumes that all vertices of a face are along its edges
+					for vertex in face_geo.vertices:
+						avg_vertexpos += Vector3(vertex.vertex.y, vertex.vertex.z, vertex.vertex.x) * scale_factor
+					avg_vertexpos /= face_geo.vertices.size()
+					for i in num_tris:
+						positions.append(avg_vertexpos)
+				
+				for i in range(num_tris * 3):
 					surf.indicies.append(face_geo.indicies[i] + index_offset)
+					if entity.metadata_inclusion_flags & FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.VERTEX:
+						var vertex := surf.vertices[surf.indicies.back()].vertex
+						vertices.append(Vector3(vertex.y, vertex.z, vertex.x) * scale_factor)
 				
 				index_offset += face_geo.vertices.size()
+			
+			if entity.metadata_inclusion_flags & FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.FACE_SHAPE_INDEX:
+				entity_face_range.x = entity_face_range.y
+				entity_face_range.y = entity_face_range.x + total_brush_tris
+				shape_index_ranges.append(entity_face_range)
+
+	out_metadata = {
+		textures = textures,
+		texture_names = texture_names,
+		normals = normals,
+		vertices = vertices,
+		positions = positions,
+		shape_index_ranges = shape_index_ranges,
+	}
 
 func add_surface() -> FuncGodotMapData.FuncGodotFaceGeometry:
 	var surf:= FuncGodotMapData.FuncGodotFaceGeometry.new()

@@ -57,7 +57,7 @@ enum CollisionShapeType {
 
 ## The following properties tell FuncGodot to add data to the metadata of the generated node upon build. 
 ## This data is parallelized, so that each element of the array is ordered to reference the same face in the mesh. 
-@export_category("Mesh Metadata")
+@export_group("Mesh Metadata")
 ## Add a texture lookup table to the generated node's metadata on build. 
 ## The data is split between an [Array] of [StringName] called `"texture_names"` containing all currently used texture materials 
 ## and a [PackedInt32Array] called `"textures"` where each element is an index corresponding to the `"texture_names"` entries.

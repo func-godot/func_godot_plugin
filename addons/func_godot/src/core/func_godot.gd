@@ -4,7 +4,11 @@ var map_data:= FuncGodotMapData.new()
 var map_parser:= FuncGodotMapParser.new(map_data)
 var geo_generator = preload("res://addons/func_godot/src/core/func_godot_geo_generator.gd").new(map_data)
 var surface_gatherer:= FuncGodotSurfaceGatherer.new(map_data)
-var map_settings: FuncGodotMapSettings = null
+var map_settings: FuncGodotMapSettings = null:
+	set(new):
+		if not new or new == map_settings: return
+		surface_gatherer.scale_factor = new.scale_factor
+		map_settings = new
 
 func load_map(filename: String, keep_tb_groups: bool) -> void:
 	map_parser.load_map(filename, keep_tb_groups)
@@ -24,7 +28,7 @@ func set_entity_definitions(entity_defs: Dictionary) -> void:
 		var classname: String = entity_defs.keys()[i]
 		var spawn_type: int = entity_defs.values()[i].get("spawn_type", FuncGodotMapData.FuncGodotEntitySpawnType.ENTITY)
 		var origin_type: int = entity_defs.values()[i].get("origin_type", FuncGodotMapData.FuncGodotEntityOriginType.BOUNDS_CENTER)
-		var metadata_inclusion_flags: int = entity_defs.values()[i]["metadata_inclusion_flags"]
+		var metadata_inclusion_flags: int = entity_defs.values()[i].get("metadata_inclusion_flags", FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.NONE)
 		map_data.set_entity_types_by_classname(classname, spawn_type, origin_type, metadata_inclusion_flags)
 
 func get_texture_info(texture_name: String) -> FuncGodotMapData.FuncGodotTextureType:
