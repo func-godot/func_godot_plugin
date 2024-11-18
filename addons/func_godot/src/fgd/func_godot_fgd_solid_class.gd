@@ -57,6 +57,8 @@ enum CollisionShapeType {
 
 ## The following properties tell FuncGodot to add data to the metadata of the generated node upon build. 
 ## This data is parallelized, so that each element of the array is ordered to reference the same face in the mesh. 
+## All of the data is stored in a dictionary in the node generated for the entity, in metadata entry
+## [code]"func_godot_mesh_data"[/code]
 @export_group("Mesh Metadata")
 ## Add a texture lookup table to the generated node's metadata on build. 
 ## The data is split between an [Array] of [StringName] called `"texture_names"` containing all currently used texture materials 
@@ -71,14 +73,14 @@ enum CollisionShapeType {
 ## Add a [PackedVector3Array] called `"normals"` in the generated node's metadata on build. 
 ## Contains a list of each face's normal.
 @export var add_face_normal_metadata = false
-## Add a [Dictionary] called `"shape_index_to_faces_range_map"` in the generated node's metadata on build. 
+## Add a [Dictionary] called `"collision_shape_to_face_range_map"` in the generated node's metadata on build. 
 ## Contains keys of strings, which are the names of child [CollisionShape3D] nodes, and values of
 ## Vector2i, where the x represents the starting index of that child's faces and the y represents the
 ## ending index.
 ## For example: [code]{ "entity_1_brush_0_collision_shape" : Vector2i(0, 15) }[/code] shows that this
 ## solid class has been generated with one child collision shape named entity_1_brush_0_collision_shape
 ## which is handling collision for the first 15 faces of the mesh.
-@export var add_face_shape_index_metadata = false
+@export var add_collision_shape_face_range_metadata = false
 
 @export_group("Scripting")
 ## An optional script file to attach to the node generated on map build.

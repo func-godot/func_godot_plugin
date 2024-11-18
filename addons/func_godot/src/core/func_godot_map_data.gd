@@ -66,7 +66,7 @@ enum FuncGodotEntityMetdataInclusionFlags {
 	VERTEX = 2,
 	FACE_POSITION = 4,
 	FACE_NORMAL = 8,
-	FACE_SHAPE_INDEX = 16,
+	COLLISION_SHAPE_TO_FACE_RANGE_MAP = 16,
 }
 
 enum FuncGodotTextureType {

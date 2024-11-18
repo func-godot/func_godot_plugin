@@ -118,7 +118,7 @@ func run() -> void:
 					var normal := Vector3(face.plane_normal.y, face.plane_normal.z, face.plane_normal.x)
 					for i in num_tris:
 						normals.append(normal)
-				if entity.metadata_inclusion_flags & FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.FACE_SHAPE_INDEX:
+				if entity.metadata_inclusion_flags & FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.COLLISION_SHAPE_TO_FACE_RANGE_MAP:
 					total_brush_tris += num_tris
 				if entity.metadata_inclusion_flags & FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.TEXTURES:
 					var texname := StringName(map_data.textures[face.texture_idx].name)
@@ -130,7 +130,7 @@ func run() -> void:
 						# common case, faces with textures are next to each other
 						index = texture_names.size() - 1
 					else:
-						var texture_name_index := texture_names.find(texname)
+						var texture_name_index: int = texture_names.find(texname)
 						if texture_name_index == -1:
 							index = texture_names.size()
 							texture_names.append(texname)
@@ -151,12 +151,12 @@ func run() -> void:
 				for i in range(num_tris * 3):
 					surf.indicies.append(face_geo.indicies[i] + index_offset)
 					if entity.metadata_inclusion_flags & FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.VERTEX:
-						var vertex := surf.vertices[surf.indicies.back()].vertex
+						var vertex: Vector3 = surf.vertices[surf.indicies.back()].vertex
 						vertices.append(Vector3(vertex.y, vertex.z, vertex.x) * scale_factor)
 				
 				index_offset += face_geo.vertices.size()
 			
-			if entity.metadata_inclusion_flags & FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.FACE_SHAPE_INDEX:
+			if entity.metadata_inclusion_flags & FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.COLLISION_SHAPE_TO_FACE_RANGE_MAP:
 				entity_face_range.x = entity_face_range.y
 				entity_face_range.y = entity_face_range.x + total_brush_tris
 				shape_index_ranges.append(entity_face_range)
