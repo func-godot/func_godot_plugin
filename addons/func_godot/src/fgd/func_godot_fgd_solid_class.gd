@@ -79,7 +79,7 @@ enum CollisionShapeType {
 ## ending index.
 ## For example: [code]{ "entity_1_brush_0_collision_shape" : Vector2i(0, 15) }[/code] shows that this
 ## solid class has been generated with one child collision shape named entity_1_brush_0_collision_shape
-## which is handling collision for the first 15 faces of the mesh.
+## which handles the first 15 faces of the parts of the mesh with collision.
 @export var add_collision_shape_face_range_metadata = false
 
 @export_group("Scripting")
