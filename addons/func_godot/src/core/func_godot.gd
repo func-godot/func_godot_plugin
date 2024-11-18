@@ -67,7 +67,6 @@ func gather_texture_surfaces(texture_name: String) -> Dictionary:
 	var sg: FuncGodotSurfaceGatherer = FuncGodotSurfaceGatherer.new(map_data)
 	sg.reset_params()
 	sg.split_type = FuncGodotSurfaceGatherer.SurfaceSplitType.ENTITY
-	sg.build_entity_index_ranges = true
 	const MFlags = FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags
 	sg.metadata_skip_flags = MFlags.TEXTURES | MFlags.COLLISION_SHAPE_TO_FACE_RANGE_MAP
 	sg.set_texture_filter(texture_name)

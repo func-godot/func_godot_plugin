@@ -8,7 +8,6 @@ var texture_filter_idx: int = -1
 var clip_filter_texture_idx: int
 var skip_filter_texture_idx: int
 var origin_filter_texture_idx: int
-var build_entity_index_ranges: bool
 var metadata_skip_flags: int
 
 var out_surfaces: Array[FuncGodotMapData.FuncGodotFaceGeometry]
@@ -70,6 +69,8 @@ func run() -> void:
 	
 	var index_offset: int = 0
 	var entity_face_range: Vector2i = Vector2i.ZERO
+	const MFlags = FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags
+	var build_entity_index_ranges: bool = not metadata_skip_flags & MFlags.ENTITY_INDEX_RANGES
 	var surf: FuncGodotMapData.FuncGodotFaceGeometry
 	
 	if split_type == SurfaceSplitType.NONE:
@@ -81,7 +82,6 @@ func run() -> void:
 		var entity_geo:= map_data.entity_geo[e]
 		var shape_face_range := Vector2i.ZERO
 		var total_entity_tris := 0
-		const MFlags = FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags
 		var include_normals_metadata: bool = not metadata_skip_flags & MFlags.FACE_NORMAL and entity.metadata_inclusion_flags & MFlags.FACE_NORMAL
 		var include_vertices_metadata: bool = not metadata_skip_flags & MFlags.VERTEX and entity.metadata_inclusion_flags & MFlags.VERTEX
 		var include_textures_metadata: bool = not metadata_skip_flags & MFlags.TEXTURES and entity.metadata_inclusion_flags & MFlags.TEXTURES
@@ -202,8 +202,7 @@ func reset_params() -> void:
 	texture_filter_idx = -1
 	clip_filter_texture_idx = -1
 	skip_filter_texture_idx = -1
-	build_entity_index_ranges = false
-	metadata_skip_flags = FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.NONE
+	metadata_skip_flags = FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.ENTITY_INDEX_RANGES
 
 # nested
 enum SurfaceSplitType{

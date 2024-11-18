@@ -62,11 +62,12 @@ enum FuncGodotEntityOriginType {
 
 enum FuncGodotEntityMetdataInclusionFlags {
 	NONE = 0,
-	TEXTURES = 1,
-	VERTEX = 2,
-	FACE_POSITION = 4,
-	FACE_NORMAL = 8,
-	COLLISION_SHAPE_TO_FACE_RANGE_MAP = 16,
+	ENTITY_INDEX_RANGES = 1,
+	TEXTURES = 2,
+	VERTEX = 4,
+	FACE_POSITION = 8,
+	FACE_NORMAL = 16,
+	COLLISION_SHAPE_TO_FACE_RANGE_MAP = 32,
 }
 
 enum FuncGodotTextureType {
