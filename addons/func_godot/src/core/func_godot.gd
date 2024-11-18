@@ -63,16 +63,22 @@ func get_entity_dicts() -> Array:
 	
 	return ent_dicts
 
-func gather_texture_surfaces(texture_name: String) -> Array:
+func gather_texture_surfaces(texture_name: String) -> Dictionary:
 	var sg: FuncGodotSurfaceGatherer = FuncGodotSurfaceGatherer.new(map_data)
 	sg.reset_params()
 	sg.split_type = FuncGodotSurfaceGatherer.SurfaceSplitType.ENTITY
+	sg.build_entity_index_ranges = true
+	const MFlags = FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags
+	sg.metadata_skip_flags = MFlags.TEXTURES | MFlags.COLLISION_SHAPE_TO_FACE_RANGE_MAP
 	sg.set_texture_filter(texture_name)
 	sg.set_clip_filter_texture(map_settings.clip_texture)
 	sg.set_skip_filter_texture(map_settings.skip_texture)
 	sg.set_origin_filter_texture(map_settings.origin_texture)
 	sg.run()
-	return fetch_surfaces(sg)
+	return {
+		surfaces = fetch_surfaces(sg),
+		metadata = sg.out_metadata,
+	}
 
 func gather_entity_convex_collision_surfaces(entity_idx: int) -> void:
 	surface_gatherer.reset_params()

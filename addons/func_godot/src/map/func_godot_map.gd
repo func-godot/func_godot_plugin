@@ -647,12 +647,16 @@ func build_entity_mesh_dict() -> Dictionary:
 	var meshes: Dictionary = {}
 	
 	var texture_surf_map: Dictionary
+	var texture_to_metadata_map: Dictionary
 	for texture in texture_dict:
 		texture_surf_map[texture] = Array()
+		texture_to_metadata_map[texture] = {}
 	
 	var gather_task = func(i):
 		var texture: String = texture_dict.keys()[i]
-		texture_surf_map[texture] = func_godot.gather_texture_surfaces(texture)
+		var fetch_result = func_godot.gather_texture_surfaces(texture)
+		texture_surf_map[texture] = fetch_result["surfaces"]
+		texture_to_metadata_map[texture] = fetch_result["metadata"]
 	
 	var task_id: int = WorkerThreadPool.add_group_task(gather_task, texture_dict.keys().size(), 4, true)
 	WorkerThreadPool.wait_for_group_task_completion(task_id)
@@ -665,11 +669,12 @@ func build_entity_mesh_dict() -> Dictionary:
 			var properties: Dictionary = entity_dict['properties']
 			
 			var entity_surface = texture_surfaces[entity_idx]
+			var entity_definition: FuncGodotFGDSolidClass
 			
 			if 'classname' in properties:
 				var classname: String = properties['classname']
 				if classname in entity_definitions:
-					var entity_definition: FuncGodotFGDSolidClass = entity_definitions[classname] as FuncGodotFGDSolidClass
+					entity_definition = entity_definitions[classname] as FuncGodotFGDSolidClass
 					if entity_definition:
 						if entity_definition.spawn_type == FuncGodotFGDSolidClass.SpawnType.MERGE_WORLDSPAWN:
 							entity_surface = null
@@ -687,7 +692,47 @@ func build_entity_mesh_dict() -> Dictionary:
 			mesh.add_surface_from_arrays(ArrayMesh.PRIMITIVE_TRIANGLES, entity_surface)
 			mesh.surface_set_name(mesh.get_surface_count() - 1, texture)
 			mesh.surface_set_material(mesh.get_surface_count() - 1, material_dict[texture])
-	
+
+			# build metadata, only if the node is set to not build collision. otherwise we are already
+			# building it in build_entity_collision_shapes
+			if entity_definition.collision_shape_type == FuncGodotFGDSolidClass.CollisionShapeType.NONE:
+				if not mesh.has_meta("func_godot_mesh_data"):
+					mesh.set_meta("func_godot_mesh_data", Dictionary())
+				var this_textures_metadata: Dictionary = texture_to_metadata_map[texture]
+				var entity_metadata: Dictionary = mesh.get_meta("func_godot_mesh_data")
+				var entity_index_ranges: Array[Vector2i] = this_textures_metadata["entity_index_ranges"]
+				var range: Vector2i = entity_index_ranges[entity_idx]
+
+				if entity_definition.add_vertex_metadata:
+					var vertices: PackedVector3Array = entity_metadata.get("vertices", PackedVector3Array())
+					vertices.append_array((this_textures_metadata["vertices"] as PackedVector3Array).slice(range.x * 3, range.y * 3))
+					entity_metadata["vertices"] = vertices
+
+				if entity_definition.add_face_normal_metadata:
+					var normals: PackedVector3Array = entity_metadata.get("normals", PackedVector3Array())
+					normals.append_array((this_textures_metadata["normals"] as PackedVector3Array).slice(range.x, range.y))
+					entity_metadata["normals"] = normals
+
+				if entity_definition.add_face_position_metadata:
+					var positions: PackedVector3Array = entity_metadata.get("positions", PackedVector3Array())
+					positions.append_array((this_textures_metadata["positions"] as PackedVector3Array).slice(range.x, range.y))
+					entity_metadata["positions"] = positions
+
+				if entity_definition.add_textures_metadata:
+					# different (if null: add empty) logic for texture_names due to not being able make a static typed
+					# Array[StringName] inline in the get() function
+					if not entity_metadata.has("texture_names"):
+						var new: Array[StringName] = []
+						entity_metadata["texture_names"] = new
+					var texture_names: Array[StringName] = entity_metadata["texture_names"]
+					var textures: PackedInt32Array = entity_metadata.get("textures", PackedInt32Array())
+					var texture_block: PackedInt32Array = []
+					texture_block.resize(range.y - range.x)
+					texture_block.fill(texture_names.size())
+					texture_names.append(StringName(texture))
+					textures.append_array(texture_block)
+					entity_metadata["textures"] = textures
+
 	return meshes
 
 ## Build [MeshInstance3D]s from brush entities and add them to the add child queue
@@ -757,10 +802,15 @@ func apply_entity_meshes() -> void:
 		var mesh: Mesh = entity_mesh_dict[entity_idx] as Mesh
 		var mesh_instance: MeshInstance3D = entity_mesh_instances[entity_idx] as MeshInstance3D
 		if not mesh or not mesh_instance:
+			if mesh.has_meta("func_godot_mesh_data"):
+				mesh.remove_meta("func_godot_mesh_data")
 			continue
 		
 		mesh_instance.set_mesh(mesh)
 		queue_add_child(entity_nodes[entity_idx], mesh_instance)
+		if mesh.has_meta("func_godot_mesh_data"):
+			entity_nodes[entity_idx].set_meta("func_godot_mesh_data", mesh.get_meta("func_godot_mesh_data"))
+			mesh.remove_meta("func_godot_mesh_data")
 
 func apply_entity_occluders() -> void:
 	for entity_idx in entity_mesh_dict:

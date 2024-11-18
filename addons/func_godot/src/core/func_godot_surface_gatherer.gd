@@ -8,6 +8,8 @@ var texture_filter_idx: int = -1
 var clip_filter_texture_idx: int
 var skip_filter_texture_idx: int
 var origin_filter_texture_idx: int
+var build_entity_index_ranges: bool
+var metadata_skip_flags: int
 
 var out_surfaces: Array[FuncGodotMapData.FuncGodotFaceGeometry]
 var out_metadata: Dictionary
@@ -64,8 +66,10 @@ func run() -> void:
 	var positions: PackedVector3Array = []
 	var normals: PackedVector3Array = []
 	var shape_index_ranges: Array[Vector2i] = []
+	var entity_index_ranges: Array[Vector2i] = []
 	
 	var index_offset: int = 0
+	var entity_face_range: Vector2i = Vector2i.ZERO
 	var surf: FuncGodotMapData.FuncGodotFaceGeometry
 	
 	if split_type == SurfaceSplitType.NONE:
@@ -75,7 +79,14 @@ func run() -> void:
 	for e in range(map_data.entities.size()):
 		var entity:= map_data.entities[e]
 		var entity_geo:= map_data.entity_geo[e]
-		var entity_face_range := Vector2i.ZERO
+		var shape_face_range := Vector2i.ZERO
+		var total_entity_tris := 0
+		const MFlags = FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags
+		var include_normals_metadata: bool = not metadata_skip_flags & MFlags.FACE_NORMAL and entity.metadata_inclusion_flags & MFlags.FACE_NORMAL
+		var include_vertices_metadata: bool = not metadata_skip_flags & MFlags.VERTEX and entity.metadata_inclusion_flags & MFlags.VERTEX
+		var include_textures_metadata: bool = not metadata_skip_flags & MFlags.TEXTURES and entity.metadata_inclusion_flags & MFlags.TEXTURES
+		var include_positions_metadata: bool = not metadata_skip_flags & MFlags.FACE_POSITION and entity.metadata_inclusion_flags & MFlags.FACE_POSITION
+		var include_shape_range_metadata: bool = not metadata_skip_flags & MFlags.COLLISION_SHAPE_TO_FACE_RANGE_MAP and entity.metadata_inclusion_flags &  MFlags.COLLISION_SHAPE_TO_FACE_RANGE_MAP
 		
 		if filter_entity(e):
 			continue
@@ -114,13 +125,13 @@ func run() -> void:
 					
 					surf.vertices.append(vert)
 				
-				if entity.metadata_inclusion_flags & FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.FACE_NORMAL:
+				if include_normals_metadata:
 					var normal := Vector3(face.plane_normal.y, face.plane_normal.z, face.plane_normal.x)
 					for i in num_tris:
 						normals.append(normal)
-				if entity.metadata_inclusion_flags & FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.COLLISION_SHAPE_TO_FACE_RANGE_MAP:
+				if include_shape_range_metadata or build_entity_index_ranges:
 					total_brush_tris += num_tris
-				if entity.metadata_inclusion_flags & FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.TEXTURES:
+				if include_textures_metadata:
 					var texname := StringName(map_data.textures[face.texture_idx].name)
 					var index: int
 					if texture_names.is_empty():
@@ -139,7 +150,7 @@ func run() -> void:
 					# metadata addresses triangles, so we have to duplicate the info for each tri
 					for i in num_tris:
 						textures.append(index)
-				if entity.metadata_inclusion_flags & FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.FACE_POSITION:
+				if include_positions_metadata:
 					var avg_vertexpos := Vector3.ZERO
 					# NOTE: averaging face_geo.vertices to get face position assumes that all vertices of a face are along its edges
 					for vertex in face_geo.vertices:
@@ -156,10 +167,18 @@ func run() -> void:
 				
 				index_offset += face_geo.vertices.size()
 			
-			if entity.metadata_inclusion_flags & FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.COLLISION_SHAPE_TO_FACE_RANGE_MAP:
-				entity_face_range.x = entity_face_range.y
-				entity_face_range.y = entity_face_range.x + total_brush_tris
-				shape_index_ranges.append(entity_face_range)
+			if include_shape_range_metadata:
+				shape_face_range.x = shape_face_range.y
+				shape_face_range.y = shape_face_range.x + total_brush_tris
+				shape_index_ranges.append(shape_face_range)
+
+			if build_entity_index_ranges:
+				total_entity_tris += total_brush_tris
+
+		if build_entity_index_ranges:
+			entity_face_range.x = entity_face_range.y
+			entity_face_range.y = entity_face_range.x + total_entity_tris
+			entity_index_ranges.append(entity_face_range)
 
 	out_metadata = {
 		textures = textures,
@@ -169,6 +188,8 @@ func run() -> void:
 		positions = positions,
 		shape_index_ranges = shape_index_ranges,
 	}
+	if build_entity_index_ranges:
+		out_metadata["entity_index_ranges"] = entity_index_ranges
 
 func add_surface() -> FuncGodotMapData.FuncGodotFaceGeometry:
 	var surf:= FuncGodotMapData.FuncGodotFaceGeometry.new()
@@ -181,6 +202,8 @@ func reset_params() -> void:
 	texture_filter_idx = -1
 	clip_filter_texture_idx = -1
 	skip_filter_texture_idx = -1
+	build_entity_index_ranges = false
+	metadata_skip_flags = FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.NONE
 
 # nested
 enum SurfaceSplitType{
