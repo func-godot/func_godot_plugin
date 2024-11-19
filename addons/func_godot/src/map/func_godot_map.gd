@@ -702,7 +702,7 @@ func build_entity_mesh_dict() -> Dictionary:
 
 			# build metadata, only if the node is set to not build collision. otherwise we are already
 			# building it in build_entity_collision_shapes
-			if entity_definition.collision_shape_type == FuncGodotFGDSolidClass.CollisionShapeType.NONE:
+			if entity_definition and entity_definition.collision_shape_type == FuncGodotFGDSolidClass.CollisionShapeType.NONE:
 				if not mesh.has_meta("func_godot_mesh_data"):
 					mesh.set_meta("func_godot_mesh_data", Dictionary())
 				var this_textures_metadata: Dictionary = texture_to_metadata_map[texture]
