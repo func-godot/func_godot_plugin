@@ -631,15 +631,23 @@ func build_entity_collision_shapes() -> void:
 			if entity_definition and entity_definition.add_collision_shape_face_range_metadata:
 				collision_shape_to_face_range_map[collision_shape.name] = Vector2i(0, entity_verts.size() / 3)
 
-		if entity_definition and (
-			entity_definition.add_collision_shape_face_range_metadata
-			or entity_definition.add_face_normal_metadata
-			or entity_definition.add_face_position_metadata
-			or entity_definition.add_textures_metadata
-			or entity_definition.add_vertex_metadata):
+		if entity_definition:
+			if not entity_definition.add_face_normal_metadata:
+				metadata.erase("normals")
+			if not entity_definition.add_face_position_metadata:
+				metadata.erase("positions")
+			if not entity_definition.add_textures_metadata:
+				metadata.erase("textures")
+				metadata.erase("texture_names")
+			if not entity_definition.add_vertex_metadata:
+				metadata.erase("vertices")
+
 			metadata.erase("shape_index_ranges") # cleanup intermediate / buffer
-			metadata["collision_shape_to_face_range_map"] = collision_shape_to_face_range_map
-			entity_nodes[entity_idx].set_meta("func_godot_mesh_data", metadata)
+			if entity_definition.add_collision_shape_face_range_metadata:
+				metadata["collision_shape_to_face_range_map"] = collision_shape_to_face_range_map
+
+			if not metadata.is_empty():
+				entity_nodes[entity_idx].set_meta("func_godot_mesh_data", metadata)
 
 ## Build Dictionary from entity indices to [ArrayMesh] instances
 func build_entity_mesh_dict() -> Dictionary:
