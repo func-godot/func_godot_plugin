@@ -1,7 +1,7 @@
 class_name FuncGodotSurfaceGatherer extends RefCounted
 
 var map_data: FuncGodotMapData
-var scale_factor: float
+var map_settings: FuncGodotMapSettings
 var split_type: SurfaceSplitType = SurfaceSplitType.NONE
 var entity_filter_idx: int = -1
 var texture_filter_idx: int = -1
@@ -13,8 +13,9 @@ var metadata_skip_flags: int
 var out_surfaces: Array[FuncGodotMapData.FuncGodotFaceGeometry]
 var out_metadata: Dictionary
 
-func _init(in_map_data: FuncGodotMapData) -> void:
+func _init(in_map_data: FuncGodotMapData, in_map_settings: FuncGodotMapSettings) -> void:
 	map_data = in_map_data
+	map_settings = in_map_settings
 
 func set_texture_filter(texture_name: String) -> void:
 	texture_filter_idx = map_data.find_texture(texture_name)
@@ -154,7 +155,7 @@ func run() -> void:
 					var avg_vertexpos := Vector3.ZERO
 					# NOTE: averaging face_geo.vertices to get face position assumes that all vertices of a face are along its edges
 					for vertex in face_geo.vertices:
-						avg_vertexpos += Vector3(vertex.vertex.y, vertex.vertex.z, vertex.vertex.x) * scale_factor
+						avg_vertexpos += Vector3(vertex.vertex.y, vertex.vertex.z, vertex.vertex.x) * map_settings.scale_factor
 					avg_vertexpos /= face_geo.vertices.size()
 					for i in num_tris:
 						positions.append(avg_vertexpos)
@@ -163,7 +164,7 @@ func run() -> void:
 					surf.indicies.append(face_geo.indicies[i] + index_offset)
 					if entity.metadata_inclusion_flags & FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.VERTEX:
 						var vertex: Vector3 = surf.vertices[surf.indicies.back()].vertex
-						vertices.append(Vector3(vertex.y, vertex.z, vertex.x) * scale_factor)
+						vertices.append(Vector3(vertex.y, vertex.z, vertex.x) * map_settings.scale_factor)
 				
 				index_offset += face_geo.vertices.size()
 			

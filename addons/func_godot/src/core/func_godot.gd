@@ -3,12 +3,12 @@ class_name FuncGodot extends RefCounted
 var map_data:= FuncGodotMapData.new()
 var map_parser:= FuncGodotMapParser.new(map_data)
 var geo_generator = preload("res://addons/func_godot/src/core/func_godot_geo_generator.gd").new(map_data)
-var surface_gatherer:= FuncGodotSurfaceGatherer.new(map_data)
 var map_settings: FuncGodotMapSettings = null:
 	set(new):
 		if not new or new == map_settings: return
-		surface_gatherer.scale_factor = new.scale_factor
+		surface_gatherer.map_settings = new
 		map_settings = new
+var surface_gatherer:= FuncGodotSurfaceGatherer.new(map_data, map_settings)
 
 func load_map(filename: String, keep_tb_groups: bool) -> void:
 	map_parser.load_map(filename, keep_tb_groups)
@@ -64,7 +64,7 @@ func get_entity_dicts() -> Array:
 	return ent_dicts
 
 func gather_texture_surfaces(texture_name: String) -> Dictionary:
-	var sg: FuncGodotSurfaceGatherer = FuncGodotSurfaceGatherer.new(map_data)
+	var sg: FuncGodotSurfaceGatherer = FuncGodotSurfaceGatherer.new(map_data, map_settings)
 	sg.reset_params()
 	sg.split_type = FuncGodotSurfaceGatherer.SurfaceSplitType.ENTITY
 	const MFlags = FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags
