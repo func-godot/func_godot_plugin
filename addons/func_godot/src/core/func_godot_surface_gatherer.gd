@@ -151,20 +151,27 @@ func run() -> void:
 					# metadata addresses triangles, so we have to duplicate the info for each tri
 					for i in num_tris:
 						textures.append(index)
-				if include_positions_metadata:
-					var avg_vertexpos := Vector3.ZERO
-					# NOTE: averaging face_geo.vertices to get face position assumes that all vertices of a face are along its edges
-					for vertex in face_geo.vertices:
-						avg_vertexpos += Vector3(vertex.vertex.y, vertex.vertex.z, vertex.vertex.x) * map_settings.scale_factor
-					avg_vertexpos /= face_geo.vertices.size()
-					for i in num_tris:
-						positions.append(avg_vertexpos)
 				
+				var last_index: int = -1
+				var avg_vertexpos := Vector3.ZERO
+				var total_vertexpos: int = 0
 				for i in range(num_tris * 3):
 					surf.indicies.append(face_geo.indicies[i] + index_offset)
-					if entity.metadata_inclusion_flags & FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.VERTEX:
+					if include_vertices_metadata:
 						var vertex: Vector3 = surf.vertices[surf.indicies.back()].vertex
 						vertices.append(Vector3(vertex.y, vertex.z, vertex.x) * map_settings.scale_factor)
+					if include_positions_metadata:
+						var index := face_geo.indicies[i] + index_offset
+						# NOTE: this relies on new indices always being in ascending order
+						if index > last_index:
+							var vertex: Vector3 = surf.vertices[index].vertex
+							avg_vertexpos += Vector3(vertex.y, vertex.z, vertex.x) * map_settings.scale_factor
+							total_vertexpos += 1
+
+				if include_positions_metadata:
+					avg_vertexpos /= total_vertexpos
+					for i in num_tris:
+						positions.append(avg_vertexpos)
 				
 				index_offset += face_geo.vertices.size()
 			
