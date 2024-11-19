@@ -629,8 +629,7 @@ func build_entity_collision_shapes() -> void:
 			collision_shape.set_shape(shape)
 			
 			if entity_definition and entity_definition.add_collision_shape_face_range_metadata:
-				# TODO: face shape stuff gets thrown away here, building the array in surface gatherer could be avoided altogether for concave
-				collision_shape_to_face_range_map[collision_shape.name] = Vector2i(0, face_shape_indices.back().y)
+				collision_shape_to_face_range_map[collision_shape.name] = Vector2i(0, entity_verts.size() / 3)
 
 		if entity_definition and (
 			entity_definition.add_collision_shape_face_range_metadata

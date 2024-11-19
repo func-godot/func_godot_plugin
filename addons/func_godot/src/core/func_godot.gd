@@ -90,6 +90,8 @@ func gather_entity_concave_collision_surfaces(entity_idx: int) -> void:
 	surface_gatherer.reset_params()
 	surface_gatherer.split_type = FuncGodotSurfaceGatherer.SurfaceSplitType.NONE
 	surface_gatherer.entity_filter_idx = entity_idx
+	const MFlags = FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags
+	surface_gatherer.metadata_skip_flags |= MFlags.COLLISION_SHAPE_TO_FACE_RANGE_MAP
 	surface_gatherer.set_skip_filter_texture(map_settings.skip_texture)
 	surface_gatherer.set_origin_filter_texture(map_settings.origin_texture)
 	surface_gatherer.run()
