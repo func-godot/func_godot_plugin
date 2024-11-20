@@ -28,7 +28,7 @@ func set_entity_definitions(entity_defs: Dictionary) -> void:
 		var classname: String = entity_defs.keys()[i]
 		var spawn_type: int = entity_defs.values()[i].get("spawn_type", FuncGodotMapData.FuncGodotEntitySpawnType.ENTITY)
 		var origin_type: int = entity_defs.values()[i].get("origin_type", FuncGodotMapData.FuncGodotEntityOriginType.BOUNDS_CENTER)
-		var metadata_inclusion_flags: int = entity_defs.values()[i].get("metadata_inclusion_flags", FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags.NONE)
+		var metadata_inclusion_flags: int = entity_defs.values()[i].get("metadata_inclusion_flags", FuncGodotMapData.FuncGodotEntityMetadataInclusionFlags.NONE)
 		map_data.set_entity_types_by_classname(classname, spawn_type, origin_type, metadata_inclusion_flags)
 
 func get_texture_info(texture_name: String) -> FuncGodotMapData.FuncGodotTextureType:
@@ -67,7 +67,7 @@ func gather_texture_surfaces(texture_name: String) -> Dictionary:
 	var sg: FuncGodotSurfaceGatherer = FuncGodotSurfaceGatherer.new(map_data, map_settings)
 	sg.reset_params()
 	sg.split_type = FuncGodotSurfaceGatherer.SurfaceSplitType.ENTITY
-	const MFlags = FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags
+	const MFlags = FuncGodotMapData.FuncGodotEntityMetadataInclusionFlags
 	sg.metadata_skip_flags = MFlags.TEXTURES | MFlags.COLLISION_SHAPE_TO_FACE_RANGE_MAP
 	sg.set_texture_filter(texture_name)
 	sg.set_clip_filter_texture(map_settings.clip_texture)
@@ -90,7 +90,7 @@ func gather_entity_concave_collision_surfaces(entity_idx: int) -> void:
 	surface_gatherer.reset_params()
 	surface_gatherer.split_type = FuncGodotSurfaceGatherer.SurfaceSplitType.NONE
 	surface_gatherer.entity_filter_idx = entity_idx
-	const MFlags = FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags
+	const MFlags = FuncGodotMapData.FuncGodotEntityMetadataInclusionFlags
 	surface_gatherer.metadata_skip_flags |= MFlags.COLLISION_SHAPE_TO_FACE_RANGE_MAP
 	surface_gatherer.set_skip_filter_texture(map_settings.skip_texture)
 	surface_gatherer.set_origin_filter_texture(map_settings.origin_texture)

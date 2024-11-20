@@ -322,7 +322,7 @@ func set_core_entity_definitions() -> void:
 			core_ent_defs[classname]['spawn_type'] = entity_definition.spawn_type
 			core_ent_defs[classname]['origin_type'] = entity_definition.origin_type
 			
-			const MFlags = FuncGodotMapData.FuncGodotEntityMetdataInclusionFlags
+			const MFlags = FuncGodotMapData.FuncGodotEntityMetadataInclusionFlags
 			var flags := MFlags.NONE
 			if entity_definition.add_textures_metadata: flags |= MFlags.TEXTURES
 			if entity_definition.add_vertex_metadata: flags |= MFlags.VERTEX
