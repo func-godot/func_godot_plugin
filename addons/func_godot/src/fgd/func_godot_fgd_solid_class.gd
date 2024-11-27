@@ -55,31 +55,29 @@ enum CollisionShapeType {
 ## The collision margin for the Solid Class' collision shapes. Not used in Godot Physics. See [Shape3D] for details.
 @export var collision_shape_margin: float = 0.04
 
-## The following properties tell FuncGodot to add data to the metadata of the generated node upon build. 
-## This data is parallelized, so that each element of the array is ordered to reference the same face in the mesh. 
-## All of the data is stored in a dictionary in the node generated for the entity, in metadata entry
-## [code]"func_godot_mesh_data"[/code]
+## The following properties tell FuncGodot to add a [i]"func_godot_mesh_data"[/i] Dictionary to the metadata of the generated node upon build. 
+## This data is parallelized, so that each element of the array is ordered to reference the same face in the mesh.
 @export_group("Mesh Metadata")
-## Add a texture lookup table to the generated node's metadata on build. 
-## The data is split between an [Array] of [StringName] called `"texture_names"` containing all currently used texture materials 
-## and a [PackedInt32Array] called `"textures"` where each element is an index corresponding to the `"texture_names"` entries.
+## Add a texture lookup table to the generated node's metadata on build.[br][br] 
+## The data is split between an [Array] of [StringName] called [i]"texture_names"[/i] containing all currently used texture materials 
+## and a [PackedInt32Array] called [i]"textures"[/i] where each element is an index corresponding to the [i]"texture_names"[/i] entries.
 @export var add_textures_metadata: bool = false
-## Add a [PackedVector3Array] called `"vertices"` in the generated node's metadata on build. 
+## Add a [PackedVector3Array] called [i]"vertices"[/i] to the generated node's metadata on build.[br][br] 
 ## This is a list of every vertex in the generated node's [MeshInstance3D]. Every 3 vertices represent a single face.
 @export var add_vertex_metadata: bool = false
-## Add a [PackedVector3Array] called `"positions"` in the generated node's metadata on build. 
+## Add a [PackedVector3Array] called [i]"positions"[/i] to the generated node's metadata on build.[br][br] 
 ## This is a list of positions for each face, local to the generated node, calculated by averaging the vertices to find the face's center.
 @export var add_face_position_metadata = false
-## Add a [PackedVector3Array] called `"normals"` in the generated node's metadata on build. 
+## Add a [PackedVector3Array] called [i]"normals"[/i] to the generated node's metadata on build.[br][br] 
 ## Contains a list of each face's normal.
 @export var add_face_normal_metadata = false
-## Add a [Dictionary] called `"collision_shape_to_face_range_map"` in the generated node's metadata on build. 
+## Add a [Dictionary] called [i]"collision_shape_to_face_range_map"[/i] in the generated node's metadata on build.[br][br] 
 ## Contains keys of strings, which are the names of child [CollisionShape3D] nodes, and values of
-## Vector2i, where the x represents the starting index of that child's faces and the y represents the
-## ending index.
-## For example: [code]{ "entity_1_brush_0_collision_shape" : Vector2i(0, 15) }[/code] shows that this
-## solid class has been generated with one child collision shape named entity_1_brush_0_collision_shape
-## which handles the first 15 faces of the parts of the mesh with collision.
+## [Vector2i], where [i]X[/i] represents the starting index of that child's faces and [i]Y[/i] represents the
+## ending index.[br][br]
+## For example, an element of [br][br][code]{ "entity_1_brush_0_collision_shape" : Vector2i(0, 15) }[/code][br][br]
+## shows that this solid class has been generated with one child collision shape named 
+## [i]entity_1_brush_0_collision_shape[/i] which handles the first 15 faces of the parts of the mesh with collision.
 @export var add_collision_shape_face_range_metadata = false
 
 @export_group("Scripting")
