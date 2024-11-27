@@ -3,8 +3,12 @@ class_name FuncGodot extends RefCounted
 var map_data:= FuncGodotMapData.new()
 var map_parser:= FuncGodotMapParser.new(map_data)
 var geo_generator = preload("res://addons/func_godot/src/core/func_godot_geo_generator.gd").new(map_data)
-var surface_gatherer:= FuncGodotSurfaceGatherer.new(map_data)
-var map_settings: FuncGodotMapSettings = null
+var map_settings: FuncGodotMapSettings = null:
+	set(new):
+		if not new or new == map_settings: return
+		surface_gatherer.map_settings = new
+		map_settings = new
+var surface_gatherer:= FuncGodotSurfaceGatherer.new(map_data, map_settings)
 
 func load_map(filename: String, keep_tb_groups: bool) -> void:
 	map_parser.load_map(filename, keep_tb_groups)
@@ -24,7 +28,8 @@ func set_entity_definitions(entity_defs: Dictionary) -> void:
 		var classname: String = entity_defs.keys()[i]
 		var spawn_type: int = entity_defs.values()[i].get("spawn_type", FuncGodotMapData.FuncGodotEntitySpawnType.ENTITY)
 		var origin_type: int = entity_defs.values()[i].get("origin_type", FuncGodotMapData.FuncGodotEntityOriginType.BOUNDS_CENTER)
-		map_data.set_entity_types_by_classname(classname, spawn_type, origin_type)
+		var metadata_inclusion_flags: int = entity_defs.values()[i].get("metadata_inclusion_flags", FuncGodotMapData.FuncGodotEntityMetadataInclusionFlags.NONE)
+		map_data.set_entity_types_by_classname(classname, spawn_type, origin_type, metadata_inclusion_flags)
 
 func get_texture_info(texture_name: String) -> FuncGodotMapData.FuncGodotTextureType:
 	if texture_name == map_settings.origin_texture:
@@ -58,16 +63,21 @@ func get_entity_dicts() -> Array:
 	
 	return ent_dicts
 
-func gather_texture_surfaces(texture_name: String) -> Array:
-	var sg: FuncGodotSurfaceGatherer = FuncGodotSurfaceGatherer.new(map_data)
+func gather_texture_surfaces(texture_name: String) -> Dictionary:
+	var sg: FuncGodotSurfaceGatherer = FuncGodotSurfaceGatherer.new(map_data, map_settings)
 	sg.reset_params()
 	sg.split_type = FuncGodotSurfaceGatherer.SurfaceSplitType.ENTITY
+	const MFlags = FuncGodotMapData.FuncGodotEntityMetadataInclusionFlags
+	sg.metadata_skip_flags = MFlags.TEXTURES | MFlags.COLLISION_SHAPE_TO_FACE_RANGE_MAP
 	sg.set_texture_filter(texture_name)
 	sg.set_clip_filter_texture(map_settings.clip_texture)
 	sg.set_skip_filter_texture(map_settings.skip_texture)
 	sg.set_origin_filter_texture(map_settings.origin_texture)
 	sg.run()
-	return fetch_surfaces(sg)
+	return {
+		surfaces = fetch_surfaces(sg),
+		metadata = sg.out_metadata,
+	}
 
 func gather_entity_convex_collision_surfaces(entity_idx: int) -> void:
 	surface_gatherer.reset_params()
@@ -80,6 +90,8 @@ func gather_entity_concave_collision_surfaces(entity_idx: int) -> void:
 	surface_gatherer.reset_params()
 	surface_gatherer.split_type = FuncGodotSurfaceGatherer.SurfaceSplitType.NONE
 	surface_gatherer.entity_filter_idx = entity_idx
+	const MFlags = FuncGodotMapData.FuncGodotEntityMetadataInclusionFlags
+	surface_gatherer.metadata_skip_flags |= MFlags.COLLISION_SHAPE_TO_FACE_RANGE_MAP
 	surface_gatherer.set_skip_filter_texture(map_settings.skip_texture)
 	surface_gatherer.set_origin_filter_texture(map_settings.origin_texture)
 	surface_gatherer.run()
