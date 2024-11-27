@@ -152,26 +152,22 @@ func run() -> void:
 					for i in num_tris:
 						textures.append(index)
 				
-				var last_index: int = -1
-				var avg_vertexpos := Vector3.ZERO
-				var total_vertexpos: int = 0
+				var avg_vertex_pos := Vector3.ZERO
+				var avg_vertex_pos_ct: int = 0
 				for i in range(num_tris * 3):
 					surf.indicies.append(face_geo.indicies[i] + index_offset)
+					var vertex: Vector3 = surf.vertices[surf.indicies.back()].vertex
+					vertex = Vector3(vertex.y, vertex.z, vertex.x) * map_settings.scale_factor
 					if include_vertices_metadata:
-						var vertex: Vector3 = surf.vertices[surf.indicies.back()].vertex
-						vertices.append(Vector3(vertex.y, vertex.z, vertex.x) * map_settings.scale_factor)
+						vertices.append(vertex)
 					if include_positions_metadata:
-						var index := face_geo.indicies[i] + index_offset
-						# NOTE: this relies on new indices always being in ascending order
-						if index > last_index:
-							var vertex: Vector3 = surf.vertices[index].vertex
-							avg_vertexpos += Vector3(vertex.y, vertex.z, vertex.x) * map_settings.scale_factor
-							total_vertexpos += 1
-
-				if include_positions_metadata:
-					avg_vertexpos /= total_vertexpos
-					for i in num_tris:
-						positions.append(avg_vertexpos)
+						avg_vertex_pos_ct += 1
+						avg_vertex_pos += vertex
+						if avg_vertex_pos_ct == 3:
+							avg_vertex_pos /= 3
+							positions.append(avg_vertex_pos)
+							avg_vertex_pos = Vector3.ZERO
+							avg_vertex_pos_ct = 0
 				
 				index_offset += face_geo.vertices.size()
 			
