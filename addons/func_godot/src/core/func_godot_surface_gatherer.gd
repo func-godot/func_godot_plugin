@@ -40,19 +40,20 @@ func filter_face(entity_idx: int, brush_idx: int, face_idx: int) -> bool:
 	
 	if face_geo.vertices.size() < 3:
 		return true
-		
+
+	# Omit faces textured with Clip
 	if clip_filter_texture_idx != -1 and face.texture_idx == clip_filter_texture_idx:
 		return true
 		
-	# omit faces textured with skip
+	# Omit faces textured with Skip
 	if skip_filter_texture_idx != -1 and face.texture_idx == skip_filter_texture_idx:
 		return true
 
-	# omit faces textured with origin
+	# Omit faces textured with Origin
 	if origin_filter_texture_idx != -1 and face.texture_idx == origin_filter_texture_idx:
 		return true
 	
-	# omit filtered texture indices
+	# Omit filtered texture indices
 	if texture_filter_idx != -1 and face.texture_idx != texture_filter_idx:
 		return true
 	
@@ -139,7 +140,7 @@ func run() -> void:
 						texture_names.append(texname)
 						index = 0
 					elif texture_names.back() == texname:
-						# common case, faces with textures are next to each other
+						# Common case, faces with textures are next to each other
 						index = texture_names.size() - 1
 					else:
 						var texture_name_index: int = texture_names.find(texname)
@@ -148,7 +149,7 @@ func run() -> void:
 							texture_names.append(texname)
 						else:
 							index = texture_name_index
-					# metadata addresses triangles, so we have to duplicate the info for each tri
+					# Metadata addresses triangles, so we have to duplicate the info for each tri
 					for i in num_tris:
 						textures.append(index)
 				
@@ -191,7 +192,7 @@ func run() -> void:
 		vertices = vertices,
 		positions = positions,
 		shape_index_ranges = shape_index_ranges,
-	}
+	}	
 	if build_entity_index_ranges:
 		out_metadata["entity_index_ranges"] = entity_index_ranges
 
