@@ -613,7 +613,7 @@ func build_entity_collision_shapes() -> void:
 				var collision_shape: CollisionShape3D = entity_collision_shape[surface_idx]
 				collision_shape.set_shape(shape)
 				
-				# for face shape range metadata, we need to add info about child node names
+				# For face shape range metadata, we need to add info about child node names
 				if entity_definition and entity_definition.add_collision_shape_face_range_metadata:
 					collision_shape_to_face_range_map[collision_shape.name] = face_shape_indices[surface_idx]
 				
@@ -700,8 +700,7 @@ func build_entity_mesh_dict() -> Dictionary:
 			mesh.surface_set_name(mesh.get_surface_count() - 1, texture)
 			mesh.surface_set_material(mesh.get_surface_count() - 1, material_dict[texture])
 
-			# build metadata, only if the node is set to not build collision. otherwise we are already
-			# building it in build_entity_collision_shapes
+			# Build metadata only if the node is set to not build collision. Otherwise we are already building it in build_entity_collision_shapes.
 			if entity_definition and entity_definition.collision_shape_type == FuncGodotFGDSolidClass.CollisionShapeType.NONE:
 				if not mesh.has_meta("func_godot_mesh_data"):
 					mesh.set_meta("func_godot_mesh_data", Dictionary())
