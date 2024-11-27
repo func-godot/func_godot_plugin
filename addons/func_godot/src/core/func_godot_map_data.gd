@@ -26,10 +26,9 @@ func find_texture(texture_name: String) -> int:
 			return i
 	return -1
 
-func set_entity_types_by_classname(classname: String, spawn_type: int, origin_type: int, meta_flags: int) -> void:
+func set_entity_types_by_classname(classname: String, spawn_type: int, origin_type: int) -> void:
 	for entity in entities:
 		if entity.properties.has("classname") and entity.properties["classname"] == classname:
-			entity.metadata_inclusion_flags = meta_flags as FuncGodotMapData.FuncGodotEntityMetadataInclusionFlags
 			entity.spawn_type = spawn_type as FuncGodotMapData.FuncGodotEntitySpawnType
 			if entity.spawn_type == FuncGodotMapData.FuncGodotEntitySpawnType.ENTITY:
 				entity.origin_type = origin_type as FuncGodotMapData.FuncGodotEntityOriginType
@@ -58,16 +57,6 @@ enum FuncGodotEntityOriginType {
 	BOUNDS_CENTER = 4,
 	BOUNDS_MINS = 5,
 	BOUNDS_MAXS = 6,
-}
-
-enum FuncGodotEntityMetadataInclusionFlags {
-	NONE = 0,
-	ENTITY_INDEX_RANGES = 1,
-	TEXTURES = 2,
-	VERTEX = 4,
-	FACE_POSITION = 8,
-	FACE_NORMAL = 16,
-	COLLISION_SHAPE_TO_FACE_RANGE_MAP = 32,
 }
 
 enum FuncGodotTextureType {
@@ -122,7 +111,6 @@ class FuncGodotEntity:
 	var center: Vector3
 	var spawn_type: FuncGodotEntitySpawnType
 	var origin_type: FuncGodotEntityOriginType
-	var metadata_inclusion_flags: FuncGodotEntityMetadataInclusionFlags
 	
 class FuncGodotFaceVertex:
 	var vertex: Vector3
