@@ -3,7 +3,7 @@
 
 ***FuncGodot*** is a plugin for [Godot 4](https://godotengine.org/) that allows users to generate Godot scenes using the [Quake MAP file format](https://quakewiki.org/wiki/Quake_Map_Format). Map files can be made in a variety of editors, the most commonly recommended one being [TrenchBroom](https://trenchbroom.github.io/). It is a reworking and rewrite of the [Qodot](https://github.com/QodotPlugin/Qodot) plugin for Godot 3 and 4.
 
-[Full documentation is available online](https://func-godot.github.io/func_godot_docs/) as well as off. Release zip files come pre-packaged with the manual, but if you need to you can [download a standalone copy here](https://github.com/func-godot/func_godot_docs/releases/).
+[Full documentation is available online](https://func-godot.github.io/func_godot_docs/) as well as off. Release zip files come pre-packaged with the manual, but if you need to you can [download the most up-to-date standalone copy here](https://github.com/func-godot/func_godot_docs/releases/).
 
 For more help or to contribute to the community, join us on the [Official FuncGodot Discord](https://discord.gg/eBQ7EfNZSZ)!
 
@@ -14,7 +14,8 @@ For more help or to contribute to the community, join us on the [Official FuncGo
 ## Features
 
 - Godot Scene Generation
-  - File support for Quake `map`, `wad`, and `lmp` palette formats.
+  - File support for Quake `map`, `wad`, and `lmp` palette formats
+  - File support for Half-Life `wad` format
   - Meshes from `map` brush geometry
   - Materials and UVs from `map` texture definitions
   - Convex and concave collision shapes
@@ -22,6 +23,7 @@ For more help or to contribute to the community, join us on the [Official FuncGo
   - Fully customizable entities that can be defined for TrenchBroom and generated in Godot
   - Leverage the `map` format's classname and key value pair systems
   - Define the visual and collision properties of brush entities on a per-classname basis
+  - Retrieve easy to access mesh metadata for per face material information
   - Define point entities that can be generated from node class name and script or from packed scenes
   - Generate GLB display models with correct orientation and scale for point entities in map editors with GLTF support
   - FGD (Forge Game Data) export
@@ -32,11 +34,12 @@ For more help or to contribute to the community, join us on the [Official FuncGo
 - NetRadiant Custom Integration
   - Gamepack Export
   - Shader definitions
+  - Customizable build options
 
 ## Confirmed Compatible Map Editors
   - TrenchBroom
   - J.A.C.K.
-  - NetRadiant Custom
+  - NetRadiant Custom[br]
 Help us add to this list by testing out your preferred map editor and helping us come up with compatibility solutions!
 
 ## Credits
