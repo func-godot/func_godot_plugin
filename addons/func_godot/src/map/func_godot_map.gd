@@ -317,9 +317,19 @@ func set_core_entity_definitions() -> void:
 	var core_ent_defs: Dictionary = {}
 	for classname in entity_definitions:
 		core_ent_defs[classname] = {}
-		if entity_definitions[classname] is FuncGodotFGDSolidClass:
-			core_ent_defs[classname]['spawn_type'] = entity_definitions[classname].spawn_type
-			core_ent_defs[classname]['origin_type'] = entity_definitions[classname].origin_type
+		var entity_definition: FuncGodotFGDEntityClass = entity_definitions[classname]
+		if entity_definition is FuncGodotFGDSolidClass:
+			core_ent_defs[classname]['spawn_type'] = entity_definition.spawn_type
+			core_ent_defs[classname]['origin_type'] = entity_definition.origin_type
+			
+			const MFlags = FuncGodotMapData.FuncGodotEntityMetadataInclusionFlags
+			var flags := MFlags.NONE
+			if entity_definition.add_textures_metadata: flags |= MFlags.TEXTURES
+			if entity_definition.add_vertex_metadata: flags |= MFlags.VERTEX
+			if entity_definition.add_face_normal_metadata: flags |= MFlags.FACE_NORMAL
+			if entity_definition.add_face_position_metadata: flags |= MFlags.FACE_POSITION
+			if entity_definition.add_collision_shape_face_range_metadata: flags |= MFlags.COLLISION_SHAPE_TO_FACE_RANGE_MAP
+			core_ent_defs[classname]['metadata_inclusion_flags'] = flags
 	func_godot.set_entity_definitions(core_ent_defs)
 
 ## Generate geometry from map file
@@ -549,11 +559,12 @@ func build_entity_collision_shapes() -> void:
 		var entity_collision_shape: Array = entity_collision_shapes[entity_idx]
 		var concave: bool = false
 		var shape_margin: float = 0.04
+		var entity_definition: FuncGodotFGDSolidClass
 		
 		if 'classname' in properties:
 			var classname: String = properties['classname']
 			if classname in entity_definitions:
-				var entity_definition: FuncGodotFGDSolidClass = entity_definitions[classname] as FuncGodotFGDSolidClass
+				entity_definition = entity_definitions[classname] as FuncGodotFGDSolidClass
 				if entity_definition:
 					match(entity_definition.collision_shape_type):
 						FuncGodotFGDSolidClass.CollisionShapeType.NONE:
@@ -572,6 +583,9 @@ func build_entity_collision_shapes() -> void:
 		else:
 			func_godot.gather_entity_convex_collision_surfaces(entity_idx)
 		var entity_surfaces: Array = func_godot.fetch_surfaces(func_godot.surface_gatherer)
+		var metadata: Dictionary = func_godot.surface_gatherer.out_metadata
+		var collision_shape_to_face_range_map: Dictionary = {}
+		var face_shape_indices: Array[Vector2i] = metadata["shape_index_ranges"]
 		
 		var entity_verts: PackedVector3Array = PackedVector3Array()
 		
@@ -599,6 +613,10 @@ func build_entity_collision_shapes() -> void:
 				var collision_shape: CollisionShape3D = entity_collision_shape[surface_idx]
 				collision_shape.set_shape(shape)
 				
+				# For face shape range metadata, we need to add info about child node names
+				if entity_definition and entity_definition.add_collision_shape_face_range_metadata:
+					collision_shape_to_face_range_map[collision_shape.name] = face_shape_indices[surface_idx]
+				
 		if concave:
 			if entity_verts.size() == 0:
 				continue
@@ -609,18 +627,43 @@ func build_entity_collision_shapes() -> void:
 			
 			var collision_shape: CollisionShape3D = entity_collision_shapes[entity_idx][0]
 			collision_shape.set_shape(shape)
+			
+			if entity_definition and entity_definition.add_collision_shape_face_range_metadata:
+				collision_shape_to_face_range_map[collision_shape.name] = Vector2i(0, entity_verts.size() / 3)
+
+		if entity_definition:
+			if not entity_definition.add_face_normal_metadata:
+				metadata.erase("normals")
+			if not entity_definition.add_face_position_metadata:
+				metadata.erase("positions")
+			if not entity_definition.add_textures_metadata:
+				metadata.erase("textures")
+				metadata.erase("texture_names")
+			if not entity_definition.add_vertex_metadata:
+				metadata.erase("vertices")
+
+			metadata.erase("shape_index_ranges") # cleanup intermediate / buffer
+			if entity_definition.add_collision_shape_face_range_metadata:
+				metadata["collision_shape_to_face_range_map"] = collision_shape_to_face_range_map
+
+			if not metadata.is_empty():
+				entity_nodes[entity_idx].set_meta("func_godot_mesh_data", metadata)
 
 ## Build Dictionary from entity indices to [ArrayMesh] instances
 func build_entity_mesh_dict() -> Dictionary:
 	var meshes: Dictionary = {}
 	
 	var texture_surf_map: Dictionary
+	var texture_to_metadata_map: Dictionary
 	for texture in texture_dict:
 		texture_surf_map[texture] = Array()
+		texture_to_metadata_map[texture] = {}
 	
 	var gather_task = func(i):
 		var texture: String = texture_dict.keys()[i]
-		texture_surf_map[texture] = func_godot.gather_texture_surfaces(texture)
+		var fetch_result = func_godot.gather_texture_surfaces(texture)
+		texture_surf_map[texture] = fetch_result["surfaces"]
+		texture_to_metadata_map[texture] = fetch_result["metadata"]
 	
 	var task_id: int = WorkerThreadPool.add_group_task(gather_task, texture_dict.keys().size(), 4, true)
 	WorkerThreadPool.wait_for_group_task_completion(task_id)
@@ -633,11 +676,12 @@ func build_entity_mesh_dict() -> Dictionary:
 			var properties: Dictionary = entity_dict['properties']
 			
 			var entity_surface = texture_surfaces[entity_idx]
+			var entity_definition: FuncGodotFGDSolidClass
 			
 			if 'classname' in properties:
 				var classname: String = properties['classname']
 				if classname in entity_definitions:
-					var entity_definition: FuncGodotFGDSolidClass = entity_definitions[classname] as FuncGodotFGDSolidClass
+					entity_definition = entity_definitions[classname] as FuncGodotFGDSolidClass
 					if entity_definition:
 						if entity_definition.spawn_type == FuncGodotFGDSolidClass.SpawnType.MERGE_WORLDSPAWN:
 							entity_surface = null
@@ -655,7 +699,46 @@ func build_entity_mesh_dict() -> Dictionary:
 			mesh.add_surface_from_arrays(ArrayMesh.PRIMITIVE_TRIANGLES, entity_surface)
 			mesh.surface_set_name(mesh.get_surface_count() - 1, texture)
 			mesh.surface_set_material(mesh.get_surface_count() - 1, material_dict[texture])
-	
+
+			# Build metadata only if the node is set to not build collision. Otherwise we are already building it in build_entity_collision_shapes.
+			if entity_definition and entity_definition.collision_shape_type == FuncGodotFGDSolidClass.CollisionShapeType.NONE:
+				if not mesh.has_meta("func_godot_mesh_data"):
+					mesh.set_meta("func_godot_mesh_data", Dictionary())
+				var this_textures_metadata: Dictionary = texture_to_metadata_map[texture]
+				var entity_metadata: Dictionary = mesh.get_meta("func_godot_mesh_data")
+				var entity_index_ranges: Array[Vector2i] = this_textures_metadata["entity_index_ranges"]
+				var range: Vector2i = entity_index_ranges[entity_idx]
+
+				if entity_definition.add_vertex_metadata:
+					var vertices: PackedVector3Array = entity_metadata.get("vertices", PackedVector3Array())
+					vertices.append_array((this_textures_metadata["vertices"] as PackedVector3Array).slice(range.x * 3, range.y * 3))
+					entity_metadata["vertices"] = vertices
+
+				if entity_definition.add_face_normal_metadata:
+					var normals: PackedVector3Array = entity_metadata.get("normals", PackedVector3Array())
+					normals.append_array((this_textures_metadata["normals"] as PackedVector3Array).slice(range.x, range.y))
+					entity_metadata["normals"] = normals
+
+				if entity_definition.add_face_position_metadata:
+					var positions: PackedVector3Array = entity_metadata.get("positions", PackedVector3Array())
+					positions.append_array((this_textures_metadata["positions"] as PackedVector3Array).slice(range.x, range.y))
+					entity_metadata["positions"] = positions
+
+				if entity_definition.add_textures_metadata:
+					# different (if null: add empty) logic for texture_names due to not being able make a static typed
+					# Array[StringName] inline in the get() function
+					if not entity_metadata.has("texture_names"):
+						var new: Array[StringName] = []
+						entity_metadata["texture_names"] = new
+					var texture_names: Array[StringName] = entity_metadata["texture_names"]
+					var textures: PackedInt32Array = entity_metadata.get("textures", PackedInt32Array())
+					var texture_block: PackedInt32Array = []
+					texture_block.resize(range.y - range.x)
+					texture_block.fill(texture_names.size())
+					texture_names.append(StringName(texture))
+					textures.append_array(texture_block)
+					entity_metadata["textures"] = textures
+
 	return meshes
 
 ## Build [MeshInstance3D]s from brush entities and add them to the add child queue
@@ -725,10 +808,15 @@ func apply_entity_meshes() -> void:
 		var mesh: Mesh = entity_mesh_dict[entity_idx] as Mesh
 		var mesh_instance: MeshInstance3D = entity_mesh_instances[entity_idx] as MeshInstance3D
 		if not mesh or not mesh_instance:
+			if mesh.has_meta("func_godot_mesh_data"):
+				mesh.remove_meta("func_godot_mesh_data")
 			continue
 		
 		mesh_instance.set_mesh(mesh)
 		queue_add_child(entity_nodes[entity_idx], mesh_instance)
+		if mesh.has_meta("func_godot_mesh_data"):
+			entity_nodes[entity_idx].set_meta("func_godot_mesh_data", mesh.get_meta("func_godot_mesh_data"))
+			mesh.remove_meta("func_godot_mesh_data")
 
 func apply_entity_occluders() -> void:
 	for entity_idx in entity_mesh_dict:
@@ -1004,17 +1092,17 @@ func apply_properties_and_finish() -> void:
 						# Everything else
 						else:
 							properties[property] = prop_default
+						
+				if entity_definition.auto_apply_to_matching_node_properties:
+					for property in properties:
+						if property in entity_node:
+							if typeof(entity_node.get(property)) == typeof(properties[property]):
+								entity_node.set(property, properties[property])
+							else:
+								push_error("Entity %s property \'%s\' type mismatch with matching generated node property." % [entity_node.name, property])
 		
 		if 'func_godot_properties' in entity_node:
 			entity_node.func_godot_properties = properties
-
-		if auto_apply_to_matching_node_properties:
-			for property in properties:
-				if property in entity_node:
-					if typeof(entity_node.get(property)) == typeof(properties[property]):
-						entity_node.set(property, properties[property])
-					else:
-						push_error("Entity %s property \'%s\' type mismatch with matching generated node property." % [entity_node.name, property])
 		
 		if entity_node.has_method("_func_godot_apply_properties"):
 			entity_node.call("_func_godot_apply_properties", properties)
