@@ -1,7 +1,7 @@
 <p align="center"><img src="https://github.com/func-godot/.github/assets/44485952/53bdc589-33e8-4a39-8707-01a5f850d155" alt="FuncGodotRanger" width="15%" /> 
 <img src="https://github.com/func-godot/.github/assets/44485952/b7c19218-2089-4319-a2bd-6ce4b354c1ce" alt="FuncGodot" width="80%"/></p>
 
-***FuncGodot*** is a plugin for [Godot 4](https://godotengine.org/) that allows users to generate Godot scenes using the [Quake MAP file format](https://quakewiki.org/wiki/Quake_Map_Format). Map files can be made in a variety of editors, the most commonly recommended one being [TrenchBroom](https://trenchbroom.github.io/). It is a reworking and rewrite of the [Qodot](https://github.com/QodotPlugin/Qodot) plugin for Godot 3 and 4.
+**_FuncGodot_** is a plugin for [Godot 4](https://godotengine.org/) that allows users to generate Godot scenes using the [Quake MAP file format](https://quakewiki.org/wiki/Quake_Map_Format). Map files can be made in a variety of editors, the most commonly recommended one being [TrenchBroom](https://trenchbroom.github.io/). It is a reworking and rewrite of the [Qodot](https://github.com/QodotPlugin/Qodot) plugin for Godot 3 and 4.
 
 [Full documentation is available online](https://func-godot.github.io/func_godot_docs/) as well as off. Release zip files come pre-packaged with the manual, but if you need to you can [download the most up-to-date standalone copy here](https://github.com/func-godot/func_godot_docs/releases/).
 
@@ -9,7 +9,6 @@ For more help or to contribute to the community, join us on the [Official FuncGo
 
 <p align="center"><img src="https://github.com/func-godot/.github/assets/44485952/0a4d2436-884e-4cee-94a8-220df3813627" alt="TrenchBroom" width="45%" /> 
 <img src="https://github.com/func-godot/.github/assets/44485952/25e96e49-3482-40cf-ade9-99e83c3eca7d" alt="Godot FuncGodotMap Built" width="45%"/></p>
-
 
 ## Features
 
@@ -37,10 +36,12 @@ For more help or to contribute to the community, join us on the [Official FuncGo
   - Customizable build options
 
 ## Confirmed Compatible Map Editors
-  - TrenchBroom
-  - J.A.C.K.
-  - NetRadiant Custom[br]
-Help us add to this list by testing out your preferred map editor and helping us come up with compatibility solutions!
+
+- TrenchBroom
+- J.A.C.K.
+- NetRadiant Custom
+
+_Help us add to this list by testing out your preferred map editor and helping us come up with compatibility solutions!_
 
 ## Credits
 
