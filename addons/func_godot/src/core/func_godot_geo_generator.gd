@@ -237,8 +237,8 @@ func run() -> void:
 	var generate_vertices_task = func(e):
 		var entity: FuncGodotMapData.FuncGodotEntity = map_data.entities[e]
 		var entity_geo: FuncGodotMapData.FuncGodotEntityGeometry = map_data.entity_geo[e]
-		var entity_mins: Vector3 = Vector3.ZERO
-		var entity_maxs: Vector3 = Vector3.ZERO
+		var entity_mins: Vector3 = Vector3.INF
+		var entity_maxs: Vector3 = Vector3.INF
 		var origin_mins: Vector3 = Vector3.INF
 		var origin_maxs: Vector3 = -Vector3.INF
 		
@@ -265,12 +265,24 @@ func run() -> void:
 			var brush_geo: FuncGodotMapData.FuncGodotBrushGeometry = map_data.entity_geo[e].brushes[b]
 			for face in brush_geo.faces:
 				for vert in face.vertices:
-					entity_mins = entity_mins.min(vert.vertex)
-					entity_maxs = entity_maxs.max(vert.vertex)
+					if entity_mins != Vector3.INF:
+						entity_mins = entity_mins.min(vert.vertex)
+					else:
+						entity_mins = vert.vertex
+					if entity_maxs != Vector3.INF:
+						entity_maxs = entity_maxs.max(vert.vertex)
+					else:
+						entity_maxs = vert.vertex
 					
 					if brush_texture_type == FuncGodotMapData.FuncGodotTextureType.ORIGIN:
-						origin_mins = origin_mins.min(vert.vertex)
-						origin_maxs = origin_maxs.max(vert.vertex)
+						if origin_mins != Vector3.INF:
+							origin_mins = origin_mins.min(vert.vertex)
+						else:
+							origin_mins = vert.vertex
+						if origin_maxs != Vector3.INF:
+							origin_maxs = origin_maxs.max(vert.vertex)
+						else:
+							origin_maxs = vert.vertex
 					
 					brush.center += vert.vertex
 					vert_count += 1
@@ -279,7 +291,8 @@ func run() -> void:
 				brush.center /= float(vert_count)
 		
 		# Default origin type is BOUNDS_CENTER
-		entity.center = entity_maxs - ((entity_maxs - entity_mins) * 0.5)
+		if entity_maxs != Vector3.INF and entity_mins != Vector3.INF:
+			entity.center = entity_maxs - ((entity_maxs - entity_mins) * 0.5)
 		
 		if entity.origin_type != FuncGodotMapData.FuncGodotEntityOriginType.BOUNDS_CENTER and entity.brushes.size() > 0:
 			match entity.origin_type:
