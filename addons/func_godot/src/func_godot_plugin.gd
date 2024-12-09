@@ -50,7 +50,7 @@ func _enter_tree() -> void:
 	ProjectSettings.set("func_godot/map_settings", "res://addons/func_godot/func_godot_default_map_settings.tres")
 	var property_info = {
 		"name": "func_godot/map_settings",
-		"type": TYPE_STRING_NAME,
+		"type": TYPE_STRING,
 		"hint": PROPERTY_HINT_FILE,
 		"hint_string": "path to map settings"
 	}
