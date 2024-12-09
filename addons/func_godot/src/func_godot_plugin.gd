@@ -46,6 +46,16 @@ func _enter_tree() -> void:
 	add_control_to_container(EditorPlugin.CONTAINER_INSPECTOR_BOTTOM, func_godot_map_progress_bar)
 	
 	add_custom_type("FuncGodotMap", "Node3D", preload("res://addons/func_godot/src/map/func_godot_map.gd"), null)
+	
+	ProjectSettings.set("func_godot/default_map_settings", "res://addons/func_godot/func_godot_default_map_settings.tres")
+	var property_info = {
+		"name": "func_godot/default_map_settings",
+		"type": TYPE_STRING,
+		"hint": PROPERTY_HINT_FILE,
+		"hint_string": "*.tres"
+	}
+
+	ProjectSettings.add_property_info(property_info)
 
 func _exit_tree() -> void:
 	remove_custom_type("FuncGodotMap")
