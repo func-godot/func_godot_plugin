@@ -52,7 +52,7 @@ func _enter_tree() -> void:
 		"name": "func_godot/map_settings",
 		"type": TYPE_STRING,
 		"hint": PROPERTY_HINT_FILE,
-		"hint_string": "path to map settings"
+		"hint_string": "*.tres"
 	}
 
 	ProjectSettings.add_property_info(property_info)
