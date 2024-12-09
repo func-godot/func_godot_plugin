@@ -47,9 +47,9 @@ func _enter_tree() -> void:
 	
 	add_custom_type("FuncGodotMap", "Node3D", preload("res://addons/func_godot/src/map/func_godot_map.gd"), null)
 	
-	ProjectSettings.set("func_godot/map_settings", "res://addons/func_godot/func_godot_default_map_settings.tres")
+	ProjectSettings.set("func_godot/default_map_settings", "res://addons/func_godot/func_godot_default_map_settings.tres")
 	var property_info = {
-		"name": "func_godot/map_settings",
+		"name": "func_godot/default_map_settings",
 		"type": TYPE_STRING,
 		"hint": PROPERTY_HINT_FILE,
 		"hint_string": "*.tres"
