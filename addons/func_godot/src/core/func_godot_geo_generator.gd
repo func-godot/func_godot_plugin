@@ -45,9 +45,9 @@ func intersect_face(f0: FuncGodotMapData.FuncGodotFace, f1: FuncGodotMapData.Fun
 	var n1:= f1.plane_normal
 	var n2:= f2.plane_normal
 	var denom: float = n0.cross(n1).dot(n2)
-	if denom < CMP_EPSILON:
-		return null
-	return (n1.cross(n2) * f0.plane_dist + n2.cross(n0) * f1.plane_dist + n0.cross(n1) * f2.plane_dist) / denom
+	if denom > 0.0:
+		return (n1.cross(n2) * f0.plane_dist + n2.cross(n0) * f1.plane_dist + n0.cross(n1) * f2.plane_dist) / denom
+	return null
 
 func vertex_in_hull(faces: Array[FuncGodotMapData.FuncGodotFace], vertex: Vector3) -> bool:
 	for face in faces:
