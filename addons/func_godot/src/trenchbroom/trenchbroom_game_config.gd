@@ -170,7 +170,7 @@ func parse_tags(tags: Array) -> String:
 		tags_str += "\t\t\t}"
 		if brush_tag != tags[-1]:
 			tags_str += ","
-	if game_config_version < GameConfigVersion.Version9:
+	if game_config_version == GameConfigVersion.Version8:
 		tags_str = tags_str.replace("material", "texture")
 	return tags_str
 
