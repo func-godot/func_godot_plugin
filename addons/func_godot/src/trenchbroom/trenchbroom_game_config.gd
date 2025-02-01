@@ -170,7 +170,7 @@ func parse_tags(tags: Array) -> String:
 		tags_str += "\t\t\t}"
 		if brush_tag != tags[-1]:
 			tags_str += ","
-	if game_config_version < GameConfigVersion.Version9:
+	if game_config_version > GameConfigVersion.Latest and game_config_version < GameConfigVersion.Version9:
 		tags_str = tags_str.replace("material", "texture")
 	return tags_str
 
@@ -322,7 +322,7 @@ func get_game_config_v9v8_text() -> String:
 }
 	"""
 	
-	if game_config_version != GameConfigVersion.Version9: # Change this to check if == Version8 when TB 2024.2 hits Stable
+	if game_config_version == GameConfigVersion.Version8:
 		config_text = config_text.replace(": 9,", ": 8,")
 		config_text = config_text.replace("material", "texture")
 	
