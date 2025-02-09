@@ -54,8 +54,8 @@ func _enter_tree() -> void:
 		"hint": PROPERTY_HINT_FILE,
 		"hint_string": "*.tres"
 	}
-
 	ProjectSettings.add_property_info(property_info)
+	ProjectSettings.set_initial_value("func_godot/default_map_settings", "res://addons/func_godot/func_godot_default_map_settings.tres")
 
 func _exit_tree() -> void:
 	remove_custom_type("FuncGodotMap")
