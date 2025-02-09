@@ -175,6 +175,7 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 				prop_val += "\t]"
 			TYPE_NODE_PATH:
 				prop_type = "target_destination"
+				prop_val = "\"\""
 			TYPE_OBJECT:
 				if value is Resource:
 					prop_val = value.resource_path
@@ -189,6 +190,7 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 						prop_type = "sound"
 				else:
 					prop_type = "target_source"
+					prop_val = "\"\""
 		
 		if prop_val:
 			res += "\t"
