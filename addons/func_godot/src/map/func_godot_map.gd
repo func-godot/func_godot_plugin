@@ -1089,6 +1089,8 @@ func apply_properties_and_finish() -> void:
 								properties[property] = 0
 						elif prop_default is Resource:
 							properties[property] = prop_default.resource_path
+						elif prop_default is NodePath or prop_default is Object or prop_default == null:
+							properties[property] = ""
 						# Everything else
 						else:
 							properties[property] = prop_default
