@@ -98,7 +98,7 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 	res += " = " + classname
 	
 	if prefix != "@BaseClass": # having a description in BaseClasses crashes some editors
-		var normalized_description = description.replace("\n", " ").strip_edges() if prefix != "@BaseClass" else ""
+		var normalized_description = description.replace("\"", "\'")
 		if normalized_description != "":
 			res += " : \"%s\" " % [normalized_description]
 		else: # Having no description crashes some editors
