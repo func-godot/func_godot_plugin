@@ -26,7 +26,7 @@ extends Resource
 @export var fgd_file : FuncGodotFGDFile = preload("res://addons/func_godot/fgd/func_godot_fgd.tres")
 
 ## [NetRadiantCustomShader] resources for shader file generation.
-@export var netradiant_custom_shaders : Array[Resource] = [
+@export var netradiant_custom_shaders : Array[NetRadiantCustomShader] = [
 	preload("res://addons/func_godot/game_config/netradiant_custom/netradiant_custom_shader_clip.tres"),
 	preload("res://addons/func_godot/game_config/netradiant_custom/netradiant_custom_shader_skip.tres"),
 	preload("res://addons/func_godot/game_config/netradiant_custom/netradiant_custom_shader_origin.tres")
