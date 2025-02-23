@@ -455,6 +455,19 @@ func build_entity_nodes() -> Array:
 							angles.y += angle
 						angles.y += 180
 						node.rotation_degrees = angles
+					if entity_definition is FuncGodotFGDModelPointClass:
+						if not entity_definition.scale_expression.is_empty() and entity_definition.scale_expression in properties:
+							var scale_str: String = properties[entity_definition.scale_expression]
+							if not scale_str.is_valid_float():
+								push_error("Value '%s' of scale expression '%s' not a valid float" % [
+									scale_str,
+									entity_definition.scale_expression,
+								])
+							elif not node is Node3D:
+								push_error("Node '%s' cannot be scaled by scale expression" % str(node))
+							else:
+								var s := scale_str.to_float() * map_settings.scale_factor
+								node.scale *= Vector3(s, s, s)
 				else:
 					node = Node3D.new()
 				if entity_definition.script_class:
