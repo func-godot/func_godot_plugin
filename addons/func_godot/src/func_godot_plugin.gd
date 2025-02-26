@@ -74,7 +74,7 @@ func _exit_tree() -> void:
 		func_godot_map_control = null
 
 	if func_godot_map_progress_bar:
-		remove_control_from_container(EditorPlugin.CONTAINER_SPATIAL_EDITOR_BOTTOM, func_godot_map_progress_bar)
+		remove_control_from_container(EditorPlugin.CONTAINER_INSPECTOR_BOTTOM, func_godot_map_progress_bar)
 		func_godot_map_progress_bar.queue_free()
 		func_godot_map_progress_bar = null
 
