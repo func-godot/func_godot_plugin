@@ -455,6 +455,24 @@ func build_entity_nodes() -> Array:
 							angles.y += angle
 						angles.y += 180
 						node.rotation_degrees = angles
+					
+					if 'scale' in node and entity_definition.apply_scale_on_map_build:
+						if 'scale' in properties:
+							var scale_prop: Variant = properties['scale']
+							if typeof(scale_prop) == TYPE_STRING:
+								var scale_arr: PackedStringArray = (scale_prop as String).split(" ")
+								match scale_arr.size():
+									1: scale_prop = scale_arr[0].to_float()
+									3: scale_prop = Vector3(scale_arr[1].to_float(), scale_arr[2].to_float(), scale_arr[0].to_float())
+									2: scale_prop = Vector2(scale_arr[0].to_float(), scale_arr[0].to_float())
+							if typeof(scale_prop) == TYPE_FLOAT or typeof(scale_prop) == TYPE_INT:
+								node.scale *= scale_prop as float
+							elif node.scale is Vector3:
+								if typeof(scale_prop) == TYPE_VECTOR3 or typeof(scale_prop) == TYPE_VECTOR3I:
+									node.scale *= scale_prop as Vector3
+							elif node.scale is Vector2:
+								if typeof(scale_prop) == TYPE_VECTOR2 or typeof(scale_prop) == TYPE_VECTOR2I:
+									node.scale *= scale_prop as Vector2
 				else:
 					node = Node3D.new()
 				if entity_definition.script_class:

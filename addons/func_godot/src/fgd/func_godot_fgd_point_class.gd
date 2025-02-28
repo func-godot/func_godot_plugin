@@ -18,3 +18,6 @@ func _init() -> void:
 @export_group("Build")
 ## Toggles whether entity will use `angles`, `mangle`, or `angle` to determine rotations on [FuncGodotMap] build, prioritizing the key value pairs in that order. Set to `false` if you would like to define how the generated node is rotated yourself.
 @export var apply_rotation_on_map_build : bool = true
+
+## Toggles whether entity will use `scale` to determine the generated node or scene's scale. This is performed on the top level node. The property can be a [float], [Vector3], or [Vector2].
+@export var apply_scale_on_map_build: bool = true
