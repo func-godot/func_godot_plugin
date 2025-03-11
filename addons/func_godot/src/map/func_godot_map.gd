@@ -353,13 +353,13 @@ func build_texture_size_dict() -> Dictionary:
 	
 	return texture_size_dict
 	
-static func get_script_by_name(name_of_class:String) -> Script:
+static func get_script_by_class_name(name_of_class:String) -> Script:
 	if ResourceLoader.exists(name_of_class, "Script"):
 		return load(name_of_class) as Script
 
 	for global_class in ProjectSettings.get_global_class_list():
-		var found_name_of_class:String = global_class["class"]
-		var found_path:String = global_class["path"]
+		var found_name_of_class : String = global_class["class"]
+		var found_path : String = global_class["path"]
 		if found_name_of_class == name_of_class:
 			return load(found_path) as Script
 
@@ -438,7 +438,7 @@ func build_entity_nodes() -> Array:
 						if ClassDB.class_exists(entity_definition.node_class):
 							node = ClassDB.instantiate(entity_definition.node_class)
 						else:
-							var script := get_script_by_name(entity_definition.node_class)
+							var script  : Script = get_script_by_class_name(entity_definition.node_class)
 							if script is GDScript:
 								node = (script as GDScript).new()
 				elif entity_definition is FuncGodotFGDPointClass:
@@ -451,7 +451,7 @@ func build_entity_nodes() -> Array:
 						if ClassDB.class_exists(entity_definition.node_class):
 							node = ClassDB.instantiate(entity_definition.node_class)
 						else:
-							var script := get_script_by_name(entity_definition.node_class)
+							var script : Script = get_script_by_class_name(entity_definition.node_class)
 							if script is GDScript:
 								node = (script as GDScript).new()
 					if 'rotation_degrees' in node and entity_definition.apply_rotation_on_map_build:
