@@ -353,7 +353,7 @@ func build_texture_size_dict() -> Dictionary:
 	
 	return texture_size_dict
 	
-static func get_script_by_class_name(name_of_class:String) -> Script:
+static func get_script_by_class_name(name_of_class : String) -> Script:
 	if ResourceLoader.exists(name_of_class, "Script"):
 		return load(name_of_class) as Script
 
