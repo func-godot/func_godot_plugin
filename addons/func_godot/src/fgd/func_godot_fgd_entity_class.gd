@@ -3,6 +3,12 @@
 class_name FuncGodotFGDEntityClass
 extends Resource
 
+enum SceneUniqueNameMode {
+	INHERIT = 0,
+	FALSE = false,
+	TRUE = true
+}
+
 var prefix: String = ""
 
 @export_group("Entity Definition")
@@ -39,12 +45,14 @@ var prefix: String = ""
 ## Node to generate on map build. This can be a built-in Godot class or a GDExtension class. For Point Class entities that use Scene File instantiation leave this blank.
 @export var node_class := ""
 
-## Class property to use in naming the generated node. Overrides `name_property` in [FuncGodotMapSettings].
+## Class property to use in naming the generated node. Overrides `entity_name_property` in [FuncGodotMapSettings].
 ## Naming occurs before adding to the [SceneTree] and applying properties.
 ## Nodes will be named `"entity_" + name_property`. An entity's name should be unique, otherwise you may run into unexpected behavior.
 @export var name_property := ""
 
-@export var unique_name : bool = false
+## Class property to use in naming the generated node. Overrides `scene_name_property` in [FuncGodotMapSettings].
+## If true, the generated node will have a scene unique name and will be accessible within the scene via `get_node("%entity_" + name_property`)`
+@export var scene_unique_name : SceneUniqueNameMode = SceneUniqueNameMode.INHERIT
 
 func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM) -> String:
 	# Class prefix

@@ -401,7 +401,7 @@ func build_entity_nodes() -> Array:
 
 		var node: Node = null
 		var node_name: String = "entity_%s" % entity_idx
-		var unique: bool = false
+		var unique_name: bool = false
 
 		var should_add_child: bool = should_add_children
 
@@ -414,12 +414,16 @@ func build_entity_nodes() -> Array:
 				var name_prop: String
 				if entity_definition.name_property in properties:
 					name_prop = str(properties[entity_definition.name_property])
-					unique = bool(entity_definition.unique_name)
 				elif map_settings.entity_name_property in properties:
 					name_prop = str(properties[map_settings.entity_name_property])
-					unique = bool(entity_definition.unique_name)
 				if not name_prop.is_empty():
 					node_name = "entity_" + name_prop
+
+				match(entity_definition.scene_unique_name):
+					FuncGodotFGDEntityClass.UniqueNameMode.INHERIT:
+						unique_name = bool(map_settings.entity_scene_unique_name)
+					_:
+						unique_name = bool(properties.entity_definition.scene_unique_name)
 
 				if entity_definition is FuncGodotFGDSolidClass:
 					if entity_definition.spawn_type == FuncGodotFGDSolidClass.SpawnType.MERGE_WORLDSPAWN:
@@ -484,7 +488,7 @@ func build_entity_nodes() -> Array:
 			node = Node3D.new()
 
 		node.name = node_name
-		node.set_unique_name_in_owner(unique)
+		node.set_unique_name_in_owner(unique_name)
 
 		if 'origin' in properties and entity_dict.brush_count < 1:
 			var origin_vec: Vector3 = Vector3.ZERO
