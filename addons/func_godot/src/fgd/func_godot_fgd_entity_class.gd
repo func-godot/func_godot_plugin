@@ -3,11 +3,7 @@
 class_name FuncGodotFGDEntityClass
 extends Resource
 
-enum SceneUniqueNameMode {
-	INHERIT = 0,
-	FALSE = false,
-	TRUE = true
-}
+enum SceneUniqueNameMode { INHERIT,	FALSE, TRUE }
 
 var prefix: String = ""
 

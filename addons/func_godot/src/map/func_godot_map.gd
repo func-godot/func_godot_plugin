@@ -419,11 +419,13 @@ func build_entity_nodes() -> Array:
 				if not name_prop.is_empty():
 					node_name = "entity_" + name_prop
 
-				match(entity_definition.scene_unique_name):
-					FuncGodotFGDEntityClass.UniqueNameMode.INHERIT:
+				match entity_definition.scene_unique_name:
+					FuncGodotFGDEntityClass.SceneUniqueNameMode.INHERIT:
 						unique_name = bool(map_settings.entity_scene_unique_name)
-					_:
-						unique_name = bool(properties.entity_definition.scene_unique_name)
+					FuncGodotFGDEntityClass.SceneUniqueNameMode.TRUE:
+						unique_name = true
+					FuncGodotFGDEntityClass.SceneUniqueNameMode.FALSE:
+						unique_name = false
 
 				if entity_definition is FuncGodotFGDSolidClass:
 					if entity_definition.spawn_type == FuncGodotFGDSolidClass.SpawnType.MERGE_WORLDSPAWN:
