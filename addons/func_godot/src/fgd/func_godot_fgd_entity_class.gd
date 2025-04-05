@@ -178,7 +178,7 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 				prop_val = "\"\""
 			TYPE_OBJECT:
 				if value is Resource:
-					prop_val = value.resource_path
+					prop_val = "\"" + value.resource_path + "\""
 					if value is Material:
 						if target_editor != FuncGodotFGDFile.FuncGodotTargetMapEditors.JACK:
 							prop_type = "material"
