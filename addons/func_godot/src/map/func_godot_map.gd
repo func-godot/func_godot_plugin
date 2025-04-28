@@ -352,6 +352,18 @@ func build_texture_size_dict() -> Dictionary:
 			texture_size_dict[tex_key] = Vector2.ONE
 	
 	return texture_size_dict
+	
+static func get_script_by_class_name(name_of_class : String) -> Script:
+	if ResourceLoader.exists(name_of_class, "Script"):
+		return load(name_of_class) as Script
+
+	for global_class in ProjectSettings.get_global_class_list():
+		var found_name_of_class : String = global_class["class"]
+		var found_path : String = global_class["path"]
+		if found_name_of_class == name_of_class:
+			return load(found_path) as Script
+
+	return null
 
 ## Build nodes from the entities in [member entity_dicts]
 func build_entity_nodes() -> Array:
@@ -423,7 +435,12 @@ func build_entity_nodes() -> Array:
 						entity_nodes[entity_idx] = null
 						continue
 					if entity_definition.node_class != "":
-						node = ClassDB.instantiate(entity_definition.node_class)
+						if ClassDB.class_exists(entity_definition.node_class):
+							node = ClassDB.instantiate(entity_definition.node_class)
+						else:
+							var script  : Script = get_script_by_class_name(entity_definition.node_class)
+							if script is GDScript:
+								node = (script as GDScript).new()
 				elif entity_definition is FuncGodotFGDPointClass:
 					if entity_definition.scene_file:
 						var flag: PackedScene.GenEditState = PackedScene.GEN_EDIT_STATE_DISABLED
@@ -431,7 +448,12 @@ func build_entity_nodes() -> Array:
 							flag = PackedScene.GEN_EDIT_STATE_INSTANCE
 						node = entity_definition.scene_file.instantiate(flag)
 					elif entity_definition.node_class != "":
-						node = ClassDB.instantiate(entity_definition.node_class)
+						if ClassDB.class_exists(entity_definition.node_class):
+							node = ClassDB.instantiate(entity_definition.node_class)
+						else:
+							var script : Script = get_script_by_class_name(entity_definition.node_class)
+							if script is GDScript:
+								node = (script as GDScript).new()
 					if 'rotation_degrees' in node and entity_definition.apply_rotation_on_map_build:
 						var angles := Vector3.ZERO
 						if 'angles' in properties or 'mangle' in properties:
