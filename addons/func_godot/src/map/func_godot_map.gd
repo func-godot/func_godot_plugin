@@ -1138,7 +1138,13 @@ func apply_properties_and_finish() -> void:
 				if entity_definition.auto_apply_to_matching_node_properties:
 					for property in properties:
 						if property in entity_node:
-							if typeof(entity_node.get(property)) == typeof(properties[property]):
+							var node_property_type = typeof(entity_node.get(property))
+							var property_type = typeof(properties[property])
+
+							if node_property_type == property_type:
+								entity_node.set(property, properties[property])
+
+							elif (node_property_type == Variant.Type.TYPE_STRING or node_property_type == Variant.Type.TYPE_STRING_NAME) and (property_type == Variant.Type.TYPE_STRING or property_type == Variant.Type.TYPE_STRING_NAME): # String ←→ StringName
 								entity_node.set(property, properties[property])
 							else:
 								push_error("Entity %s property \'%s\' type mismatch with matching generated node property." % [entity_node.name, property])
