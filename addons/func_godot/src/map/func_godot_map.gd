@@ -1140,7 +1140,7 @@ func apply_properties_and_finish() -> void:
 						if property in entity_node:
 							if typeof(entity_node.get(property)) == typeof(properties[property]):
 								entity_node.set(property, properties[property])
-							else:
+							elif not try_handle_implicit_godot_type_conversion(entity_node, property, properties):
 								push_error("Entity %s property \'%s\' type mismatch with matching generated node property." % [entity_node.name, property])
 		
 		if 'func_godot_properties' in entity_node:
@@ -1151,6 +1151,300 @@ func apply_properties_and_finish() -> void:
 		
 		if entity_node.has_method("_func_godot_build_complete"):
 			entity_node.call_deferred("_func_godot_build_complete")
+
+## Returns true if succeeds.
+func try_handle_implicit_godot_type_conversion(entity_node: Node, property: Variant, properties: Dictionary) -> bool:
+	var node_property_type := typeof(entity_node.get(property))
+	var fgd_property = properties[property]
+	var fgd_property_type := typeof(fgd_property)
+	
+	match fgd_property_type:
+		Variant.Type.TYPE_STRING: # converts properties created from TrenchBroom to match gracefully (they are String)
+			match node_property_type:
+				Variant.Type.TYPE_STRING_NAME: # String → StringName
+					entity_node.set(property, fgd_property)
+					return true
+				Variant.Type.TYPE_BOOL: # String → bool
+					if fgd_property.is_valid_float():
+						entity_node.set(property, fgd_property.to_int()) # avoids any edge case with String.is_valid_float() being scientific notation or so.
+						return true
+					elif fgd_property.to_lower() == "true":
+						entity_node.set(property, true)
+						return true
+					elif fgd_property.to_lower() == "false":
+						entity_node.set(property, false)
+						return true
+					return false
+				Variant.Type.TYPE_FLOAT: # String → float
+					if fgd_property.is_valid_float():
+						entity_node.set(property, fgd_property.to_float())
+						return true
+					return false
+				Variant.Type.TYPE_INT: # String → int
+					if fgd_property.is_valid_float():
+						entity_node.set(property, fgd_property.to_float())
+						var rest : float = fmod(fgd_property.to_float(), 1)
+						if rest != 0:
+							push_warning("Entity %s property \'%s\' type is \'String\' implicitly converted to \'float\' with fractionary value, and matching generated node property is \'int\'. \'%s\' fraction discarded due truncation." % [entity_node.name, property, rest])
+						return true
+					return false
+				
+				Variant.Type.TYPE_VECTOR2 or Variant.Type.TYPE_VECTOR2I:
+					var parts : PackedStringArray = fgd_property.replace("(", "").replace(")", "").replace(",", " ").split(" ", false)
+					if parts.size() != 2:
+						return false
+					var nums : Array[float] = []
+					if node_property_type == Variant.Type.TYPE_VECTOR2: # Vector2i → Vector2
+						for part in parts:
+							if not part.is_valid_float():
+								return false
+							nums.append(part.to_float())
+						entity_node.set(property, Vector2(nums[0], nums[1]))
+						return true
+					elif node_property_type == Variant.Type.TYPE_VECTOR2I: # Vector2 → Vector2i
+						for part in parts:
+							if not part.is_valid_int():
+								return false
+							nums.append(part.to_int())
+						entity_node.set(property, Vector2i(nums[0], nums[1]))
+						
+						var rest_x : float = fmod(nums[0], 1)
+						var rest_y : float = fmod(nums[1], 1)
+						if rest_x != 0 or rest_y != 0:
+							push_warning("Entity fgd %s property \'%s\' type is \'Vectori\' with fractionary values, and matching generated node property is \'Vector2i\'. \'%s\'." % [entity_node.name, property, 
+							(str(rest_x) + ", in x component " if rest_x != 0 else "") + 
+							(str(rest_y) + ", in y component " if rest_y != 0 else "") +
+							"fractions discarded due truncation"
+							])
+						return true
+				Variant.Type.TYPE_VECTOR3 or Variant.Type.TYPE_VECTOR3I:
+					var parts : PackedStringArray = fgd_property.replace("(", "").replace(")", "").replace(",", " ").split(" ", false)
+					if parts.size() != 3:
+						return false
+					var nums : Array[float] = []
+					if node_property_type == Variant.Type.TYPE_VECTOR3: # Vector3i → Vector3
+						for part in parts:
+							if not part.is_valid_float():
+								return false
+							nums.append(part.to_float())
+						entity_node.set(property, Vector3(nums[0], nums[1], nums[2]))
+						return true
+					elif node_property_type == Variant.Type.TYPE_VECTOR3I: # Vector3 → Vector3i
+						for part in parts:
+							if not part.is_valid_int():
+								return false
+							nums.append(part.to_int())
+						entity_node.set(property, Vector3i(nums[0], nums[1], nums[2]))
+						var rest_x : float = fmod(nums[0], 1)
+						var rest_y : float = fmod(nums[1], 1)
+						var rest_z : float = fmod(nums[2], 1)
+						if rest_x != 0 or rest_y != 0 or rest_z != 0:
+							push_warning("Entity %s property \'%s\' type is \'Vector3\' with fractionary values, and matching generated node property is \'Vector3i\'. \'%s\'." % [entity_node.name, property, 
+							(str(rest_x) + ", in x component " if rest_x != 0 else "") + 
+							(str(rest_y) + ", in y component " if rest_y != 0 else "") +
+							(str(rest_z) + ", in z component " if rest_z != 0 else "") +
+							"fractions discarded due truncation"
+							])
+						return true
+				Variant.Type.TYPE_VECTOR4 or Variant.Type.TYPE_VECTOR4I:
+					var parts : PackedStringArray = fgd_property.replace("(", "").replace(")", "").replace(",", " ").split(" ", false)
+					if parts.size() != 4:
+						return false
+					var nums : Array[float] = []
+					if node_property_type == Variant.Type.TYPE_VECTOR4: # Vector4i → Vector4
+						for part in parts:
+							if not part.is_valid_float():
+								return false
+							nums.append(part.to_float())
+						entity_node.set(property, Vector4(nums[0], nums[1], nums[2], nums[3]))
+						return true
+					elif node_property_type == Variant.Type.TYPE_VECTOR4I: # Vector4 → Vector4i
+						for part in parts:
+							if not part.is_valid_int():
+								return false
+							nums.append(part.to_int())
+						entity_node.set(property, Vector4i(nums[0], nums[1], nums[2], nums[3]))
+						var rest_x : float = fmod(nums[0], 1)
+						var rest_y : float = fmod(nums[1], 1)
+						var rest_z : float = fmod(nums[2], 1)
+						var rest_w : float = fmod(nums[3], 1)
+						if rest_x != 0 or rest_y != 0 or rest_z != 0:
+							push_warning("Entity %s property \'%s\' type is \'Vector4\' with fractionary values, and matching generated node property is \'Vector4i\'. \'%s\'." % [entity_node.name, property, 
+							(str(rest_x) + ", in x component " if rest_x != 0 else "") + 
+							(str(rest_y) + ", in y component " if rest_y != 0 else "") +
+							(str(rest_z) + ", in z component " if rest_z != 0 else "") +
+							(str(rest_w) + ", in w component " if rest_w != 0 else "") +
+							"fractions discarded due truncation"
+							])
+						return true
+				Variant.Type.TYPE_COLOR: # String → Color
+					var temp := Color.from_string(fgd_property, Color(INF,INF,INF)) # default is BLACK
+					if temp != Color(INF,INF,INF):
+						entity_node.set(property, temp)
+						return true
+					else:
+						# collapse multiple spaces, trim ends
+						var parts : PackedStringArray = fgd_property.replace("(", "").replace(")", "").replace(",", " ").split(" ", false)
+						if parts.size() == 3 or parts.size() == 4:
+							var nums : Array[float] = []
+							for part in parts:
+								if not part.is_valid_float():
+									return false
+								nums.append(part.to_float())
+							
+							var alpha : float = nums[3] if parts.size() == 4 else 1.0
+							var _color : Color
+							if nums[0] > 1 or nums[1] > 1 or nums[2] > 1: # rgb format
+								for num in range(3): 
+									num = clampi(num, 0, 255)
+								_color = Color.from_rgba8(nums[0], nums[1], nums[2])
+							else:
+								for num in range(3): 
+									num = snappedf(clampf(num, 0, 1.0), 0.001)
+								_color = Color(nums[0], nums[1], nums[2])
+							
+							if alpha > 1:
+								alpha = Color.from_rgba8(0,0,0, clampi(alpha, 0, 255)).a
+							else:
+								alpha = snappedf(clampf(alpha, 0, 1.0), 0.001)
+							
+							entity_node.set(property, Color(_color, alpha))
+							return true
+						
+						elif parts.size() == 2: # colorname + alpha
+							var color_from_word := Color.from_string(parts[0], Color(INF,INF,INF))
+							# NOTE: there's edge case where if use hexcode + alpha, the alpha can mess the color as combines with the encoded alpha in the hexcode
+							if color_from_word == Color(INF,INF,INF) or not parts[1].is_valid_float():
+								return false
+							
+							var alpha : float = parts[1].to_float()
+							if alpha > 1:
+								alpha = Color.from_rgba8(0,0,0, clampi(alpha, 0, 255)).a
+							else:
+								alpha = snappedf(clampf(alpha, 0, 1.0), 0.001)
+
+							entity_node.set(property, Color(color_from_word, alpha))
+							return true
+						
+						return false
+				_:
+					return false
+		
+		Variant.Type.TYPE_FLOAT:
+			if node_property_type == Variant.Type.TYPE_INT: # float → int
+				entity_node.set(property, fgd_property)
+				var rest : float = fmod(fgd_property, 1)
+				if rest != 0:
+					push_warning("Entity %s property \'%s\' type is \'int\' and matching generated node property is \'float\', with fractionary value. \'%s\' fraction discarded due truncation." % [entity_node.name, property, rest])
+				return true
+			elif node_property_type == Variant.Type.TYPE_BOOL: # float → bool
+				entity_node.set(property, fgd_property)
+				return true
+			return false
+		Variant.Type.TYPE_INT:
+			if node_property_type == Variant.Type.TYPE_FLOAT or node_property_type == Variant.Type.TYPE_BOOL: # int → float / int → bool
+				entity_node.set(property, fgd_property)
+				return true
+			return false
+		Variant.Type.TYPE_BOOL:
+			if node_property_type == Variant.Type.TYPE_FLOAT or node_property_type == Variant.Type.TYPE_INT: # bool → float / bool → int
+				entity_node.set(property, fgd_property)
+				return true
+			return false
+		#Variant.Type.TYPE_VECTOR3 or Variant.Type.TYPE_VECTOR3I:
+			#if node_property_type == Variant.Type.TYPE_VECTOR3: # Vector3i → Vector3
+				#entity_node.set(property, fgd_property)
+				#return true
+			#
+			#elif node_property_type == Variant.Type.TYPE_VECTOR3I: # Vector3 → Vector3i
+				#entity_node.set(property, fgd_property)
+				#var rest_x : float = fmod(fgd_property.x, 1)
+				#var rest_y : float = fmod(fgd_property.y, 1)
+				#var rest_z : float = fmod(fgd_property.z, 1)
+				#if rest_x != 0 or rest_y != 0 or rest_z != 0:
+					#push_warning("Entity %s property \'%s\' type is \'Vector3\' with fractionary values, and matching generated node property is \'Vector3i\'. \'%s\'." % [entity_node.name, property, 
+					#(str(rest_x) + ", in x component " if rest_x != 0 else "") + 
+					#(str(rest_y) + ", in y component " if rest_y != 0 else "") +
+					#(str(rest_z) + ", in z component " if rest_z != 0 else "") +
+					#"fractions discarded due truncation"
+					#])
+				#return true
+			#
+			#elif node_property_type == Variant.Type.TYPE_COLOR: # Vector3 | Vector3i → Color
+				#var _color : Color
+				#if fgd_property.x > 1 or fgd_property.y > 1 or fgd_property.z > 1: # rgb format
+					#for num in range(4): 
+						#num = clampi(num, 0, 255)
+					#_color = Color.from_rgba8(fgd_property.x, fgd_property.y, fgd_property.z)
+				#else:
+					#for num in range(3): 
+						#num = snappedf(clampf(num, 0, 1.0), 0.001)
+					#_color = Color(fgd_property.x, fgd_property.y, fgd_property.z)
+				#
+				#entity_node.set(property, _color)
+				#return true
+			#
+			#return false
+		#Variant.Type.TYPE_VECTOR2 or Variant.Type.TYPE_VECTOR2I:
+			#if node_property_type == Variant.Type.TYPE_VECTOR2: # Vector2i → Vector2
+				#entity_node.set(property, fgd_property)
+				#return true
+			#elif node_property_type == Variant.Type.TYPE_VECTOR2I: # Vector2 → Vector2i
+				#entity_node.set(property, fgd_property)
+				#var rest_x : float = fmod(fgd_property.x, 1)
+				#var rest_y : float = fmod(fgd_property.y, 1)
+				#if rest_x != 0 or rest_y != 0:
+					#push_warning("Entity %s property \'%s\' type is \'Vector2\' with fractionary values, and matching generated node property is \'Vector2i\'. \'%s\'." % [entity_node.name, property, 
+					#(str(rest_x) + ", in x component " if rest_x != 0 else "") + 
+					#(str(rest_y) + ", in y component " if rest_y != 0 else "") +
+					#"fractions discarded due truncation"
+					#])
+				#return true
+			#return false
+		#Variant.Type.TYPE_VECTOR4 or Variant.Type.TYPE_VECTOR4I: 
+			#if node_property_type == Variant.Type.TYPE_VECTOR4: # Vector4i → Vector4
+				#entity_node.set(property, fgd_property)
+				#return true
+			#
+			#elif node_property_type == Variant.Type.TYPE_VECTOR4I: # Vector4 → Vector4i
+				#entity_node.set(property, fgd_property)
+				#var rest_x : float = fmod(fgd_property.x, 1)
+				#var rest_y : float = fmod(fgd_property.y, 1)
+				#var rest_z : float = fmod(fgd_property.z, 1)
+				#var rest_w : float = fmod(fgd_property.w, 1)
+				#if rest_x != 0 or rest_y != 0 or rest_z != 0 or rest_w != 0:
+					#push_warning("Entity %s property \'%s\' type is \'Vector4\' with fractionary values, and matching generated node property is \'Vector4i\'. \'%s\'." % [entity_node.name, property, 
+					#(str(rest_x) + ", in x component " if rest_x != 0 else "") + 
+					#(str(rest_y) + ", in y component " if rest_y != 0 else "") +
+					#(str(rest_z) + ", in z component " if rest_z != 0 else "") +
+					#(str(rest_w) + ", in w component " if rest_w != 0 else "") +
+					#"fractions discarded due truncation"
+					#])
+				#return true
+			#elif node_property_type == Variant.Type.TYPE_COLOR: # Vector4 | Vector4i → Color
+				#
+				#var alpha : float = fgd_property.w
+				#var _color : Color
+				#if fgd_property.x > 1 or fgd_property.y > 1 or fgd_property.z > 1: # rgb format
+					#for num in range(4): 
+						#num = clampi(num, 0, 255)
+					#_color = Color.from_rgba8(fgd_property.x, fgd_property.y, fgd_property.z)
+				#else:
+					#for num in range(3): 
+						#num = snappedf(clampf(num, 0, 1.0), 0.001)
+					#_color = Color(fgd_property.x, fgd_property.y, fgd_property.z)
+				#
+				#if alpha > 1:
+					#alpha = Color.from_rgba8(0,0,0, clampi(alpha, 0, 255)).a
+				#else:
+					#alpha = snappedf(clampf(alpha, 0, 1.0), 0.001)
+				#
+				#entity_node.set(property, Color(_color, alpha))
+				#return true
+			#
+			#return false
+	
+	return false
 
 # Cleanup after build is finished (internal)
 func _build_complete():
