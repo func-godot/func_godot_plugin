@@ -59,7 +59,7 @@ enum NetRadiantCustomMapType {
 ## By default, will specify Quake 1 limitations. This will remove patches.
 ## mapq3 will allow saving patches. 
 ## @warning Toggling this option may be destructive!
-@export var map_type: NetRadiantCustomMapType = NetRadiantCustomMapType.QUAKE_1;
+@export var map_type: NetRadiantCustomMapType = NetRadiantCustomMapType.QUAKE_1
 
 ## Variables to include in the exported gamepack's [code]default_build_menu.xml[/code].[br][br]
 ## Each [String] key defines a variable name, and its corresponding [String] value as the literal command-line string to execute in place of this variable identifier[br][br]
@@ -242,7 +242,7 @@ func do_export_file() -> void:
 		file.store_string(shader_text)
 		file.close()
 	else:
-		printerr("Error: could not modify " + target_file_path);
+		printerr("Error: could not modify " + target_file_path)
 	
 	# shaderlist.txt - see above NOTE regarding duplication 
 	target_file_path = gamepacks_folder + "/" + gamepack_name + ".game/scripts/shaderlist.txt"
