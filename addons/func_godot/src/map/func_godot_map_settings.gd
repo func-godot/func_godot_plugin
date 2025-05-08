@@ -19,6 +19,10 @@ var scale_factor: float = 0.03125
 ## Nodes will be named `"entity_" + name_property`. An entity's name should be unique, otherwise you may run into unexpected behavior.
 @export var entity_name_property: String = ""
 
+## Class property to use in naming the generated node. his setting is overridden by `unique_name_property` in [FuncGodotFGDEntityClass].
+## If true, the generated node will have a scene unique name and will be accessible within the scene via `get_node("%entity_" + name_property`)`
+@export var entity_scene_unique_name: bool = false
+
 @export_category("Textures")
 
 ## Base directory for textures. When building materials, FuncGodot will search this directory for texture files with matching names to the textures assigned to map brush faces.
@@ -79,7 +83,7 @@ var scale_factor: float = 0.03125
 
 @export_category("TrenchBroom")
 
-## If true, will organize Scene Tree using Trenchbroom Layers and Groups. Layers and Groups will be generated as [Node3D] nodes. 
+## If true, will organize Scene Tree using Trenchbroom Layers and Groups. Layers and Groups will be generated as [Node3D] nodes.
 ## All structural brushes will be moved out of the Layers and Groups and merged into the Worldspawn entity.
 ## Any Layers toggled to be omitted from export in TrenchBroom will not be built.
 @export var use_trenchbroom_groups_hierarchy: bool = false
