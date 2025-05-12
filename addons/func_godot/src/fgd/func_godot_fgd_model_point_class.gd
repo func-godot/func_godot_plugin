@@ -97,8 +97,6 @@ func _create_gltf_file(gltf_state: GLTFState, path: String, node: Node3D) -> boo
 	var gltf_document := GLTFDocument.new()
 	gltf_state.create_animations = false
 	
-	node.rotate_y(deg_to_rad(-90))
-	
 	# With TrenchBroom we can specify a scale expression, but for other editors we need to scale our models manually.
 	if target_map_editor != TargetMapEditor.TRENCHBROOM:
 		var scale_factor: Vector3 = Vector3.ONE

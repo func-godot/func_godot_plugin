@@ -475,7 +475,6 @@ func build_entity_nodes() -> Array:
 							if not angle is float:
 								angle = float(angle)
 							angles.y += angle
-						angles.y += 180
 						node.rotation_degrees = angles
 					
 					if 'scale' in node and entity_definition.apply_scale_on_map_build:
