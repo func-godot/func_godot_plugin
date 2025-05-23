@@ -17,6 +17,8 @@ enum TargetMapEditor {
 @export var scale_expression : String = ""
 ## Model Point Class can override the 'size' meta property by auto-generating a value from the meshes' [AABB]. Proper generation requires 'scale_expression' set to a float or [Vector3]. **WARNING:** Generated size property unlikely to align cleanly to grid!
 @export var generate_size_property : bool = false
+## Degrees to rotate model prior to export. Different editors may handdle GLTF transformations differently. If your model isn't oriented correctly, try modifying this property.
+@export var rotation_offset: Vector3 = Vector3(0.0, 0.0, 0.0)
 ## Creates a .gdignore file in the model export folder to prevent Godot importing the display models. Only needs to be generated once.
 @export var generate_gd_ignore_file : bool = false :
 	get:
@@ -97,7 +99,9 @@ func _create_gltf_file(gltf_state: GLTFState, path: String, node: Node3D) -> boo
 	var gltf_document := GLTFDocument.new()
 	gltf_state.create_animations = false
 	
-	node.rotate_y(deg_to_rad(-90))
+	node.rotate_x(deg_to_rad(rotation_offset.x))
+	node.rotate_y(deg_to_rad(rotation_offset.y))
+	node.rotate_z(deg_to_rad(rotation_offset.z))
 	
 	# With TrenchBroom we can specify a scale expression, but for other editors we need to scale our models manually.
 	if target_map_editor != TargetMapEditor.TRENCHBROOM:
