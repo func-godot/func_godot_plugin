@@ -15,10 +15,8 @@ enum PROPERTY {
 	DEFAULT_INVERSE_SCALE
 }
 
-@export var export_func_godot_settings: bool: set = _save_settings
-@export var reload_func_godot_settings: bool = false :
-	set(value):
-		_load_settings()
+@export_tool_button("Export func_godot settings", "Save") var export_func_godot_settings = _save_settings
+@export_tool_button("Reload func_godot settings", "Reload") var reload_func_godot_settings = _load_settings
 
 const CONFIG_PROPERTIES: Array[Dictionary] = [
 	{
