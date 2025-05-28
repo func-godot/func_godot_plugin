@@ -144,6 +144,7 @@ func create_material(texture_name: String) -> Material:
 	if (map_settings.save_generated_materials and material 
 		and texture_name != map_settings.clip_texture 
 		and texture_name != map_settings.skip_texture 
+		and texture_name != map_settings.origin_texture 
 		and texture.resource_path != "res://addons/func_godot/textures/default_texture.png"):
 		ResourceSaver.save(material, material_path)
 	
