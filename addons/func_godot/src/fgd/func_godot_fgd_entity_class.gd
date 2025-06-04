@@ -3,6 +3,8 @@
 class_name FuncGodotFGDEntityClass
 extends Resource
 
+enum SceneUniqueNameMode { INHERIT,	FALSE, TRUE }
+
 var prefix: String = ""
 
 @export_group("Entity Definition")
@@ -39,42 +41,46 @@ var prefix: String = ""
 ## Node to generate on map build. This can be a built-in Godot class or a GDExtension class. For Point Class entities that use Scene File instantiation leave this blank.
 @export var node_class := ""
 
-## Class property to use in naming the generated node. Overrides `name_property` in [FuncGodotMapSettings].
+## Class property to use in naming the generated node. Overrides `entity_name_property` in [FuncGodotMapSettings].
 ## Naming occurs before adding to the [SceneTree] and applying properties.
 ## Nodes will be named `"entity_" + name_property`. An entity's name should be unique, otherwise you may run into unexpected behavior.
 @export var name_property := ""
 
+## Class property to use in naming the generated node. Overrides `scene_name_property` in [FuncGodotMapSettings].
+## If true, the generated node will have a scene unique name and will be accessible within the scene via `get_node("%entity_" + name_property`)`
+@export var scene_unique_name : SceneUniqueNameMode = SceneUniqueNameMode.INHERIT
+
 func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM) -> String:
 	# Class prefix
 	var res : String = prefix
-	
+
 	# Meta properties
 	var base_str = ""
 	var meta_props = meta_properties.duplicate()
-	
+
 	for base_class in base_classes:
 		if not 'classname' in base_class:
 			continue
-			
+
 		base_str += base_class.classname
-		
+
 		if base_class != base_classes.back():
 			base_str += ", "
-			
+
 	if base_str != "":
 		meta_props['base'] = base_str
-		
+
 	for prop in meta_props:
 		if prefix == '@SolidClass':
 			if prop == "size" or prop == "model":
 				continue
-		
+
 		if prop == 'model' and target_editor != FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM:
 			continue
-		
+
 		var value = meta_props[prop]
 		res += " " + prop + "("
-		
+
 		if value is AABB:
 			res += "%s %s %s, %s %s %s" % [
 				value.position.x,
@@ -92,23 +98,23 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 			]
 		elif value is String:
 			res += value
-		
+
 		res += ")"
-	
+
 	res += " = " + classname
-	
+
 	if prefix != "@BaseClass": # having a description in BaseClasses crashes some editors
 		var normalized_description = description.replace("\"", "\'")
 		if normalized_description != "":
 			res += " : \"%s\" " % [normalized_description]
 		else: # Having no description crashes some editors
 			res += " : \"" + classname + "\" "
-	
+
 	if class_properties.size() > 0:
 		res += FuncGodotUtil.newline() + "[" + FuncGodotUtil.newline()
 	else:
 		res += "["
-	
+
 	# Class properties
 	for prop in class_properties:
 		var value = class_properties[prop]
@@ -128,7 +134,7 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 				prop_description = "\"" + class_property_descriptions[prop] + "\""
 		else:
 			prop_description = "\"\""
-		
+
 		match typeof(value):
 			TYPE_INT:
 				prop_type = "integer"
@@ -191,27 +197,27 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 				else:
 					prop_type = "target_source"
 					prop_val = "\"\""
-		
+
 		if prop_val:
 			res += "\t"
 			res += prop
 			res += "("
 			res += prop_type
 			res += ")"
-			
+
 			if not value is Array:
 				if not value is Dictionary or prop_description != "":
 					res += " : "
 					res += prop_description
-			
+
 			if value is bool or value is Dictionary or value is Array:
 				res += " = "
 			else:
 				res += " : "
-			
+
 			res += prop_val
 			res += FuncGodotUtil.newline()
-	
+
 	res += "]" + FuncGodotUtil.newline()
-	
+
 	return res
