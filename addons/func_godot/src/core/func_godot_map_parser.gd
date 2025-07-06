@@ -33,33 +33,16 @@ func load_map(map_file: String, keep_tb_groups: bool) -> bool:
 	component_idx = 0
 	valve_uvs = false
 	_keep_tb_groups = keep_tb_groups
-	
-	var lines: PackedStringArray = []
-	
-	var map: FileAccess = FileAccess.open(map_file, FileAccess.READ)
-	
+		
+	var map : QuakeMapFile = load(map_file)
+
 	if map == null:
 		printerr("Error: Failed to open map file (" + map_file + ")")
+
 		return false
 	
-	if map_file.ends_with(".import"):
-		while not map.eof_reached():
-			var line: String = map.get_line()
-			if line.begins_with("path"):
-				map.close()
-				line = line.replace("path=", "");
-				line = line.replace('"', '')
-				var map_data: String = (load(line) as QuakeMapFile).map_data
-				if map_data.is_empty():
-					printerr("Error: Failed to open map file (" + line + ")")
-					return false
-				lines = map_data.split("\n")
-				break
-	else:
-		while not map.eof_reached():
-			var line: String = map.get_line()
-			lines.append(line)
-	
+	var lines: PackedStringArray = map.map_data.split("\n")
+
 	for line in lines:
 		if comment:
 			comment = false
