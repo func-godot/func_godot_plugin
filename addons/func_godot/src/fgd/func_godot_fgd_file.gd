@@ -1,8 +1,12 @@
 @tool
 @icon("res://addons/func_godot/icons/icon_godot_ranger.svg")
-## [Resource] file used to express a set of [FuncGodotFGDEntity] definitions. Can be exported as an FGD file for use with a Quake map editor. Used in conjunction with a [FuncGodotMapSetting] resource to generate nodes in a [FuncGodotMap] node.
-class_name FuncGodotFGDFile
-extends Resource
+class_name FuncGodotFGDFile extends Resource
+## [Resource] file used to express a set of [FuncGodotFGDEntity] definitions. 
+## 
+## Can be exported as an FGD file for use with a Quake or Hammer-based map editor. Used in conjunction with [FuncGodotMapSetting] to generate nodes in a [FuncGodotMap] node.
+##
+## @tutorial(Level Design Book FGD Chapter): https://book.leveldesignbook.com/appendix/resources/formats/fgd
+## @tutorial(Valve Developer Wiki FGD Article): https://developer.valvesoftware.com/wiki/FGD
 
 ## Supported map editors enum, used in conjunction with [member target_map_editor].
 enum FuncGodotTargetMapEditors {
@@ -13,12 +17,7 @@ enum FuncGodotTargetMapEditors {
 }
 
 ## Builds and exports the FGD file.
-@export var export_file: bool:
-	get:
-		return export_file # TODO Converter40 Non existent get function
-	set(new_export_file):
-		if new_export_file != export_file:
-			do_export_file(target_map_editor)
+@export_tool_button("Export FGD") var export_file := do_export_file.bind(target_map_editor)
 
 func do_export_file(target_editor: FuncGodotTargetMapEditors = FuncGodotTargetMapEditors.TRENCHBROOM, fgd_output_folder: String = "") -> void:
 	if not Engine.is_editor_hint():
@@ -100,8 +99,8 @@ func get_fgd_classes() -> Array:
 		res.append(cur_ent_def)
 	return res
 
-func get_entity_definitions() -> Dictionary:
-	var res : Dictionary = {}
+func get_entity_definitions() -> Dictionary[String, FuncGodotFGDEntityClass]:
+	var res: Dictionary[String, FuncGodotFGDEntityClass] = {}
 
 	for base_fgd in base_fgd_files:
 		var fgd_res = base_fgd.get_entity_definitions()

@@ -1,8 +1,5 @@
 @tool
-class_name QuakePaletteImportPlugin
-extends EditorImportPlugin
-
-# Quake super.map import plugin
+class_name QuakePaletteImportPlugin extends EditorImportPlugin
 
 func _get_importer_name() -> String:
 	return 'func_godot.palette'

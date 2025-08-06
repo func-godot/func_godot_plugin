@@ -1,25 +1,21 @@
 @tool
 @icon("res://addons/func_godot/icons/icon_godot_ranger.svg")
+class_name NetRadiantCustomGamePackConfig extends Resource
 ## Builds a gamepack for NetRadiant Custom.
-class_name NetRadiantCustomGamePackConfig
-extends Resource
+##
+## Resource that builds a gamepack configuration for NetRadiant Custom.
 
 enum NetRadiantCustomMapType {
-	QUAKE_1,
-	QUAKE_3
+	QUAKE_1, ## Removes PatchDef entries from the map file.
+	QUAKE_3 ## Allows the saving of PatchDef entries in the map file.
 }
 
-## Button to export / update this gamepack's configuration in the NetRadiant Custom Gamepacks Folder.
-@export var export_file: bool:
-	get:
-		return export_file
-	set(new_export_file):
-		if new_export_file != export_file:
-			if Engine.is_editor_hint():
-				do_export_file()
+@export_tool_button("Export Gamepack") var _export_file: Callable = export_file; 
 
 ## Gamepack folder and file name. Must be lower case and must not contain special characters.
-@export var gamepack_name : String = "func_godot"
+@export var gamepack_name : String = "func_godot":
+	set(new_name):
+		gamepack_name = new_name.to_lower()
 
 ## Name of the game in NetRadiant Custom's gamepack list.
 @export var game_name : String = "FuncGodot"
@@ -27,10 +23,11 @@ enum NetRadiantCustomMapType {
 ## Directory path containing your maps, textures, shaders, etc... relative to your project directory.
 @export var base_game_path : String = ""
 
-## FGD resource to include with this gamepack. If using multiple FGD resources, this should be the master FGD that contains them in the `base_fgd_files` resource array.
+## [FuncGodotFGDFile] to include with this gamepack. If using multiple FGD file resources, 
+## this should be the master FGD that contains them in [member FuncGodotFGDFile.base_fgd_files].
 @export var fgd_file : FuncGodotFGDFile = preload("res://addons/func_godot/fgd/func_godot_fgd.tres")
 
-## [NetRadiantCustomShader] resources for shader file generation.
+## Collection of [NetRadiantCustomShader] resources for shader file generation.
 @export var netradiant_custom_shaders : Array[Resource] = [
 	preload("res://addons/func_godot/game_config/netradiant_custom/netradiant_custom_shader_clip.tres"),
 	preload("res://addons/func_godot/game_config/netradiant_custom/netradiant_custom_shader_skip.tres"),
@@ -49,33 +46,31 @@ enum NetRadiantCustomMapType {
 ## Default scale of textures in NetRadiant Custom.
 @export var default_scale : String = "1.0"
 
-## Clip texture path that gets applied to weapclip and nodraw shaders.
+## Clip texture path that gets applied to [i]weapclip[/i] and [i]nodraw[/i] shaders.
 @export var clip_texture: String = "textures/special/clip"
 
-## Skip texture path that gets applied to caulk and nodrawnonsolid shaders.
+## Skip texture path that gets applied to [i]caulk[/i] and [i]nodrawnonsolid[/i] shaders.
 @export var skip_texture: String = "textures/special/skip"
 
-## Quake map type NetRadiant will filter the map for.
-## By default, will specify Quake 1 limitations. This will remove patches.
-## mapq3 will allow saving patches. 
-## @warning Toggling this option may be destructive!
+## Quake map type NetRadiant will filter the map for, determining whether PatchDef entries are saved. 
+## [color=red][b]WARNING![/b][/color] Toggling this option may be destructive!
 @export var map_type: NetRadiantCustomMapType = NetRadiantCustomMapType.QUAKE_1
 
 ## Variables to include in the exported gamepack's [code]default_build_menu.xml[/code].[br][br]
-## Each [String] key defines a variable name, and its corresponding [String] value as the literal command-line string to execute in place of this variable identifier[br][br]
+## Each [String] key defines a variable name, and its corresponding [String] value as the literal command-line string 
+## to execute in place of this variable identifier[br][br]
 ## Entries may be referred to by key in [member default_build_menu_commands] values.
 @export var default_build_menu_variables: Dictionary
 
 ## Commands to include in the exported gamepack's [code]default_build_menu.xml[/code].[br][br]
-## Keys, specified as a [String], define the build option name as you want it to appear in Radiant.[br][br]
-## Values represent commands taken within each option.[br][br]They may be either a [String] or an
-## [Array] of [String] elements that will be used as the full command-line text issued by each command [i]within[/i]
-## its associated build option key. [br][br]They may reference entries in [member default_build_menu_variables]
-## by using brackets: [code][variable key name][/code]
+## Keys, specified as a [String], define the build option name as you want it to appear in NetRadiant Custom.[br][br]
+## Values represent commands taken within each option.[br][br]They may be either a [String] or an [Array] of [String] elements 
+## that will be used as the full command-line text issued by each command [i]within[/i] its associated build option key.[br][br]
+## They may reference entries in [member default_build_menu_variables] by using brackets: [code][variable key name][/code]
 @export var default_build_menu_commands: Dictionary
 
-## Generates completed text for a .shader file.
-func build_shader_text() -> String:
+# Generates completed text for a .shader file.
+func _build_shader_text() -> String:
 	var shader_text: String = ""
 	for shader_res in netradiant_custom_shaders:
 		shader_text += (shader_res as NetRadiantCustomShader).texture_path + "\n{\n"
@@ -84,8 +79,8 @@ func build_shader_text() -> String:
 		shader_text += "}\n"
 	return shader_text
 
-## Generates completed text for a .gamepack file.
-func build_gamepack_text() -> String:
+# Generates completed text for a .gamepack file.
+func _build_gamepack_text() -> String:
 	var texturetypes_str: String = ""
 	for texture_type in texture_types:
 		texturetypes_str += texture_type
@@ -166,8 +161,8 @@ func build_gamepack_text() -> String:
 		skip_texture
 	]
 
-## Exports or updates a folder in the /games directory, with an icon, .cfg, and all accompanying FGDs.
-func do_export_file() -> void:
+## Exports this game's configuration with an icon, .cfg, and all accompanying FGD files in the [FuncGodotLocalConfig] [b]NetRadiant Custom Gamepacks Folder[/b].
+func export_file() -> void:
 	var game_path: String = FuncGodotLocalConfig.get_setting(FuncGodotLocalConfig.PROPERTY.MAP_EDITOR_GAME_PATH) as String
 	if game_path.is_empty():
 		printerr("Skipping export: Map Editor Game Path not set in Project Configuration")
@@ -213,7 +208,7 @@ func do_export_file() -> void:
 	print("Exporting NetRadiant Custom Gamepack to ", target_file_path)
 	file = FileAccess.open(target_file_path, FileAccess.WRITE)
 	if file != null:
-		file.store_string(build_gamepack_text())
+		file.store_string(_build_gamepack_text())
 		file.close()
 	else:
 		printerr("Error: Could not modify " + target_file_path)
@@ -222,7 +217,7 @@ func do_export_file() -> void:
 	# NOTE: To work properly, this should go in the game path. For now, I'm leaving the export to NRC as well, so it can easily
 	# be repackaged for distribution. However, I believe in the end, it shouldn't exist there. 
 	# We'll need to make a decision for this. - Vera
-	var shader_text: String = build_shader_text()
+	var shader_text: String = _build_shader_text()
 	
 	# build to <gamepack path>/scripts/
 	target_file_path = gamepacks_folder + "/" + gamepack_name + ".game/scripts/" + gamepack_name + ".shader"

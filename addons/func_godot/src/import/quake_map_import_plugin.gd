@@ -1,8 +1,5 @@
 @tool
-class_name QuakeMapImportPlugin
-extends EditorImportPlugin
-
-# Quake super.map import plugin
+class_name QuakeMapImportPlugin extends EditorImportPlugin
 
 func _get_importer_name() -> String:
 	return 'func_godot.map'
@@ -14,7 +11,7 @@ func _get_resource_type() -> String:
 	return 'Resource'
 
 func _get_recognized_extensions() -> PackedStringArray:
-	return PackedStringArray(['map'])
+	return PackedStringArray(['map','vmf'])
 	
 func _get_priority():
 	return 1.0

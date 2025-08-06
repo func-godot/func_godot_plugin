@@ -1,43 +1,49 @@
 @tool
-## A special type of [FuncGodotFGDPointClass] entity that can automatically generate a special simplified GLB model file for the map editor display.
+@icon("res://addons/func_godot/icons/icon_godambler3d.svg")
+class_name FuncGodotFGDModelPointClass extends FuncGodotFGDPointClass
+## A special type of [FuncGodotFGDPointClass] entity that automatically generates a special simplified GLB model file for the map editor display. 
 ## Only supported in map editors that support GLTF or GLB.
-class_name FuncGodotFGDModelPointClass
-extends FuncGodotFGDPointClass
+##
+## @tutorial(Quake Wiki Entity Article): https://quakewiki.org/wiki/Entity
+## @tutorial(Level Design Book: Entity Types and Settings): https://book.leveldesignbook.com/appendix/resources/formats/fgd#entity-types-and-settings-basic
+## @tutorial(Valve Developer Wiki FGD Article): https://developer.valvesoftware.com/wiki/FGD#Class_Types_and_Properties
+## @tutorial(dumptruck_ds' Quake Mapping Entities Tutorial): https://www.youtube.com/watch?v=gtL9f6_N2WM
+## @tutorial(Level Design Book: Display Models for Entities): https://book.leveldesignbook.com/appendix/resources/formats/fgd#display-models-for-entities
+## @tutorial(Valve Developer Wiki FGD Article: Entity Description Section): https://developer.valvesoftware.com/wiki/FGD#Entity_Description
+## @tutorial(TrenchBroom Manual: Display Models for Entities): https://trenchbroom.github.io/manual/latest/#display-models-for-entities
 
 enum TargetMapEditor {
-	GENERIC,
-	TRENCHBROOM
+	GENERIC, ## Entity definition uses the [b]@studio[/b] key word. [member scale_expression] is ignored. Supported by all map editors.
+	TRENCHBROOM ## Entity definition uses the [b]@model[/b] key word. [member scale_expression] is applied if set.
 }
 
-## Determines how model interprets [member scale_expression].
 @export var target_map_editor: TargetMapEditor = TargetMapEditor.GENERIC
-## Display model export folder relative to the model folder set by [FuncGodotLocalConfig].
+## Display model export folder relative to [member ProjectSettings.func_godot/model_point_class_save_path].
 @export var models_sub_folder : String = ""
-## Scale expression applied to model. See the [TrenchBroom Documentation](https://trenchbroom.github.io/manual/latest/#display-models-for-entities) for more information.
+## Scale expression applied to model. Only used by TrenchBroom. If left empty, uses [member ProjectSettings.func_godot/default_inverse_scale_factor]. [br][br]Read the TrenchBroom Manual for more information on the "scale expression" feature.
 @export var scale_expression : String = ""
-## Model Point Class can override the 'size' meta property by auto-generating a value from the meshes' [AABB]. Proper generation requires 'scale_expression' set to a float or [Vector3]. **WARNING:** Generated size property unlikely to align cleanly to grid!
+## Model Point Class can override the 'size' meta property by auto-generating a value from the meshes' [AABB]. Proper generation requires [member scale_expression] set to a float or vector. [br][br][color=orange]WARNING:[/color] Generated size property unlikely to align cleanly to grid!
 @export var generate_size_property : bool = false
-## Degrees to rotate model prior to export. Different editors may handdle GLTF transformations differently. If your model isn't oriented correctly, try modifying this property.
+## Degrees to rotate model prior to export. Different editors may handle GLTF transformations differently. If your model isn't oriented correctly, try modifying this property.
 @export var rotation_offset: Vector3 = Vector3(0.0, 0.0, 0.0)
 ## Creates a .gdignore file in the model export folder to prevent Godot importing the display models. Only needs to be generated once.
-@export var generate_gd_ignore_file : bool = false :
-	get:
-		return generate_gd_ignore_file
-	set(ignore):
-		if (ignore != generate_gd_ignore_file):
-			if Engine.is_editor_hint():
-				var path: String = _get_game_path().path_join(_get_model_folder())
-				var error: Error = DirAccess.make_dir_recursive_absolute(path)
-				if error != Error.OK:
-					printerr("Failed creating dir for GDIgnore file", error)
-					return
-				path = path.path_join('.gdignore')
-				if FileAccess.file_exists(path):
-					return
-				var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
-				file.store_string('')
-				file.close()
+@export_tool_button("Generate GD Ignore File", "FileAccess") var generate_gd_ignore_file : Callable = _generate_gd_ignore_file
 
+func _generate_gd_ignore_file() -> void:
+	if Engine.is_editor_hint():
+		var path: String = _get_game_path().path_join(_get_model_folder())
+		var error: Error = DirAccess.make_dir_recursive_absolute(path)
+		if error != Error.OK:
+			printerr("Failed creating dir for GDIgnore file", error)
+			return
+		path = path.path_join('.gdignore')
+		if FileAccess.file_exists(path):
+			return
+		var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+		file.store_string('')
+		file.close()
+
+## Builds and saves the display model into the specified destination, then parses the definition and outputs it into the FGD format.
 func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM) -> String:
 	_generate_model()
 	return super()
@@ -86,7 +92,7 @@ func _get_local_path() -> String:
 	return _get_model_folder().path_join('%s.glb' % classname)
 
 func _get_model_folder() -> String:
-	var model_dir: String = FuncGodotLocalConfig.get_setting(FuncGodotLocalConfig.PROPERTY.GAME_PATH_MODELS_FOLDER) as String
+	var model_dir: String = ProjectSettings.get_setting("func_godot/model_point_class_save_path", "") as String
 	if not models_sub_folder.is_empty():
 		model_dir = model_dir.path_join(models_sub_folder)
 	return model_dir
@@ -107,7 +113,7 @@ func _create_gltf_file(gltf_state: GLTFState, path: String, node: Node3D) -> boo
 	if target_map_editor != TargetMapEditor.TRENCHBROOM:
 		var scale_factor: Vector3 = Vector3.ONE
 		if scale_expression.is_empty():
-			scale_factor *= FuncGodotLocalConfig.get_setting(FuncGodotLocalConfig.PROPERTY.DEFAULT_INVERSE_SCALE) as float
+			scale_factor *= ProjectSettings.get_setting("func_godot/default_inverse_scale_factor", 32.0) as float
 		else:
 			if scale_expression.begins_with('\''):
 				var scale_arr := scale_expression.split_floats(' ', false)

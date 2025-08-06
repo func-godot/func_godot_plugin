@@ -1,10 +1,12 @@
 @tool
 @icon("res://addons/func_godot/icons/icon_godot_ranger.svg")
-## Defines a game in TrenchBroom to express a set of entity definitions and editor behaviors.
-class_name TrenchBroomGameConfig
-extends Resource
+class_name TrenchBroomGameConfig extends Resource
+## Game configuration definition for TrenchBroom.
+## 
+## Defines a game for TrenchBroom to express a set of entity definitions and editor behaviors.
+## 
+## @tutorial(TrenchBroom Manual Game Configuration Information): https://trenchbroom.github.io/manual/latest/#game_configuration
 
-## Keeps track of each individual version
 enum GameConfigVersion {
 	Latest,
 	Version4,
@@ -12,14 +14,7 @@ enum GameConfigVersion {
 	Version9
 }
 
-## Button to export / update this game's configuration and FGD file in the TrenchBroom Games Path.
-@export var export_file: bool:
-	get:
-		return export_file
-	set(new_export_file):
-		if new_export_file != export_file:
-			if Engine.is_editor_hint():
-				do_export_file()
+@export_tool_button("Export GameConfig") var _export_file: Callable = export_file
 
 ## Name of the game in TrenchBroom's game list.
 @export var game_name : String = "FuncGodot"
@@ -27,7 +22,8 @@ enum GameConfigVersion {
 ## Icon for TrenchBroom's game list.
 @export var icon : Texture2D = preload("res://addons/func_godot/icon32.png")
 
-## Available map formats when creating a new map in TrenchBroom. The order of elements in the array is the order TrenchBroom will list the available formats. The `initialmap` key value is optional.
+## Available map formats when creating a new map in TrenchBroom. The order of elements in the array is the order TrenchBroom will list the available formats. 
+## The [i]"initialmap"[/i] key value is optional.
 @export var map_formats: Array[Dictionary] = [
 	{ "format": "Valve", "initialmap": "initial_valve.map" },
 	{ "format": "Standard", "initialmap": "initial_standard.map" },
@@ -48,19 +44,21 @@ enum GameConfigVersion {
 
 @export_category("Entities")
 
-## FGD resource to include with this game. If using multiple FGD resources, this should be the master FGD that contains them in the `base_fgd_files` resource array.
+## [FuncGodotFGDFile] resource to include with this game. If using multiple FGD File resources, 
+## this should be the master FGD File that contains them in [member FuncGodotFGDFile.base_fgd_files].
 @export var fgd_file : FuncGodotFGDFile = preload("res://addons/func_godot/fgd/func_godot_fgd.tres")
 
-## Scale expression that modifies the default display scale of entities in TrenchBroom. See the [**TrenchBroom Documentation**](https://trenchbroom.github.io/manual/latest/#game_configuration_files_entities) for more information.
+## Scale expression that modifies the default display scale of entities in TrenchBroom.
+## See [url="https://trenchbroom.github.io/manual/latest/#game_configuration_files_entities"]TrenchBroom Manual Entity Configuration Information[/url] for more information.
 @export var entity_scale: String = "32"
 
-## Arrays containing the TrenchBroomTag resource type.
+## Arrays containing the [TrenchbroomTag] resource type.
 @export_category("Tags")
 
-## TrenchBroomTag resources that apply to brush entities.
+## [TrenchbroomTag] resources that apply to brush entities.
 @export var brush_tags : Array[Resource] = []
 
-## TrenchBroomTag resources that apply to brush faces.
+## [TrenchbroomTag] resources that apply to brush faces.
 @export var brushface_tags : Array[Resource] = [
 	preload("res://addons/func_godot/game_config/trenchbroom/tb_face_tag_clip.tres"),
 	preload("res://addons/func_godot/game_config/trenchbroom/tb_face_tag_skip.tres"),
@@ -77,8 +75,8 @@ enum GameConfigVersion {
 ## Game configuration format compatible with the version of TrenchBroom being used.
 @export var game_config_version: GameConfigVersion = GameConfigVersion.Latest
 
-## Matches tag key enum to the String name used in .cfg
-static func get_match_key(tag_match_type: int) -> String:
+# Matches tag key enum to the [String] name used in .cfg
+static func _get_match_key(tag_match_type: int) -> String:
 	match tag_match_type:
 		TrenchBroomTag.TagMatchType.TEXTURE:
 			return "material"
@@ -88,8 +86,8 @@ static func get_match_key(tag_match_type: int) -> String:
 			push_error("Tag match type %s is not valid" % [tag_match_type])
 			return "ERROR"
 
-## Generates completed text for a .cfg file.
-func build_class_text() -> String:
+# Generates completed text for a .cfg file.
+func _build_class_text() -> String:
 	var map_formats_str : String = ""
 	for map_format in map_formats:
 		map_formats_str += "{ \"format\": \"" + map_format.format + "\""
@@ -108,14 +106,14 @@ func build_class_text() -> String:
 	
 	var fgd_filename_str : String = "\"" + fgd_file.fgd_name + ".fgd\""
 
-	var brush_tags_str = parse_tags(brush_tags)
-	var brushface_tags_str = parse_tags(brushface_tags)
-	var uv_scale_str = parse_default_uv_scale(default_uv_scale)
+	var brush_tags_str = _parse_tags(brush_tags)
+	var brushface_tags_str = _parse_tags(brushface_tags)
+	var uv_scale_str = _parse_default_uv_scale(default_uv_scale)
 	
 	var config_text : String = ""
 	match game_config_version:
 		GameConfigVersion.Latest, GameConfigVersion.Version8, GameConfigVersion.Version9:
-			config_text = get_game_config_v9v8_text() % [
+			config_text = _get_game_config_v9v8_text() % [
 				game_name,
 				map_formats_str,
 				textures_root_folder,
@@ -129,7 +127,7 @@ func build_class_text() -> String:
 			]
 
 		GameConfigVersion.Version4:
-			config_text = get_game_config_v4_text() % [
+			config_text = _get_game_config_v4_text() % [
 				game_name,
 				map_formats_str,
 				textures_root_folder,
@@ -147,8 +145,8 @@ func build_class_text() -> String:
 	
 	return config_text
 
-## Converts brush, FuncGodotFace, and attribute tags into a .cfg-usable String.
-func parse_tags(tags: Array) -> String:
+# Converts brush, face, and attribute tags into a .cfg-usable String.
+func _parse_tags(tags: Array) -> String:
 	var tags_str := ""
 	for brush_tag in tags:
 		if brush_tag.tag_match_type >= TrenchBroomTag.TagMatchType.size():
@@ -161,7 +159,7 @@ func parse_tags(tags: Array) -> String:
 			if brush_tag_attrib != brush_tag.tag_attributes[-1]:
 				attribs_str += ", "
 		tags_str += "\t\t\t\t\"attribs\": [ %s ],\n" % attribs_str
-		tags_str += "\t\t\t\t\"match\": \"%s\",\n" % get_match_key(brush_tag.tag_match_type)
+		tags_str += "\t\t\t\t\"match\": \"%s\",\n" % _get_match_key(brush_tag.tag_match_type)
 		tags_str += "\t\t\t\t\"pattern\": \"%s\"" % brush_tag.tag_pattern
 		if brush_tag.texture_name != "":
 			tags_str += ",\n"
@@ -174,8 +172,8 @@ func parse_tags(tags: Array) -> String:
 		tags_str = tags_str.replace("material", "texture")
 	return tags_str
 
-## Converts array of flags to .cfg String.
-func parse_flags(flags: Array) -> String:
+# Converts array of flags to .cfg String.
+func _parse_flags(flags: Array) -> String:
 	var flags_str := ""
 	for attrib_flag in flags:
 		flags_str += "{\n"
@@ -186,16 +184,16 @@ func parse_flags(flags: Array) -> String:
 			flags_str += ","
 	return flags_str
 
-## Converts default uv scale vector to .cfg String.
-func parse_default_uv_scale(texture_scale : Vector2) -> String:
+# Converts default uv scale vector to .cfg String.
+func _parse_default_uv_scale(texture_scale : Vector2) -> String:
 	var entry_str = "\"scale\": [{x}, {y}]"
 	return entry_str.format({
 		"x": texture_scale.x,
 		"y": texture_scale.y
 	})
 
-## Exports or updates a folder in the /games directory, with an icon, .cfg, and all accompanying FGDs.
-func do_export_file() -> void:
+## Exports this game's configuration with an icon, .cfg, and all accompanying FGD files in the [FuncGodotLocalConfig] [b]Trenchbroom Game Config Folder[/b].
+func export_file() -> void:
 	var config_folder: String = FuncGodotLocalConfig.get_setting(FuncGodotLocalConfig.PROPERTY.TRENCHBROOM_GAME_CONFIG_FOLDER) as String
 	if config_folder.is_empty():
 		printerr("Skipping export: No TrenchBroom Game folder")
@@ -226,7 +224,7 @@ func do_export_file() -> void:
 	var target_file_path: String = config_folder + "/GameConfig.cfg"
 	print("Exporting TrenchBroom Game Config to ", target_file_path)
 	var file = FileAccess.open(target_file_path, FileAccess.WRITE)
-	file.store_string(build_class_text())
+	file.store_string(_build_class_text())
 	file.close()
 	
 	# FGD
@@ -235,7 +233,7 @@ func do_export_file() -> void:
 	print("TrenchBroom Game Config export complete\n")
 
 #region GameConfigDeclarations
-func get_game_config_v4_text() -> String:
+func _get_game_config_v4_text() -> String:
 	return """\
 {
 	"version": 4,
@@ -279,7 +277,7 @@ func get_game_config_v4_text() -> String:
 }
 	"""
 
-func get_game_config_v9v8_text() -> String:
+func _get_game_config_v9v8_text() -> String:
 	var config_text: String = """\
 {
 	"version": 9,

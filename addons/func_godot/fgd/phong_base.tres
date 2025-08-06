@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="FuncGodotFGDBaseClass" load_steps=2 format=3 uid="uid://nayxb8n7see2"]
 
-[ext_resource type="Script" path="res://addons/func_godot/src/fgd/func_godot_fgd_base_class.gd" id="1_04y3n"]
+[ext_resource type="Script" uid="uid://ck575aqs1sbrb" path="res://addons/func_godot/src/fgd/func_godot_fgd_base_class.gd" id="1_04y3n"]
 
 [resource]
 script = ExtResource("1_04y3n")
@@ -19,6 +19,7 @@ class_property_descriptions = {
 "_phong": ["Phong shading", 0],
 "_phong_angle": "Phong smoothing angle"
 }
+auto_apply_to_matching_node_properties = false
 meta_properties = {
 "color": Color(0.8, 0.8, 0.8, 1),
 "size": AABB(-8, -8, -8, 8, 8, 8)

@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="FuncGodotLocalConfig" load_steps=2 format=3 uid="uid://bqjt7nyekxgog"]
 
-[ext_resource type="Script" path="res://addons/func_godot/src/util/func_godot_local_config.gd" id="1_g8kqj"]
+[ext_resource type="Script" uid="uid://xsjnhahhyein" path="res://addons/func_godot/src/util/func_godot_local_config.gd" id="1_g8kqj"]
 
 [resource]
 script = ExtResource("1_g8kqj")

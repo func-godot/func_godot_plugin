@@ -1,20 +1,25 @@
-[gd_resource type="Resource" script_class="FuncGodotMapSettings" load_steps=4 format=3 uid="uid://bkhxcqsquw1yg"]
+[gd_resource type="Resource" script_class="FuncGodotMapSettings" load_steps=5 format=3 uid="uid://bkhxcqsquw1yg"]
 
 [ext_resource type="Material" uid="uid://cvex6toty8yn7" path="res://addons/func_godot/textures/default_material.tres" id="1_8l5wm"]
-[ext_resource type="Script" path="res://addons/func_godot/src/map/func_godot_map_settings.gd" id="1_dlf23"]
-[ext_resource type="Resource" uid="uid://crgpdahjaj" path="res://addons/func_godot/fgd/func_godot_fgd.tres" id="1_hd7se"]
+[ext_resource type="Script" uid="uid://38q6k0ctahjn" path="res://addons/func_godot/src/map/func_godot_map_settings.gd" id="1_dlf23"]
+[ext_resource type="Resource" uid="uid://crgpdahjaj" path="res://addons/func_godot/fgd/func_godot_fgd.tres" id="2_hf4oi"]
+[ext_resource type="Script" uid="uid://cij36hpqc46c" path="res://addons/func_godot/src/import/quake_wad_file.gd" id="4_576s4"]
 
 [resource]
 script = ExtResource("1_dlf23")
 inverse_scale_factor = 32.0
-entity_fgd = ExtResource("1_hd7se")
+entity_fgd = ExtResource("2_hf4oi")
 entity_name_property = ""
+entity_smoothing_property = "_phong"
+entity_smoothing_angle_property = "_phong_angle"
+use_groups_hierarchy = false
 base_texture_dir = "res://textures"
 texture_file_extensions = Array[String](["png", "jpg", "jpeg", "bmp", "tga", "webp"])
 clip_texture = "special/clip"
 skip_texture = "special/skip"
 origin_texture = "special/origin"
-texture_wads = Array[Resource]([])
+texture_wads = Array[ExtResource("4_576s4")]([])
+base_material_dir = ""
 material_file_extension = "tres"
 default_material = ExtResource("1_8l5wm")
 default_material_albedo_uniform = ""
@@ -28,4 +33,3 @@ height_map_pattern = "%s_height.%s"
 orm_map_pattern = "%s_orm.%s"
 save_generated_materials = true
 uv_unwrap_texel_size = 2.0
-use_trenchbroom_groups_hierarchy = false

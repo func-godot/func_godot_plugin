@@ -1,13 +1,20 @@
 @icon("res://addons/func_godot/icons/icon_godot_ranger.svg")
-## Base entity definition class. Not to be used directly, use [FuncGodotFGDBaseClass], [FuncGodotFGDSolidClass], or [FuncGodotFGDPointClass] instead.
-class_name FuncGodotFGDEntityClass
-extends Resource
+class_name FuncGodotFGDEntityClass extends Resource
+## Entity definition template. WARNING! Not to be used directly! Use [FuncGodotFGDBaseClass], [FuncGodotFGDSolidClass], or [FuncGodotFGDPointClass] instead.
+##
+## Entity definition template. It holds all of the common entity class properties shared between [FuncGodotFGDBaseClass], [FuncGodotFGDSolidClass], or [FuncGodotFGDPointClass]. 
+## Not to be used directly, use one of the aforementioned FGD class types instead.
+##
+## @tutorial(Quake Wiki Entity Article): https://quakewiki.org/wiki/Entity
+## @tutorial(Level Design Book: Entity Types and Settings): https://book.leveldesignbook.com/appendix/resources/formats/fgd#entity-types-and-settings-basic
+## @tutorial(Valve Developer Wiki FGD Article): https://developer.valvesoftware.com/wiki/FGD#Class_Types_and_Properties
+## @tutorial(Valve Developer Wiki Entity Descriptions): https://developer.valvesoftware.com/wiki/FGD#Entity_Description
 
 var prefix: String = ""
 
 @export_group("Entity Definition")
 
-## Entity classname. This is a required field in all entity types as it is parsed by both the map editor and by FuncGodot on map build.
+## Entity classname. [b][i]This is a required field in all entity types[/i][/b] as it is parsed by both the map editor and by FuncGodot on map build.
 @export var classname : String = ""
 
 ## Entity description that appears in the map editor. Not required.
@@ -16,19 +23,21 @@ var prefix: String = ""
 ## Entity does not get written to the exported FGD. Entity is only used for [FuncGodotMap] build process.
 @export var func_godot_internal : bool = false
 
-## FuncGodotFGDBaseClass resources to inherit [member class_properties] and [member class_descriptions] from.
+## [FuncGodotFGDBaseClass] resources to inherit [member class_properties] and [member class_descriptions] from.
 @export var base_classes: Array[Resource] = []
 
-## Key value pair properties that will appear in the map editor. After building the FuncGodotMap in Godot, these properties will be added to a Dictionary that gets applied to the generated Node, as long as that Node is a tool script with an exported `func_godot_properties` Dictionary.
+## Key value pair properties that will appear in the map editor. After building the [FuncGodotMap] in Godot, these properties will be added to a [Dictionary] 
+## that gets applied to the generated node, as long as that node is a tool script with an exported `func_godot_properties` Dictionary.
 @export var class_properties : Dictionary = {}
 
-## Descriptions for previously defined key value pair properties.
+## Map editor descriptions for previously defined key value pair properties. Optional but recommended.
 @export var class_property_descriptions : Dictionary = {}
 
-## Automatically applies entity class properties to matching properties in the generated node. When using this feature, class properties need to be the correct type or you may run into errors on map build.
+## Automatically applies entity class properties to matching properties in the generated node. 
+## When using this feature, class properties need to be the correct type or you may run into errors on map build.
 @export var auto_apply_to_matching_node_properties : bool = false
 
-## Appearance properties for the map editor. See the [**Valve FGD**](https://developer.valvesoftware.com/wiki/FGD#Entity_Description) and [**TrenchBroom**](https://trenchbroom.github.io/manual/latest/#display-models-for-entities) documentation for more information.
+## Appearance properties for the map editor. See the Valve Developer Wiki and TrenchBroom documentation for more information.
 @export var meta_properties : Dictionary = {
 	"size": AABB(Vector3(-8, -8, -8), Vector3(8, 8, 8)),
 	"color": Color(0.8, 0.8, 0.8)
@@ -36,14 +45,16 @@ var prefix: String = ""
 
 @export_group("Node Generation")
 
-## Node to generate on map build. This can be a built-in Godot class or a GDExtension class. For Point Class entities that use Scene File instantiation leave this blank.
+## Node to generate on map build. This can be a built-in Godot class, a GDScript class, or a GDExtension class. 
+## For Point Class entities that use Scene File instantiation leave this blank.
 @export var node_class := ""
 
-## Class property to use in naming the generated node. Overrides `name_property` in [FuncGodotMapSettings].
+## Optional class property to use in naming the generated node. Overrides [member FuncGodotMapSettings.name_property].
 ## Naming occurs before adding to the [SceneTree] and applying properties.
 ## Nodes will be named `"entity_" + name_property`. An entity's name should be unique, otherwise you may run into unexpected behavior.
 @export var name_property := ""
 
+## Parses the definition and outputs it into the FGD format.
 func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM) -> String:
 	# Class prefix
 	var res : String = prefix
