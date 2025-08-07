@@ -62,17 +62,20 @@ func generate_solid_entity_node(node: Node, node_name: String, data: _EntityData
 	
 	# Mesh Instance generation
 	if data.mesh:
-		var mesh_instance := MeshInstance3D.new()
-		mesh_instance.name = node_name + "_mesh_instance"
-		mesh_instance.mesh = data.mesh
-		mesh_instance.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
-		if build_flags & FuncGodotMap.BuildFlags.UNWRAP_UV2:
-			if definition.use_in_baked_light:
-				mesh_instance.gi_mode = MeshInstance3D.GI_MODE_STATIC
-		mesh_instance.cast_shadow = definition.shadow_casting_setting
-		mesh_instance.layers = definition.render_layers
-		node.add_child(mesh_instance)
-		data.mesh_instance = mesh_instance
+		if definition.build_visuals:
+			var mesh_instance := MeshInstance3D.new()
+			mesh_instance.name = node_name + "_mesh_instance"
+			mesh_instance.mesh = data.mesh
+			mesh_instance.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
+			if build_flags & FuncGodotMap.BuildFlags.UNWRAP_UV2:
+				if definition.use_in_baked_light:
+					mesh_instance.gi_mode = MeshInstance3D.GI_MODE_STATIC
+			mesh_instance.cast_shadow = definition.shadow_casting_setting
+			mesh_instance.layers = definition.render_layers
+			node.add_child(mesh_instance)
+			data.mesh_instance = mesh_instance
+			if not (build_flags & FuncGodotMap.BuildFlags.DISABLE_SMOOTHING) && data.is_smooth_shaded(map_settings.entity_smoothing_property):
+				mesh_instance.mesh = FuncGodotUtil.smooth_mesh_by_angle(data.mesh, data.get_smoothing_angle(map_settings.entity_smoothing_angle_property))
 		
 		# Occluder generation
 		if definition.build_occlusion and data.mesh:
@@ -96,8 +99,6 @@ func generate_solid_entity_node(node: Node, node_name: String, data: _EntityData
 			node.add_child(occluder_instance)
 			data.occluder_instance = occluder_instance
 		
-		if not (build_flags & FuncGodotMap.BuildFlags.DISABLE_SMOOTHING) && data.is_smooth_shaded(map_settings.entity_smoothing_property):
-			mesh_instance.mesh = FuncGodotUtil.smooth_mesh_by_angle(data.mesh, data.get_smoothing_angle(map_settings.entity_smoothing_angle_property))
 
 	# Collision generation
 	if data.shapes.size() and node is CollisionObject3D:
