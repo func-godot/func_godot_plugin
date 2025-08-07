@@ -391,7 +391,12 @@ func generate_entity_node(entity_data: _EntityData, entity_index: int) -> Node:
 ## Main entity assembly process called by [FuncGodotMap]. Generates and sorts group nodes in the [SceneTree] first, 
 ## then generates and assembles [Node]s based upon the provided [FuncGodotData.EntityData] and adds them to the [SceneTree].
 func build(map_node: FuncGodotMap, entities: Array[_EntityData], groups: Array[_GroupData]) -> void:
-	var scene_root := map_node.get_tree().edited_scene_root
+	var scene_tree := map_node.get_tree();
+	var scene_root: Node;
+	if scene_tree:
+		scene_root = scene_tree.edited_scene_root;
+	else:
+		scene_root = map_node;
 	build_flags = map_node.build_flags
 	
 	if map_settings.use_groups_hierarchy:
