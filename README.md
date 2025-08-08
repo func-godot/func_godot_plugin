@@ -14,14 +14,14 @@ For more help or to contribute to the community, join us on the [Official FuncGo
 ## Features
 
 - Godot Scene Generation
-  - File support for Quake `map`, `wad`, and `lmp` palette formats
-  - File support for Half-Life `wad` format
+  - Supports Quake `map` and Hammer `vmf`
+  - Supports Quake WAD2, Half-Life WAD3, and `lmp` palette formats
   - Meshes from `map` brush geometry
-  - Materials and UVs from `map` texture definitions
+  - Materials and UVs from map texture definitions
   - Convex and concave collision shapes
 - Entity Definition Support
-  - Fully customizable entities that can be defined for TrenchBroom and generated in Godot
-  - Leverage the `map` format's classname and key value pair systems
+  - Fully customizable entities that can be defined for map editors and generated in Godot
+  - Leverage the map format's classname and key value pair systems
   - Define the visual and collision properties of brush entities on a per-classname basis
   - Retrieve easy to access mesh metadata for per face material information
   - Define point entities that can be generated from node class name and script or from packed scenes
@@ -38,6 +38,7 @@ For more help or to contribute to the community, join us on the [Official FuncGo
 
 ## Confirmed Compatible Map Editors
   - TrenchBroom
+  - Hammer
   - J.A.C.K.
   - NetRadiant Custom[br]
 Help us add to this list by testing out your preferred map editor and helping us come up with compatibility solutions!
@@ -45,6 +46,10 @@ Help us add to this list by testing out your preferred map editor and helping us
 ## Credits
 
 FuncGodot was created by [Hannah "EMBYR" Crawford](https://embyr.sh/), [Emberlynn Bland](https://github.com/deertears/), [Tim "RhapsodyInGeek" Maccabe](https://github.com/RhapsodyInGeek), and [Vera "sinewavey" Lux](https://github.com/sinewavey), reworked from the [Godot 4 port of Qodot](https://github.com/QodotPlugin/Qodot/tree/main) by Embyr, with contributions from members of the FuncGodot, Qodot, Godot, and Quake Mapping Communities.
+
+Both plugins are based on the original [Qodot for Godot 3.5](https://github.com/QodotPlugin/qodot-plugin/) created by [Josh "Shifty" Palmer](https://twitter.com/ShiftyAxel).
+
+<p align="center"><img src="https://github.com/func-godot/.github/assets/44485952/9ff9cd96-024b-4202-b4a2-611741b81609" alt="Godambler" /></p>
 
 Both plugins are based on the original [Qodot for Godot 3.5](https://github.com/QodotPlugin/qodot-plugin/) created by [Josh "Shifty" Palmer](https://twitter.com/ShiftyAxel).
 
