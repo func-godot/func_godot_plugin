@@ -42,7 +42,8 @@ For more help or to contribute to the community, join us on the [**Official Func
   - TrenchBroom
   - Hammer
   - J.A.C.K.
-  - NetRadiant Custom[br]
+  - NetRadiant Custom
+
 Help us add to this list by testing out your preferred map editor and helping us come up with compatibility solutions!
 
 ## Credits
