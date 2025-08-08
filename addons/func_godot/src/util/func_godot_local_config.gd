@@ -74,9 +74,8 @@ var _loaded := false
 
 ## Retrieve a setting from the local configuration.
 static func get_setting(name: PROPERTY) -> Variant:
-	var settings = load("res://addons/func_godot/func_godot_local_config.tres")
-	if not settings._loaded: 
-		settings._load_settings()
+	var settings: FuncGodotLocalConfig = load("res://addons/func_godot/func_godot_local_config.tres")
+	settings.reload_func_godot_settings()
 	return settings._settings_dict.get(PROPERTY.keys()[name], '') as Variant
 
 func _get_property_list() -> Array:

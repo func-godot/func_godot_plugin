@@ -200,7 +200,7 @@ func export_file() -> void:
 		return
 	
 	# Make sure FGD file is set
-	if !fgd_file:
+	if not fgd_file:
 		printerr("Skipping export: No FGD file")
 		return
 	

@@ -249,9 +249,9 @@ static func get_quake_uv(vertex: Vector3, normal: Vector3, uv_basis := Transform
 	var nz := absf(normal.dot(Vector3.FORWARD))
 	var uv: Vector2
 	
-	if ny >= nx && ny >= nz:
+	if ny >= nx and ny >= nz:
 		uv = Vector2(vertex.x, -vertex.z)
-	elif nx >= ny && nx >= nz:
+	elif nx >= ny and nx >= nz:
 		uv = Vector2(vertex.y, -vertex.z)
 	else:
 		uv = Vector2(vertex.x, vertex.y)

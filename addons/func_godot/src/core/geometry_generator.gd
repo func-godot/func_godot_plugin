@@ -272,7 +272,7 @@ func wind_entity_faces(entity_index: int) -> void:
 
 func smooth_entity_vertices(entity_index: int) -> void:
 	var entity: _EntityData = entity_data[entity_index]	
-	if !entity.is_smooth_shaded(map_settings.entity_smoothing_property):
+	if not entity.is_smooth_shaded(map_settings.entity_smoothing_property):
 		return
 	
 	var smoothing_angle: float = deg_to_rad(entity.get_smoothing_angle(map_settings.entity_smoothing_angle_property))
@@ -285,7 +285,7 @@ func smooth_entity_vertices(entity_index: int) -> void:
 			for i in face.vertices.size():
 				var pos := face.vertices[i].snappedf(_VERTEX_EPSILON)
 
-				if !vertex_map.has(pos):
+				if not vertex_map.has(pos):
 					vertex_map[pos] = _VertexGroupData.new()
 
 				var data := vertex_map[pos]
@@ -379,7 +379,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 	# Output mesh data
 	var mesh := ArrayMesh.new()
 	var mesh_arrays: Array[Array] = []
-	var build_concave: bool = entity.is_concave()
+	var build_concave: bool = entity.is_collision_concave()
 	var concave_vertices: PackedVector3Array
 
 	# Iteration variables
@@ -411,7 +411,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 				continue
 			
 			# Create trimesh points regardless of texture
-			if build_concave:	
+			if build_concave:
 				var tris: PackedVector3Array;
 				tris.resize(face.indices.size())
 				
@@ -465,34 +465,35 @@ func generate_entity_surfaces(entity_index: int) -> void:
 					positions[i] = (vertices[v] + vertices[v + 1] + vertices[v + 2]) / 3
 			positions_metadata.append_array(positions)
 
-		# SURFACE SCOPE END
+			# SURFACE SCOPE END
 
-	# MULTISURFACE SCOPE END
-
+		# MULTISURFACE SCOPE END
+	
+	if def.build_visuals:
+		# Build mesh
+		for array_index in mesh_arrays.size():
+			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, mesh_arrays[array_index]);
+			mesh.surface_set_name(array_index, textures[array_index]);
+			mesh.surface_set_material(array_index, texture_materials[textures[array_index]]);
+		
+		# Apply mesh metadata	
+		if def.add_textures_metadata:
+			entity.mesh_metadata["texture_names"] = texture_names_metadata
+			entity.mesh_metadata["textures"] = textures_metadata
+		if def.add_vertex_metadata:
+			entity.mesh_metadata["vertices"] = vertices_metadata
+		if def.add_face_normal_metadata:
+			entity.mesh_metadata["normals"] = normals_metadata
+		if def.add_face_position_metadata:
+			entity.mesh_metadata["positions"] = positions_metadata
+		
+		entity.mesh = mesh
+	
 	# Clear up unusued memory
-	arrays = [];
-	surfaces = {};
+	arrays = []
+	surfaces = {}
 	
-	# Build mesh
-	for array_index in mesh_arrays.size():
-		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, mesh_arrays[array_index]);
-		mesh.surface_set_name(array_index, textures[array_index]);
-		mesh.surface_set_material(array_index, texture_materials[textures[array_index]]);
-	
-	# Apply mesh metadata	
-	if def.add_textures_metadata:
-		entity.mesh_metadata["texture_names"] = texture_names_metadata
-		entity.mesh_metadata["textures"] = textures_metadata
-	if def.add_vertex_metadata:
-		entity.mesh_metadata["vertices"] = vertices_metadata
-	if def.add_face_normal_metadata:
-		entity.mesh_metadata["normals"] = normals_metadata
-	if def.add_face_position_metadata:
-		entity.mesh_metadata["positions"] = positions_metadata
-	
-	entity.mesh = mesh
-	
-	if entity.is_convex():
+	if entity.is_collision_convex():
 		var sh: ConvexPolygonShape3D;
 		for b in entity.brushes:
 			if b.planes.is_empty() or b.origin:
@@ -506,7 +507,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 			sh.points = points
 			entity.shapes.append(sh)
 	
-	elif build_concave && concave_vertices.size():
+	elif build_concave and concave_vertices.size():
 		var sh := ConcavePolygonShape3D.new()
 		sh.set_faces(concave_vertices)
 		entity.shapes.append(sh)

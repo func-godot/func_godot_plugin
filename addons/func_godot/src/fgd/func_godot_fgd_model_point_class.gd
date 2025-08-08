@@ -140,7 +140,7 @@ func _save_to_file_system(gltf_document: GLTFDocument, gltf_state: GLTFState, pa
 		return 
 	
 	error = gltf_document.write_to_filesystem(gltf_state, path)
-	if error != OK:
+	if error != Error.OK:
 		printerr("Failed writing to file system", error)
 		return 
 	print('Exported model to ', path)

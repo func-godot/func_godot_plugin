@@ -150,14 +150,14 @@ class EntityData extends RefCounted:
 	var origin: Vector3 = Vector3.ZERO
 	
 	## Checks the entity's FGD resource definition, returning whether the Solid Class CollisionShapeType is set to Convex.
-	func is_convex() -> bool:
+	func is_collision_convex() -> bool:
 		return (definition 
 				and definition is FuncGodotFGDSolidClass 
 				and definition.collision_shape_type == FuncGodotFGDSolidClass.CollisionShapeType.CONVEX
 		)
 	
 	## Checks the entity's FGD resource definition, returning whether the Solid Class CollisionShapeType is set to Concave.
-	func is_concave() -> bool:
+	func is_collision_concave() -> bool:
 		return (definition 
 				and definition is FuncGodotFGDSolidClass 
 				and definition.collision_shape_type == FuncGodotFGDSolidClass.CollisionShapeType.CONCAVE

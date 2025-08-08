@@ -96,7 +96,7 @@ func generate_solid_entity_node(node: Node, node_name: String, data: _EntityData
 			node.add_child(occluder_instance)
 			data.occluder_instance = occluder_instance
 		
-		if not (build_flags & FuncGodotMap.BuildFlags.DISABLE_SMOOTHING) && data.is_smooth_shaded(map_settings.entity_smoothing_property):
+		if not (build_flags & FuncGodotMap.BuildFlags.DISABLE_SMOOTHING) and data.is_smooth_shaded(map_settings.entity_smoothing_property):
 			mesh_instance.mesh = FuncGodotUtil.smooth_mesh_by_angle(data.mesh, data.get_smoothing_angle(map_settings.entity_smoothing_angle_property))
 
 	# Collision generation
@@ -295,6 +295,8 @@ func apply_entity_properties(node: Node, data: _EntityData) -> void:
 						else:
 							push_error("Invalid Vector4i format for \'" + property + "\' in entity \'" + def.classname + "\': " + prop_string)
 						properties[property] = prop_vec
+					TYPE_STRING_NAME:
+						properties[property] = StringName(prop_string)
 					TYPE_NODE_PATH:
 						properties[property] = prop_string
 					TYPE_OBJECT:
@@ -314,13 +316,17 @@ func apply_entity_properties(node: Node, data: _EntityData) -> void:
 					properties[property] = prop_flags_sum
 				# Choices
 				elif prop_default is Dictionary:
-					var prop_desc = def.class_property_descriptions[property]
+					var prop_desc = def.class_property_descriptions.get(property, "")
 					if prop_desc is Array and prop_desc.size() > 1 and (prop_desc[1] is int or prop_desc[1] is String):
 						properties[property] = prop_desc[1]
+					elif prop_default.size():
+						properties[property] = prop_default[prop_default.keys().front()]
 					else:
 						properties[property] = 0
+				# Materials, Shaders, and Sounds
 				elif prop_default is Resource:
 					properties[property] = prop_default.resource_path
+				# Target Destination and Target Source
 				elif prop_default is NodePath or prop_default is Object or prop_default == null:
 					properties[property] = ""
 				# Everything else
