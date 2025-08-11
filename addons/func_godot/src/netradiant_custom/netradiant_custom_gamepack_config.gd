@@ -125,7 +125,7 @@ func _build_gamepack_text() -> String:
   soundtypes="%s"
   maptypes="%s"
   shaders="quake3"
-  entityclass="halflife"
+  entityclass="quake3"
   entityclasstype="fgd"
   entities="quake"
   brushtypes="quake"
