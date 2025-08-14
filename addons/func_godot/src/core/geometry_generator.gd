@@ -515,7 +515,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 func unwrap_uv2s(entity_index: int, texel_size: float) -> void:
 	var entity: _EntityData = entity_data[entity_index]
 	if entity.mesh:
-		if (entity.definition as FuncGodotFGDSolidClass).use_in_baked_light:
+		if (entity.definition as FuncGodotFGDSolidClass).global_illumination_mode:
 			entity.mesh.lightmap_unwrap(Transform3D.IDENTITY, texel_size)
 
 # Main build process

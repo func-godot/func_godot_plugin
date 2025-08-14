@@ -42,7 +42,9 @@ enum CollisionShapeType {
 @export_group("Visual Build")
 ## Controls whether a [MeshInstance3D] is built for this Solid Class.
 @export var build_visuals : bool = true
-## Sets generated [MeshInstance3D] to be available for UV2 unwrapping after [FuncGodotMap] build. Utilized in baked lightmapping.
+## Global illumination mode for the generated [MeshInstance3D]. Setting to [b]GI_MODE_STATIC[/b] will unwrap the mesh's UV2 during build.
+@export var global_illumination_mode : GeometryInstance3D.GIMode = GeometryInstance3D.GI_MODE_STATIC
+## @deprecated: Use [member global_illumination_mode] instead. [br]Sets generated [MeshInstance3D] to be available for UV2 unwrapping after [FuncGodotMap] build. Utilized in baked lightmapping.
 @export var use_in_baked_light : bool = true
 ## Shadow casting setting allows for further lightmapping customization.
 @export var shadow_casting_setting : GeometryInstance3D.ShadowCastingSetting = GeometryInstance3D.SHADOW_CASTING_SETTING_ON

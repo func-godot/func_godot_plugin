@@ -6,8 +6,9 @@
 [resource]
 script = ExtResource("2_lhb87")
 spawn_type = 2
-origin_type = 4
+origin_type = 3
 build_visuals = true
+global_illumination_mode = 1
 use_in_baked_light = true
 shadow_casting_setting = 1
 build_occlusion = false

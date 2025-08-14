@@ -7,6 +7,7 @@ script = ExtResource("1_62t8m")
 spawn_type = 0
 origin_type = 1
 build_visuals = true
+global_illumination_mode = 1
 use_in_baked_light = true
 shadow_casting_setting = 1
 build_occlusion = false

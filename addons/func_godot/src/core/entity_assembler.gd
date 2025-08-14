@@ -66,9 +66,8 @@ func generate_solid_entity_node(node: Node, node_name: String, data: _EntityData
 		mesh_instance.name = node_name + "_mesh_instance"
 		mesh_instance.mesh = data.mesh
 		mesh_instance.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
-		if build_flags & FuncGodotMap.BuildFlags.UNWRAP_UV2:
-			if definition.use_in_baked_light:
-				mesh_instance.gi_mode = MeshInstance3D.GI_MODE_STATIC
+		if definition.global_illumination_mode:
+			mesh_instance.gi_mode = definition.global_illumination_mode
 		mesh_instance.cast_shadow = definition.shadow_casting_setting
 		mesh_instance.layers = definition.render_layers
 		node.add_child(mesh_instance)
@@ -397,7 +396,7 @@ func generate_entity_node(entity_data: _EntityData, entity_index: int) -> Node:
 ## Main entity assembly process called by [FuncGodotMap]. Generates and sorts group nodes in the [SceneTree] first, 
 ## then generates and assembles [Node]s based upon the provided [FuncGodotData.EntityData] and adds them to the [SceneTree].
 func build(map_node: FuncGodotMap, entities: Array[_EntityData], groups: Array[_GroupData]) -> void:
-	var scene_root := map_node.get_tree().edited_scene_root if map_node.get_tree() else map_node;
+	var scene_root := map_node.get_tree().edited_scene_root if map_node.get_tree() else map_node
 	build_flags = map_node.build_flags
 	
 	if map_settings.use_groups_hierarchy:
