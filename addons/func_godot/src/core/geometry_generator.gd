@@ -381,12 +381,26 @@ func generate_entity_surfaces(entity_index: int) -> void:
 				continue
 
 			# Handle metadata for this face
+			# Add metadata per triangle rather than per face to keep consistent metadata
+			var num_tris = face.indices.size() / 3
 			if def.add_textures_metadata:
-				textures_metadata.append(tex_index)
+				var tex_array : Array[int] = []
+				tex_array.resize(num_tris)
+				tex_array.fill(tex_index)
+				textures_metadata.append_array(tex_array)
 			if def.add_face_normal_metadata:
-				normals_metadata.append(FuncGodotUtil.id_to_opengl(face.plane.normal))
+				var normal_array : Array[Vector3] = []
+				normal_array.resize(num_tris)
+				normal_array.fill(FuncGodotUtil.id_to_opengl(face.plane.normal))
+				normals_metadata.append_array(normal_array)
 			if def.add_face_position_metadata:
-				positions_metadata.append(face.get_centroid())
+				for i in num_tris:
+					var triangle_indices : Array[int] = []
+					var triangle_vertices : Array[Vector3] = []
+					triangle_indices.assign(face.indices.slice(i * 3, i * 3 + 3))
+					triangle_vertices.assign(triangle_indices.map(func(idx : int) -> Vector3: return face.vertices[idx]))
+					var position := FuncGodotUtil.op_vec3_avg(triangle_vertices);
+					positions_metadata.append(op_entity_ogl_xf.call(position))
 			if def.add_vertex_metadata:
 				for i in face.indices:
 					vertices_metadata.append(op_entity_ogl_xf.call(face.vertices[i]))
