@@ -321,13 +321,6 @@ func generate_entity_surfaces(entity_index: int) -> void:
 			if not surfaces.has(face.texture):
 				surfaces[face.texture] = []
 			surfaces[face.texture].append(face)
-			
-			if def.add_textures_metadata:
-				var tex_index: int = texture_names_metadata.find(face.texture)
-				if tex_index < 0:
-					tex_index = texture_names_metadata.size()
-					texture_names_metadata.append(face.texture)
-				textures_metadata.append(tex_index)
 	
 	# Cache order for consistency when rebuilding 
 	var textures: Array[String] = surfaces.keys();
@@ -346,6 +339,11 @@ func generate_entity_surfaces(entity_index: int) -> void:
 	for texture_name in textures:
 		# SURFACE SCOPE BEGIN
 		faces = surfaces[texture_name]
+		
+		# Get texture index for metadata
+		var tex_index: int = texture_names_metadata.size()
+		if def.add_textures_metadata:
+			texture_names_metadata.append(texture_name)
 
 		# Prepare new array
 		arrays = Array()
@@ -381,6 +379,17 @@ func generate_entity_surfaces(entity_index: int) -> void:
 			# Do not generate visuals for clip textures
 			if is_clip(face):
 				continue
+
+			# Handle metadata for this face
+			if def.add_textures_metadata:
+				textures_metadata.append(tex_index)
+			if def.add_face_normal_metadata:
+				normals_metadata.append(FuncGodotUtil.id_to_opengl(face.plane.normal))
+			if def.add_face_position_metadata:
+				positions_metadata.append(face.get_centroid())
+			if def.add_vertex_metadata:
+				for i in face.indices:
+					vertices_metadata.append(op_entity_ogl_xf.call(face.vertices[i]))
 			
 			# Append face data to surface array
 			for i in face.vertices.size():
@@ -407,23 +416,9 @@ func generate_entity_surfaces(entity_index: int) -> void:
 		
 		mesh_arrays.append(arrays);
 		
-		if def.add_vertex_metadata:
-			vertices_metadata.append_array(arrays[Mesh.ARRAY_VERTEX])
-		if def.add_face_normal_metadata:
-			normals_metadata.append_array(arrays[Mesh.ARRAY_NORMAL])
-		if def.add_face_position_metadata:
-			var vertices: PackedVector3Array = arrays[ArrayMesh.ARRAY_VERTEX]
-			var positions: PackedVector3Array = []
-			positions.resize(vertices.size() / 3)
-			for i in positions.size():
-				var v: int = i * 3
-				if vertices.size() > v + 2:
-					positions[i] = (vertices[v] + vertices[v + 1] + vertices[v + 2]) / 3
-			positions_metadata.append_array(positions)
+		# SURFACE SCOPE END
 
-			# SURFACE SCOPE END
-
-		# MULTISURFACE SCOPE END
+	# MULTISURFACE SCOPE END
 	
 	if def.build_visuals:
 		# Build mesh
