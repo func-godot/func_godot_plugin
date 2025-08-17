@@ -131,7 +131,7 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 			if value is Dictionary and class_property_descriptions[prop] is Array:
 				var prop_arr: Array = class_property_descriptions[prop]
 				if prop_arr.size() > 1 and (prop_arr[1] is int or prop_arr[1] is String):
-					prop_description = "\"" + prop_arr[0] + "\" : " + str(prop_arr[1])
+					prop_description = "\"" + prop_arr[0] + "\" : \"" + str(prop_arr[1]) + "\""
 				else:
 					prop_description = "\"\" : 0"
 					printerr(str(prop) + " has incorrect description format. Should be [String description, int / String default value].")
