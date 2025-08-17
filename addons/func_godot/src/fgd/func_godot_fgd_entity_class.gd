@@ -215,7 +215,9 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 					res += " : "
 					res += prop_description
 			
-			if value is bool or value is Dictionary or value is Array:
+			if value is bool:
+				res += " : 1 = " if value else " : 0 = "
+			elif value is Dictionary or value is Array:
 				res += " = "
 			else:
 				res += " : "
