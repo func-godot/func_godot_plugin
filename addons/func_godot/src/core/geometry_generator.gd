@@ -8,6 +8,8 @@ const _SIGNATURE: String = "[GEO]"
 const _VERTEX_EPSILON 	:= FuncGodotUtil._VERTEX_EPSILON
 const _VERTEX_EPSILON2 	:= _VERTEX_EPSILON * _VERTEX_EPSILON
 
+const _HYPERPLANE_SIZE	:= 65355.0
+
 const _OriginType 	:= FuncGodotFGDSolidClass.OriginType;
 
 const _GroupData		:= FuncGodotData.GroupData
@@ -84,103 +86,57 @@ func create_patch_mesh(data: Array[_PatchData], mesh: Mesh):
 	return
 
 ## Brushes
-func generate_brush_vertices_old(entity_index: int, brush_index: int) -> void:
-	var entity: _EntityData = entity_data[entity_index]
-	var brush: _BrushData = entity.brushes[brush_index]
-	var face_count: int = brush.planes.size()
+func generate_base_winding(plane: Plane) -> PackedVector3Array:
+	var up := Vector3.UP
+	if abs(plane.normal.dot(up)) > 0.9:
+		up = Vector3.RIGHT
+
+	var right: Vector3 = plane.normal.cross(up).normalized()
+	var forward: Vector3 = right.cross(plane.normal).normalized()
+	var centroid: Vector3 = plane.get_center()
+
+	# construct oversized square on the plane to clip against
+	var winding := PackedVector3Array()
+	winding.append(centroid + (right *  _HYPERPLANE_SIZE) + (forward *  _HYPERPLANE_SIZE))
+	winding.append(centroid + (right * -_HYPERPLANE_SIZE) + (forward *  _HYPERPLANE_SIZE))
+	winding.append(centroid + (right * -_HYPERPLANE_SIZE) + (forward * -_HYPERPLANE_SIZE))
+	winding.append(centroid + (right *  _HYPERPLANE_SIZE) + (forward * -_HYPERPLANE_SIZE))
+	return winding
+
+func generate_face_vertices(brush: _BrushData, face_index: int) -> PackedVector3Array:
+	var plane: Plane = brush.faces[face_index].plane
 	
-	#var do_phong: bool = entity.properties.get("_phong", 0) != 0;
-	#var phong_angle_str: String = entity.properties.get("_phong_angle", "89")
-	#var phong_angle: float = float(phong_angle_str) if phong_angle_str.is_valid_float() else 89.0
+	# Generate initial square polygon to clip other planes against
+	var winding: PackedVector3Array = generate_base_winding(plane)
 
-	# Check for valid planar intersections and clean up duplicates to prepare face geometry
-	for f0 in face_count:
-		var face: _FaceData = brush.faces[f0]
-		var plane: Plane = brush.planes[f0]
-
-		for f1 in face_count:
-			for f2 in face_count:
-				var value: Variant = plane.intersect_3(brush.planes[f1], brush.planes[f2])
-				if value == null: 
-					continue
-
-				var vertex: Vector3 = value
-				if not FuncGodotUtil.is_point_in_convex_hull(brush.planes, vertex): 
-					continue
-				
-				var merged: bool = false
-				for f3 in range(f0):
-					var other_face: _FaceData = brush.faces[f3]
-					for i in other_face.vertices.size():
-						if other_face.vertices[i].distance_squared_to(vertex) < _VERTEX_EPSILON2:
-							vertex = other_face.vertices[i]
-							merged = true
-							break
-					if merged: 
-						break
-				var normal: Vector3 = plane.normal
-				var tangent: PackedFloat32Array = FuncGodotUtil.get_face_tangent(face)
-				var duplicate_index: int = -1
-				for i in face.vertices.size():
-					if face.vertices[i] == vertex:
-						duplicate_index = i
-						break
-				
-				if duplicate_index < 0:
-					face.vertices.append(vertex)
-					face.normals.append(normal)
-					face.tangents.append_array(tangent)
-				else:
-					face.normals[duplicate_index] += normal
+	for other_face_index in brush.faces.size():
+		if other_face_index == face_index:
+			continue;
+		
+		# NOTE: This may need to be recentered to the origin, then moved back to the correct face position
+		# This problem may arise from floating point inaccuracy, given a large enough initial brush
+		winding = Geometry3D.clip_polygon(winding, brush.faces[other_face_index].plane)
+		if winding.is_empty():
+			break
 	
-	for face in brush.faces:
-		for i in face.vertices.size():
-			face.normals[i] = face.normals[i].normalized()
+	return winding
 
 func generate_brush_vertices(entity_index: int, brush_index: int) -> void:
 	var entity: _EntityData = entity_data[entity_index]
 	var brush: _BrushData = entity.brushes[brush_index]
-	var face_count: int = brush.faces.size()
-	
-	var f0: _FaceData
-	var f1: _FaceData
-	var f2: _FaceData
-	
-	var spatial_hash: Dictionary[Vector3i, Vector3] = {}; 
 
-	# Check for planar intersections in the face by unique triplets of planes.
-	for i in face_count:
-		f0 = brush.faces[i]
+	for face_index in brush.faces.size():
+		var face: _FaceData = brush.faces[face_index]
+		face.vertices = generate_face_vertices(brush, face_index)
 
-		for j in range(i + 1, face_count):
-			f1 = brush.faces[j]
-
-			for k in range(j + 1, face_count):
-				f2 = brush.faces[k]
-
-				var intersection := f0.plane.intersect_3(f1.plane, f2.plane)
-				if intersection == null:
-					continue
-				
-				var vertex: Vector3 = intersection;
-				if not FuncGodotUtil.is_point_in_convex_hull(brush.planes, vertex):
-					continue	
-
-				# Each face contains the vertex 
-				f0.vertices.append(vertex)
-				f1.vertices.append(vertex)
-				f2.vertices.append(vertex)
-	
-	# By default, brushes are flat shaded. Thus, the normal for each vertex is simply the face normal.
-	# Winding and indexing faces processes don't have to reorder these as smoothing would then take place after.
-	for face in brush.faces:
 		face.normals.resize(face.vertices.size())
 		face.normals.fill(face.plane.normal)
 
-		var tangent := FuncGodotUtil.get_face_tangent(face)
+		var tangent: PackedFloat32Array = FuncGodotUtil.get_face_tangent(face)
+
 		for i in face.vertices.size():
 			face.tangents.append_array(tangent)
-
+	return
 
 func generate_entity_vertices(entity_index: int) -> void:
 	var entity: _EntityData = entity_data[entity_index]
