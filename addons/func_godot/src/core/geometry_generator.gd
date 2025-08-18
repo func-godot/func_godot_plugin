@@ -359,7 +359,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 	# Arrange faces by surface texture
 	for brush in entity.brushes:
 		for face in brush.faces:
-			if is_skip(face) or is_origin(face):
+			if is_skip(face) or is_origin(face) or is_clip(face):
 				continue
 			
 			if not surfaces.has(face.texture):
