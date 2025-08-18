@@ -273,9 +273,22 @@ static func get_face_vertex_uv(vertex: Vector3, face: FuncGodotData.FaceData, te
 
 ## Returns the tangent calculated from the Valve 220 UV format.
 static func get_valve_tangent(u: Vector3, v: Vector3, normal: Vector3) -> PackedFloat32Array:
-	u = u.normalized()
-	v = v.normalized()
-	return op_swizzle_vec3_w(u, -signf(normal.cross(u).dot(v)))
+	var tangent: Vector3 = u.normalized() 
+	tangent = (tangent - normal * normal.dot(tangent)).normalized()
+	
+	# in the case of parallel U or V axes to planar normal, reconstruct the tangent
+	if tangent.length_squared() < 0.01:
+		if absf(normal.y) < 0.9:
+			tangent = Vector3.UP.cross(normal)
+		else:
+			tangent = Vector3.RIGHT.cross(normal)
+	
+	tangent = tangent.normalized()
+
+	return op_swizzle_vec3_w(
+		tangent,
+		signf(normal.cross(tangent).dot(v.normalized()))
+	)
 
 ## Returns the tangent calculated from the original id Standard UV format.
 static func get_quake_tangent(normal: Vector3, uv_y_scale: float, uv_rotation: float) -> PackedFloat32Array:
