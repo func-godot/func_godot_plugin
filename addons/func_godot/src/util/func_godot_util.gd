@@ -191,7 +191,9 @@ static func build_texture_map(entity_data: Array[FuncGodotData.EntityData], map_
 					var material: Material = load(material_path)
 					texture_materials[texture_name] = material
 					if material is BaseMaterial3D:
-						texture_sizes[texture_name] = material.albedo_texture.get_size()
+						var albedo = material.albedo_texture
+						if albedo is Texture2D:
+							texture_sizes[texture_name] = material.albedo_texture.get_size()
 					elif material is ShaderMaterial:
 						var albedo = material.get_shader_parameter(map_settings.default_material_albedo_uniform)
 						if albedo is Texture2D:
