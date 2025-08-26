@@ -33,8 +33,7 @@ signal declare_step(step: String)
 func _init(settings: FuncGodotMapSettings = null) -> void:
 	map_settings = settings
 
-# Tools
-
+#region TOOLS
 func is_skip(face: _FaceData) -> bool:
 	return FuncGodotUtil.is_skip(face.texture, map_settings)
 
@@ -44,8 +43,9 @@ func is_clip(face: _FaceData) -> bool:
 func is_origin(face: _FaceData) -> bool:
 	return FuncGodotUtil.is_origin(face.texture, map_settings)
 
-## Patches
+#endregion
 
+#region PATCHES
 func sample_bezier_curve(controls: Array[Vector3], t: float) -> Vector3:
 	var points: Array[Vector3] = controls.duplicate()
 	for i in controls.size():
@@ -85,7 +85,9 @@ func get_triangle_indices(width: int, height: int) -> Array[int]:
 func create_patch_mesh(data: Array[_PatchData], mesh: Mesh):
 	return
 
-## Brushes
+#endregion
+
+#region BRUSHES
 func generate_base_winding(plane: Plane) -> PackedVector3Array:
 	var up := Vector3.UP
 	if abs(plane.normal.dot(up)) > 0.9:
@@ -111,7 +113,7 @@ func generate_face_vertices(brush: _BrushData, face_index: int) -> PackedVector3
 
 	for other_face_index in brush.faces.size():
 		if other_face_index == face_index:
-			continue;
+			continue
 		
 		# NOTE: This may need to be recentered to the origin, then moved back to the correct face position
 		# This problem may arise from floating point inaccuracy, given a large enough initial brush
@@ -211,13 +213,11 @@ func determine_entity_origins(entity_index: int) -> void:
 			
 			_OriginType.AVERAGED:
 				entity.origin = Vector3.ZERO
-				
-				var vertices: PackedVector3Array;
+				var vertices: PackedVector3Array
 				for brush in entity.brushes:
 					for face in brush.faces:
-						vertices.append_array(face.vertices);
-				
-				entity.origin = FuncGodotUtil.op_vec3_avg(vertices);
+						vertices.append_array(face.vertices)
+				entity.origin = FuncGodotUtil.op_vec3_avg(vertices)
 
 func wind_entity_faces(entity_index: int) -> void:
 	var entity: _EntityData = entity_data[entity_index]
@@ -227,7 +227,7 @@ func wind_entity_faces(entity_index: int) -> void:
 			face.index_vertices()
 
 func smooth_entity_vertices(entity_index: int) -> void:
-	var entity: _EntityData = entity_data[entity_index]	
+	var entity: _EntityData = entity_data[entity_index]
 	if not entity.is_smooth_shaded(map_settings.entity_smoothing_property):
 		return
 	
@@ -240,30 +240,30 @@ func smooth_entity_vertices(entity_index: int) -> void:
 		for face in brush.faces:
 			for i in face.vertices.size():
 				var pos := face.vertices[i].snappedf(_VERTEX_EPSILON)
-
+				
 				if not vertex_map.has(pos):
 					vertex_map[pos] = _VertexGroupData.new()
-
+				
 				var data := vertex_map[pos]
 				data.faces.append(face)
 				data.face_indices.append(i)
 	
 	var smoothed_normals: PackedVector3Array;
-
+	
 	for vertex_group in vertex_map.values():
 		if vertex_group.faces.size() <= 1:
 			continue
 		
 		# Collect final normals in a temporary arrays
 		# These cannot be applied until all original normals have been checked.
-		smoothed_normals = []	
-
+		smoothed_normals = []
+		
 		for i in vertex_group.faces.size():
 			var this_face: _FaceData = vertex_group.faces[i]
 			var this_index: int = vertex_group.face_indices[i]
 			var this_normal: Vector3 = this_face.normals[this_index] 
 			var average_normal: Vector3 = this_normal
-
+			
 			for j in vertex_group.faces.size():
 				# Skip this face
 				if i == j:
@@ -272,19 +272,21 @@ func smooth_entity_vertices(entity_index: int) -> void:
 				var other_face: _FaceData = vertex_group.faces[j]
 				var other_index: int = vertex_group.face_indices[j]
 				var other_normal: Vector3 = other_face.normals[other_index]
-
+				
 				if this_normal.angle_to(other_normal) <= smoothing_angle:
 					average_normal += other_normal
 			
 			# Store the averaged normal
 			smoothed_normals.append(average_normal.normalized())
-
+			
 		# Apply smoothed normals back to face data
 		for i in vertex_group.faces.size():
 			var face: _FaceData = vertex_group.faces[i]
 			var index: int = vertex_group.face_indices[i]
 			face.normals[index] = smoothed_normals[i]
-	return;
+	return
+
+#endregion
 
 func generate_entity_surfaces(entity_index: int) -> void:
 	var entity: _EntityData = entity_data[entity_index]
@@ -355,13 +357,13 @@ func generate_entity_surfaces(entity_index: int) -> void:
 		arrays[Mesh.ARRAY_INDEX] 	= PackedInt32Array()
 		
 		# Begin fresh index offset for this subarray
-		var index_offset: int = 0; 
+		var index_offset: int = 0
 		
 		for face in faces:
 			# FACE SCOPE BEGIN
 			
 			# Reject invalid faces
-			if face.vertices.size() < 3 || is_skip(face) || is_origin(face):
+			if face.vertices.size() < 3 or is_skip(face) or is_origin(face):
 				continue
 			
 			# Create trimesh points regardless of texture
@@ -379,24 +381,24 @@ func generate_entity_surfaces(entity_index: int) -> void:
 			# Do not generate visuals for clip textures
 			if is_clip(face):
 				continue
-
+			
 			# Handle metadata for this face
 			# Add metadata per triangle rather than per face to keep consistent metadata
 			var num_tris = face.indices.size() / 3
 			if def.add_textures_metadata:
-				var tex_array : Array[int] = []
+				var tex_array: Array[int] = []
 				tex_array.resize(num_tris)
 				tex_array.fill(tex_index)
 				textures_metadata.append_array(tex_array)
 			if def.add_face_normal_metadata:
-				var normal_array : Array[Vector3] = []
+				var normal_array: Array[Vector3] = []
 				normal_array.resize(num_tris)
 				normal_array.fill(FuncGodotUtil.id_to_opengl(face.plane.normal))
 				normals_metadata.append_array(normal_array)
 			if def.add_face_position_metadata:
 				for i in num_tris:
-					var triangle_indices : Array[int] = []
-					var triangle_vertices : Array[Vector3] = []
+					var triangle_indices: Array[int] = []
+					var triangle_vertices: Array[Vector3] = []
 					triangle_indices.assign(face.indices.slice(i * 3, i * 3 + 3))
 					triangle_vertices.assign(triangle_indices.map(func(idx : int) -> Vector3: return face.vertices[idx]))
 					var position := FuncGodotUtil.op_vec3_avg(triangle_vertices);
@@ -428,18 +430,19 @@ func generate_entity_surfaces(entity_index: int) -> void:
 		if FuncGodotUtil.filter_face(texture_name, map_settings):
 			continue
 		
-		mesh_arrays.append(arrays);
+		mesh_arrays.append(arrays)
 		
 		# SURFACE SCOPE END
-
+	
 	# MULTISURFACE SCOPE END
+	textures.erase(map_settings.clip_texture)
 	
 	if def.build_visuals:
 		# Build mesh
 		for array_index in mesh_arrays.size():
-			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, mesh_arrays[array_index]);
-			mesh.surface_set_name(array_index, textures[array_index]);
-			mesh.surface_set_material(array_index, texture_materials[textures[array_index]]);
+			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, mesh_arrays[array_index])
+			mesh.surface_set_name(array_index, textures[array_index])
+			mesh.surface_set_material(array_index, texture_materials[textures[array_index]])
 		
 		# Apply mesh metadata	
 		if def.add_textures_metadata:
@@ -512,7 +515,7 @@ func build(build_flags: int, entities: Array[_EntityData]) -> Error:
 	#	declare_step.emit("Smoothing entity faces")
 	#	task_id = WorkerThreadPool.add_group_task(smooth_entity_vertices, entity_count, -1, false, "Smooth Entities")
 	#	WorkerThreadPool.wait_for_group_task_completion(task_id)
-
+	
 	declare_step.emit("Generating surfaces")
 	task_id = WorkerThreadPool.add_group_task(generate_entity_surfaces, entity_count, -1, false, "Generate Surfaces")
 	WorkerThreadPool.wait_for_group_task_completion(task_id)
@@ -522,6 +525,6 @@ func build(build_flags: int, entities: Array[_EntityData]) -> Error:
 		var texel_size: float = map_settings.uv_unwrap_texel_size * map_settings.scale_factor
 		for entity_index in entity_count:
 			unwrap_uv2s(entity_index, texel_size)
-  
+	
 	declare_step.emit("Geometry generation complete")
 	return OK
