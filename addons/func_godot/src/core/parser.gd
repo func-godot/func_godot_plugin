@@ -215,9 +215,12 @@ func _parse_quake_map(map_data: PackedStringArray, map_settings: FuncGodotMapSet
 			# Retrieve texture data
 			var tex: String = String()
 			if tokens[3].begins_with("\""): # textures with spaces get surrounded by double quotes
-				tex = tokens[3].split("\"")[0]
+				var last_quote := tokens[3].rfind("\"")
+				tex = tokens[3].substr(1, last_quote - 1)
+				tokens = tokens[3].substr(last_quote + 2).split(" ] ")
 			else:
-				tex = tokens[3].split(" ")[0]
+				tex = tokens[3].get_slice(" ", 0)
+				tokens = tokens[3].trim_prefix(tex + " ").split(" ] ")
 			face.texture = tex
 			
 			# Check for origin brushes. Brushes must be completely textured with origin to be valid.
@@ -230,7 +233,6 @@ func _parse_quake_map(map_data: PackedStringArray, map_settings: FuncGodotMapSet
 			
 			# Retrieve UV data
 			var uv: Transform2D = Transform2D.IDENTITY
-			tokens = tokens[3].trim_prefix(tex + " ").split(" ] ")
 			
 			# Valve 220: texname [ ux uy ux offsetX ] [vx vy vz offsetY] rotation scaleX scaleY
 			if tokens.size() > 1:
