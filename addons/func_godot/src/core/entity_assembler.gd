@@ -104,24 +104,31 @@ func generate_solid_entity_node(node: Node, node_name: String, data: _EntityData
 		node.collision_mask = definition.collision_mask
 		node.collision_priority = definition.collision_priority
 		
+		var shape_to_face_array : Array[PackedInt32Array] = []
+		if data.mesh_metadata.has('shape_to_face_array'):
+			shape_to_face_array = data.mesh_metadata['shape_to_face_array']
+			data.mesh_metadata.erase('shape_to_face_array')
+		
 		# Generate CollisionShape3D nodes and apply shapes
-		if definition.collision_shape_type == FuncGodotFGDSolidClass.CollisionShapeType.CONCAVE:
+		var face_index_metadata : Dictionary[String, PackedInt32Array] = {}
+		for i in data.shapes.size():
+			var shape := data.shapes[i]
 			var collision_shape := CollisionShape3D.new()
-			collision_shape.name = node_name + "_collision_shape"
-			collision_shape.shape = data.shapes[0]
+			if definition.collision_shape_type == FuncGodotFGDSolidClass.CollisionShapeType.CONCAVE:
+				collision_shape.name = node_name + "_collision_shape"
+			else:
+				collision_shape.name = node_name + "_brush_%s_collision_shape" % i
+			collision_shape.shape = shape
 			collision_shape.shape.margin = definition.collision_shape_margin
 			collision_shape.owner = node.owner
 			node.add_child(collision_shape)
 			data.collision_shapes.append(collision_shape)
-		else:
-			for i in data.shapes.size():
-				var collision_shape := CollisionShape3D.new()
-				collision_shape.name = node_name + "_brush_%s_collision_shape" % i
-				collision_shape.shape = data.shapes[i]
-				collision_shape.shape.margin = definition.collision_shape_margin
-				node.add_child(collision_shape)
-				data.collision_shapes.append(collision_shape)
-	
+			if shape_to_face_array.size() > i:
+				face_index_metadata[collision_shape.name] = shape_to_face_array[i]
+		
+		if definition.add_collision_shape_face_range_metadata:
+			data.mesh_metadata['collision_shape_to_face_indices_map'] = face_index_metadata
+
 	if "position" in node:
 		if node.position is Vector3:
 			node.position = FuncGodotUtil.id_to_opengl(data.origin) * map_settings.scale_factor
