@@ -33,9 +33,8 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files) 
 
 	var map_resource : QuakeMapFile = null
 
-	var existing_resource := load(save_path_str) as QuakeMapFile
-	if(existing_resource != null):
-		map_resource = existing_resource
+	if ResourceLoader.exists(save_path_str):
+		map_resource = load(save_path_str) as QuakeMapFile
 		map_resource.revision += 1
 	else:
 		map_resource = QuakeMapFile.new()
