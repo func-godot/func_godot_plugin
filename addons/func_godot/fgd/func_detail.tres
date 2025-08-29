@@ -22,6 +22,7 @@ add_textures_metadata = false
 add_vertex_metadata = false
 add_face_position_metadata = false
 add_face_normal_metadata = false
+add_collision_shape_to_face_indices_metadata = false
 add_collision_shape_face_range_metadata = false
 classname = "func_detail"
 description = "Static collidable geometry. Builds a StaticBody3D with a MeshInstance3D and a single concave CollisionShape3D. Does not occlude other VisualInstance3D nodes."
