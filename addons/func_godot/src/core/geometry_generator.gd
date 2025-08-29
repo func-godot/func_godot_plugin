@@ -409,7 +409,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 			if def.add_vertex_metadata:
 				for i in face.indices:
 					vertices_metadata.append(op_entity_ogl_xf.call(face.vertices[i]))
-			if def.add_collision_shape_face_range_metadata:
+			if def.add_collision_shape_to_face_indices_metadata:
 				face_index_metadata_map[face] = PackedInt32Array(range(current_metadata_index, current_metadata_index + num_tris))
 			current_metadata_index += num_tris
 			
@@ -481,7 +481,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 			sh.points = points
 			entity.shapes.append(sh)
 	
-			if def.add_collision_shape_face_range_metadata:
+			if def.add_collision_shape_to_face_indices_metadata:
 				# convex collision has one shape per brush, so collect the
 				# indices for this brush's faces
 				var face_indices_array : PackedInt32Array = []
@@ -495,7 +495,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 		sh.set_faces(concave_vertices)
 		entity.shapes.append(sh)
 		
-		if def.add_collision_shape_face_range_metadata:
+		if def.add_collision_shape_to_face_indices_metadata:
 			# for concave collision the shape will always represent every face
 			# in the entity, so just add every face here
 			var face_indices_array : PackedInt32Array = []
@@ -503,7 +503,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 				face_indices_array.append_array(fm)
 			shape_to_face_metadata.append(face_indices_array)
 			
-	if def.add_collision_shape_face_range_metadata:
+	if def.add_collision_shape_to_face_indices_metadata:
 		# this metadata will be mapped to the actual shape node names during entity assembly
 		entity.mesh_metadata["shape_to_face_array"] = shape_to_face_metadata
 

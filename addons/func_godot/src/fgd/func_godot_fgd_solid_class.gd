@@ -81,6 +81,13 @@ enum CollisionShapeType {
 ## Add a [PackedVector3Array] called [i]"normals"[/i] to the generated node's metadata on build.[br][br] 
 ## Contains a list of each face's normal.
 @export var add_face_normal_metadata: bool = false
+## Add a [Dictionary] called [i]"collision_shape_to_face_indices_map"[/i] in the generated node's metadata on build.[br][br] 
+## Contains keys of strings, which are the names of child [CollisionShape3D] nodes, and values of
+## [PackedInt32Array], containing indices of that child's faces.[br][br]
+## For example, an element of [br][br][code]{ "entity_1_brush_0_collision_shape" : [0, 1, 3] }[/code][br][br]
+## shows that this solid class has been generated with one child collision shape named 
+## [i]entity_1_brush_0_collision_shape[/i] which handles 3 faces of the mesh with collision, at indices 0, 1, and 3.
+@export var add_collision_shape_to_face_indices_metadata : bool = false
 ## [s]Add a [Dictionary] called [i]"collision_shape_to_face_range_map"[/i] in the generated node's metadata on build.[br][br] 
 ## Contains keys of strings, which are the names of child [CollisionShape3D] nodes, and values of
 ## [Vector2i], where [i]X[/i] represents the starting index of that child's faces and [i]Y[/i] represents the

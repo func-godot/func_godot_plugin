@@ -126,7 +126,7 @@ func generate_solid_entity_node(node: Node, node_name: String, data: _EntityData
 			if shape_to_face_array.size() > i:
 				face_index_metadata[collision_shape.name] = shape_to_face_array[i]
 		
-		if definition.add_collision_shape_face_range_metadata:
+		if definition.add_collision_shape_to_face_indices_metadata:
 			data.mesh_metadata['collision_shape_to_face_indices_map'] = face_index_metadata
 
 	if "position" in node:
