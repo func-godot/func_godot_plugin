@@ -103,6 +103,8 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 			]
 		elif value is String:
 			res += value
+		elif value is Dictionary and target_editor == FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM:
+			res += JSON.stringify(value)
 		
 		res += ")"
 	
