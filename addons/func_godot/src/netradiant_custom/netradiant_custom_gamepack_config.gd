@@ -10,7 +10,7 @@ enum NetRadiantCustomMapType {
 	QUAKE_3 ## Allows the saving of PatchDef entries in the map file.
 }
 
-@export_tool_button("Export Gamepack") var _export_file: Callable = export_file; 
+@export_tool_button("Export Gamepack") var _export_file: Callable = export_file 
 
 ## Gamepack folder and file name. Must be lower case and must not contain special characters.
 @export var gamepack_name : String = "func_godot":

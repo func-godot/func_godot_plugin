@@ -91,10 +91,10 @@ func build() -> void:
 
 	clear_children()
 	
-	var verify_err: Error = verify();
+	var verify_err: Error = verify()
 	if verify_err != OK:
 		fail_build("Verification failed: %s. Aborting map build" % error_string(verify_err), true)
-		return;
+		return
 	
 	if not map_settings:
 		push_warning("Map assembler does not have a map settings provided and will use default map settings.")
@@ -126,7 +126,7 @@ func build() -> void:
 	var generate_error := generator.build(build_flags, entities)
 	if generate_error != OK:
 		fail_build("Geometry generation failed: %s" % error_string(generate_error))
-		return;
+		return
 
 	# Assemble entities and groups
 	var assembler := FuncGodotEntityAssembler.new(map_settings)
