@@ -31,11 +31,20 @@ func do_export_file(target_editor: FuncGodotTargetMapEditors = FuncGodotTargetMa
 
 	if fgd_name == "":
 		print("Skipping export: Empty FGD name")
+	
+	if not DirAccess.dir_exists_absolute(fgd_output_folder):
+		if DirAccess.make_dir_recursive_absolute(fgd_output_folder) != OK:
+			print("Skipping export: Failed to create directory")
+			return
 
-	var fgd_file = fgd_output_folder + "/" + fgd_name + ".fgd"
-
-	print("Exporting FGD to ", fgd_file)
+	var fgd_file = fgd_output_folder.path_join(fgd_name + ".fgd")
+	
 	var file_obj := FileAccess.open(fgd_file, FileAccess.WRITE)
+	if not file_obj:
+		print("Failed to open file for writing: ", fgd_file)
+		return
+	
+	print("Exporting FGD to ", fgd_file)
 	file_obj.store_string(build_class_text(target_editor))
 	file_obj.close()
 

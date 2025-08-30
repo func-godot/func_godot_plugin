@@ -1,7 +1,7 @@
 class_name FuncGodotUtil
 ## Static class with a number of reuseable utility methods that can be called at Editor or Run Time.
 
-const _VERTEX_EPSILON: float = 0.008;
+const _VERTEX_EPSILON: float = 0.008
 
 const _VEC3_UP_ID		:= Vector3(0.0, 0.0, 1.0)
 const _VEC3_RIGHT_ID		:= Vector3(0.0, 1.0, 0.0)
@@ -29,14 +29,6 @@ static func op_vec3_avg(array: Array[Vector3]) -> Vector3:
 		push_error("Cannot average empty Vector3 array!")
 		return Vector3()
 	return array.reduce(op_vec3_sum, Vector3()) / array.size()
-
-static func op_swizzle_vec3_w(xyz: Vector3, w: float) -> PackedFloat32Array:
-	var out := PackedFloat32Array()
-	out.resize(4)
-	for i in 3:
-		out[i] = xyz[i]
-	out[3] = w
-	return out
 
 ## Conversion from id tech coordinate system to Godot, from a top-down perspective.
 static func id_to_opengl(vec: Vector3) -> Vector3: 
@@ -132,8 +124,8 @@ static func filter_face(texture: String, map_settings: FuncGodotMapSettings) -> 
 			or texture == map_settings.clip_texture
 		 	or texture == map_settings.origin_texture
 			):
-			return true;
-	return false;
+			return true
+	return false
 
 ## Adds PBR textures to an existing [BaseMaterial3D].
 static func build_base_material(map_settings: FuncGodotMapSettings, material: BaseMaterial3D, texture: String) -> void:
@@ -273,22 +265,24 @@ static func get_face_vertex_uv(vertex: Vector3, face: FuncGodotData.FaceData, te
 
 ## Returns the tangent calculated from the Valve 220 UV format.
 static func get_valve_tangent(u: Vector3, v: Vector3, normal: Vector3) -> PackedFloat32Array:
-	var tangent: Vector3 = u.normalized() 
-	tangent = (tangent - normal * normal.dot(tangent)).normalized()
-	
-	# in the case of parallel U or V axes to planar normal, reconstruct the tangent
-	if tangent.length_squared() < 0.01:
-		if absf(normal.y) < 0.9:
-			tangent = Vector3.UP.cross(normal)
-		else:
-			tangent = Vector3.RIGHT.cross(normal)
-	
-	tangent = tangent.normalized()
+	var u_axis: Vector3 = u.normalized()
+	var v_axis: Vector3 = v.normalized()
+	var v_sign: float = -signf(normal.cross(u_axis).dot(v_axis))
+	return [u_axis.x, u_axis.y, u_axis.z, v_sign]
 
-	return op_swizzle_vec3_w(
-		tangent,
-		signf(normal.cross(tangent).dot(v.normalized()))
-	)
+	# NOTE: we may still need to orthonormalize tangents. Just in case, here's a rough outline.
+	#var tangent: Vector3 = u.normalized() 
+	#tangent = (tangent - normal * normal.dot(tangent)).normalized()
+	#
+	## in the case of parallel U or V axes to planar normal, reconstruct the tangent
+	#if tangent.length_squared() < 0.01:
+	#	if absf(normal.y) < 0.9:
+	#		tangent = Vector3.UP.cross(normal)
+	#	else:
+	#		tangent = Vector3.RIGHT.cross(normal)
+	#
+	#tangent = tangent.normalized()
+	#return [tangent.x, tangent.y, tangent.z, -signf(normal.cross(tangent).dot(v.normalized))]
 
 ## Returns the tangent calculated from the original id Standard UV format.
 static func get_quake_tangent(normal: Vector3, uv_y_scale: float, uv_rotation: float) -> PackedFloat32Array:
@@ -313,7 +307,7 @@ static func get_quake_tangent(normal: Vector3, uv_y_scale: float, uv_rotation: f
 		
 	v_sign *= signf(uv_y_scale)
 	u_axis = u_axis.rotated(normal, deg_to_rad(-uv_rotation) * v_sign)
-	return op_swizzle_vec3_w(u_axis, v_sign)
+	return [u_axis.x, u_axis.y, u_axis.z, v_sign]
 
 static func get_face_tangent(face: FuncGodotData.FaceData) -> PackedFloat32Array:
 	if face.uv_axes.size() >= 2:

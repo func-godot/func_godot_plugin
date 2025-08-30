@@ -10,14 +10,14 @@ const _VERTEX_EPSILON2 	:= _VERTEX_EPSILON * _VERTEX_EPSILON
 
 const _HYPERPLANE_SIZE	:= 65355.0
 
-const _OriginType 	:= FuncGodotFGDSolidClass.OriginType;
+const _OriginType 	:= FuncGodotFGDSolidClass.OriginType
 
 const _GroupData		:= FuncGodotData.GroupData
 const _EntityData 		:= FuncGodotData.EntityData
 const _BrushData 		:= FuncGodotData.BrushData
 const _PatchData 		:= FuncGodotData.PatchData
 const _FaceData 		:= FuncGodotData.FaceData
-const _VertexGroupData	:= FuncGodotData.VertexGroupData;
+const _VertexGroupData	:= FuncGodotData.VertexGroupData
 
 # Class members
 var map_settings: FuncGodotMapSettings = null
@@ -135,9 +135,13 @@ func generate_brush_vertices(entity_index: int, brush_index: int) -> void:
 		face.normals.fill(face.plane.normal)
 
 		var tangent: PackedFloat32Array = FuncGodotUtil.get_face_tangent(face)
-
+	
+		# convert into OpenGL coordinates
 		for i in face.vertices.size():
-			face.tangents.append_array(tangent)
+			face.tangents.append(tangent[1]) # Y
+			face.tangents.append(tangent[2]) # Z
+			face.tangents.append(tangent[0]) # X
+			face.tangents.append(tangent[3]) # W
 	return
 
 func generate_entity_vertices(entity_index: int) -> void:
@@ -223,6 +227,7 @@ func wind_entity_faces(entity_index: int) -> void:
 	var entity: _EntityData = entity_data[entity_index]
 	for brush in entity.brushes:
 		for face in brush.faces:
+			# Faces should already be wound from the new generation process, but this should be tested further first.
 			face.wind()
 			face.index_vertices()
 
@@ -248,7 +253,7 @@ func smooth_entity_vertices(entity_index: int) -> void:
 				data.faces.append(face)
 				data.face_indices.append(i)
 	
-	var smoothed_normals: PackedVector3Array;
+	var smoothed_normals: PackedVector3Array
 	
 	for vertex_group in vertex_map.values():
 		if vertex_group.faces.size() <= 1:
@@ -325,7 +330,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 			surfaces[face.texture].append(face)
 	
 	# Cache order for consistency when rebuilding 
-	var textures: Array[String] = surfaces.keys();
+	var textures: Array[String] = surfaces.keys()
 	
 	# Output mesh data
 	var mesh := ArrayMesh.new()
@@ -368,7 +373,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 			
 			# Create trimesh points regardless of texture
 			if build_concave:
-				var tris: PackedVector3Array;
+				var tris: PackedVector3Array
 				tris.resize(face.indices.size())
 				
 				# Add triangles from face indices directly
@@ -401,7 +406,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 					var triangle_vertices: Array[Vector3] = []
 					triangle_indices.assign(face.indices.slice(i * 3, i * 3 + 3))
 					triangle_vertices.assign(triangle_indices.map(func(idx : int) -> Vector3: return face.vertices[idx]))
-					var position := FuncGodotUtil.op_vec3_avg(triangle_vertices);
+					var position := FuncGodotUtil.op_vec3_avg(triangle_vertices)
 					positions_metadata.append(op_entity_ogl_xf.call(position))
 			if def.add_vertex_metadata:
 				for i in face.indices:
@@ -417,7 +422,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 				arrays[ArrayMesh.ARRAY_TEX_UV].append(FuncGodotUtil.get_face_vertex_uv(v, face, tx_sz))
 				
 				for j in 4:
-					arrays[ArrayMesh.ARRAY_TANGENT].append(face.tangents[i + j])
+					arrays[ArrayMesh.ARRAY_TANGENT].append(face.tangents[(i * 4) + j])
 			
 			# Create offset indices for the visual mesh
 			var op_shift_index: Callable = (func(a: int) -> int: return a + index_offset)
@@ -462,7 +467,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 	surfaces = {}
 	
 	if entity.is_collision_convex():
-		var sh: ConvexPolygonShape3D;
+		var sh: ConvexPolygonShape3D
 		for b in entity.brushes:
 			if b.planes.is_empty() or b.origin:
 				continue

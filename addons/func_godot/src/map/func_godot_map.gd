@@ -65,6 +65,14 @@ func verify() -> Error:
 		fail_build("Cannot build empty map file.")
 		return ERR_INVALID_PARAMETER
 	
+	# Retrieve real path if needed
+	if _map_file_internal.begins_with("uid://"):
+		var uid := ResourceUID.text_to_id(_map_file_internal)
+		if not ResourceUID.has_id(uid):
+			fail_build("Error: failed to retrieve path for UID (%s)" % _map_file_internal)
+			return ERR_DOES_NOT_EXIST
+		_map_file_internal = ResourceUID.get_id_path(uid)
+	
 	if not FileAccess.file_exists(_map_file_internal):
 		if not FileAccess.file_exists(_map_file_internal + ".import"):
 			fail_build("Map file %s does not exist." % _map_file_internal)
@@ -83,10 +91,10 @@ func build() -> void:
 
 	clear_children()
 	
-	var verify_err: Error = verify();
+	var verify_err: Error = verify()
 	if verify_err != OK:
 		fail_build("Verification failed: %s. Aborting map build" % error_string(verify_err), true)
-		return;
+		return
 	
 	if not map_settings:
 		push_warning("Map assembler does not have a map settings provided and will use default map settings.")
@@ -118,7 +126,7 @@ func build() -> void:
 	var generate_error := generator.build(build_flags, entities)
 	if generate_error != OK:
 		fail_build("Geometry generation failed: %s" % error_string(generate_error))
-		return;
+		return
 
 	# Assemble entities and groups
 	var assembler := FuncGodotEntityAssembler.new(map_settings)

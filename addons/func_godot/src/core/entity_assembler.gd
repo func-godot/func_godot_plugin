@@ -57,7 +57,7 @@ func generate_solid_entity_node(node: Node, node_name: String, data: _EntityData
 		node = Node3D.new()
 	
 	node.name = node_name
-	node_name = node_name.trim_suffix(definition.classname).trim_suffix("_");
+	node_name = node_name.trim_suffix(definition.classname).trim_suffix("_")
 	var properties: Dictionary = data.properties
 	
 	# Mesh Instance generation
