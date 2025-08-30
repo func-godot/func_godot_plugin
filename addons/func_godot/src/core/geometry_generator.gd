@@ -313,11 +313,14 @@ func generate_entity_surfaces(entity_index: int) -> void:
 	var surfaces: Dictionary[String, Array] = {}
 
 	# Metadata
+	var current_metadata_index: int = 0
 	var texture_names_metadata: Array[StringName] = []
 	var textures_metadata: PackedInt32Array = []
 	var vertices_metadata: PackedVector3Array = []
 	var normals_metadata: PackedVector3Array = []
 	var positions_metadata: PackedVector3Array = []
+	var shape_to_face_metadata: Array[PackedInt32Array] = []
+	var face_index_metadata_map: Dictionary[_FaceData, PackedInt32Array] = {}
 	
 	# Arrange faces by surface texture
 	for brush in entity.brushes:
@@ -411,6 +414,9 @@ func generate_entity_surfaces(entity_index: int) -> void:
 			if def.add_vertex_metadata:
 				for i in face.indices:
 					vertices_metadata.append(op_entity_ogl_xf.call(face.vertices[i]))
+			if def.add_collision_shape_to_face_indices_metadata:
+				face_index_metadata_map[face] = PackedInt32Array(range(current_metadata_index, current_metadata_index + num_tris))
+			current_metadata_index += num_tris
 			
 			# Append face data to surface array
 			for i in face.vertices.size():
@@ -480,10 +486,31 @@ func generate_entity_surfaces(entity_index: int) -> void:
 			sh.points = points
 			entity.shapes.append(sh)
 	
+			if def.add_collision_shape_to_face_indices_metadata:
+				# convex collision has one shape per brush, so collect the
+				# indices for this brush's faces
+				var face_indices_array : PackedInt32Array = []
+				for face in b.faces:
+					if face_index_metadata_map.has(face):
+						face_indices_array.append_array(face_index_metadata_map[face])
+				shape_to_face_metadata.append(face_indices_array)
+
 	elif build_concave and concave_vertices.size():
 		var sh := ConcavePolygonShape3D.new()
 		sh.set_faces(concave_vertices)
 		entity.shapes.append(sh)
+		
+		if def.add_collision_shape_to_face_indices_metadata:
+			# for concave collision the shape will always represent every face
+			# in the entity, so just add every face here
+			var face_indices_array : PackedInt32Array = []
+			for fm in face_index_metadata_map.values():
+				face_indices_array.append_array(fm)
+			shape_to_face_metadata.append(face_indices_array)
+			
+	if def.add_collision_shape_to_face_indices_metadata:
+		# this metadata will be mapped to the actual shape node names during entity assembly
+		entity.mesh_metadata["shape_to_face_array"] = shape_to_face_metadata
 
 func unwrap_uv2s(entity_index: int, texel_size: float) -> void:
 	var entity: _EntityData = entity_data[entity_index]
