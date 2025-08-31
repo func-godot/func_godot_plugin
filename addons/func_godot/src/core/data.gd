@@ -148,6 +148,12 @@ class EntityData extends RefCounted:
 	var occluder_instance: OccluderInstance3D = null
 	## True global position of the entity's generated node that the mesh's vertices are offset by during the geometry generation stage.
 	var origin: Vector3 = Vector3.ZERO
+
+	## Checks the entity's FGD resource definition, returning whether the Solid Class has a [MeshInstance3D] built for it.
+	func is_visual() -> bool:
+		return (definition
+				and definition is FuncGodotFGDSolidClass
+				and definition.build_visuals)
 	
 	## Checks the entity's FGD resource definition, returning whether the Solid Class CollisionShapeType is set to Convex.
 	func is_collision_convex() -> bool:

@@ -166,6 +166,9 @@ static func build_texture_map(entity_data: Array[FuncGodotData.EntityData], map_
 			wad_resources.append(wad)
 	
 	for entity in entity_data:
+		if not entity.is_visual():
+			continue
+
 		for brush in entity.brushes:
 			for face in brush.faces:
 				var texture_name: String = face.texture
