@@ -17,7 +17,10 @@ enum FuncGodotTargetMapEditors {
 }
 
 ## Builds and exports the FGD file.
-@export_tool_button("Export FGD") var export_file := do_export_file.bind(target_map_editor)
+@export_tool_button("Export FGD") var export_file := export_button
+
+func export_button() -> void:
+	do_export_file(target_map_editor)
 
 func do_export_file(target_editor: FuncGodotTargetMapEditors = FuncGodotTargetMapEditors.TRENCHBROOM, fgd_output_folder: String = "") -> void:
 	if not Engine.is_editor_hint():
