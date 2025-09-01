@@ -37,6 +37,9 @@ var scale_factor: float = 0.03125
 ## Any Layers toggled to be omitted from export in TrenchBroom and their child entities and groups will not be built.
 @export var use_groups_hierarchy: bool = false
 
+## Snap generated vertices to this epsilon. Adjust this to reduce instances of seams between polygons.
+@export var vertex_snap_epsilon: float = 0.008
+
 #endregion
 
 #region TEXTURES

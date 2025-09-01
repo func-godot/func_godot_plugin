@@ -121,6 +121,10 @@ func generate_face_vertices(brush: _BrushData, face_index: int) -> PackedVector3
 		if winding.is_empty():
 			break
 	
+	# Reduce seams between vertices
+	for i in winding.size():
+		winding.set(i, winding.get(i).snappedf(map_settings.vertex_snap_epsilon))
+
 	return winding
 
 func generate_brush_vertices(entity_index: int, brush_index: int) -> void:
