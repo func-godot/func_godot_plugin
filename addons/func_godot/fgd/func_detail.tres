@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="FuncGodotFGDSolidClass" load_steps=3 format=3 uid="uid://cxy7jnh6d7msn"]
+[gd_resource type="Resource" script_class="FuncGodotFGDSolidClass" load_steps=4 format=3 uid="uid://cxy7jnh6d7msn"]
 
 [ext_resource type="Script" uid="uid://5cow84q03m6a" path="res://addons/func_godot/src/fgd/func_godot_fgd_solid_class.gd" id="1_0fsmp"]
 [ext_resource type="Resource" uid="uid://nayxb8n7see2" path="res://addons/func_godot/fgd/phong_base.tres" id="1_c3bns"]
+[ext_resource type="Resource" uid="uid://doo4ly322b4jc" path="res://addons/func_godot/fgd/vertex_merge_distance_base.tres" id="2_c03gr"]
 
 [resource]
 script = ExtResource("1_0fsmp")
@@ -27,7 +28,7 @@ add_collision_shape_face_range_metadata = false
 classname = "func_detail"
 description = "Static collidable geometry. Builds a StaticBody3D with a MeshInstance3D and a single concave CollisionShape3D. Does not occlude other VisualInstance3D nodes."
 func_godot_internal = false
-base_classes = Array[Resource]([ExtResource("1_c3bns")])
+base_classes = Array[Resource]([ExtResource("1_c3bns"), ExtResource("2_c03gr")])
 class_properties = {}
 class_property_descriptions = {}
 auto_apply_to_matching_node_properties = false

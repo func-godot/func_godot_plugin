@@ -105,7 +105,7 @@ func generate_base_winding(plane: Plane) -> PackedVector3Array:
 	winding.append(centroid + (right *  _HYPERPLANE_SIZE) + (forward * -_HYPERPLANE_SIZE))
 	return winding
 
-func generate_face_vertices(brush: _BrushData, face_index: int) -> PackedVector3Array:
+func generate_face_vertices(brush: _BrushData, face_index: int, vertex_merge_distance: float = 0.0) -> PackedVector3Array:
 	var plane: Plane = brush.faces[face_index].plane
 	
 	# Generate initial square polygon to clip other planes against
@@ -123,23 +123,24 @@ func generate_face_vertices(brush: _BrushData, face_index: int) -> PackedVector3
 	
 	# Reduce seams between vertices
 	for i in winding.size():
-		winding.set(i, winding.get(i).snappedf(map_settings.vertex_snap_epsilon))
+		winding.set(i, winding.get(i).snappedf(vertex_merge_distance))
 
 	return winding
 
 func generate_brush_vertices(entity_index: int, brush_index: int) -> void:
 	var entity: _EntityData = entity_data[entity_index]
 	var brush: _BrushData = entity.brushes[brush_index]
-
+	var vertex_merge_distance: float = entity.properties.get(map_settings.vertex_merge_distance_property, 0.0) as float
+	
 	for face_index in brush.faces.size():
 		var face: _FaceData = brush.faces[face_index]
-		face.vertices = generate_face_vertices(brush, face_index)
-
+		face.vertices = generate_face_vertices(brush, face_index, vertex_merge_distance)
+		
 		face.normals.resize(face.vertices.size())
 		face.normals.fill(face.plane.normal)
-
+		
 		var tangent: PackedFloat32Array = FuncGodotUtil.get_face_tangent(face)
-	
+		
 		# convert into OpenGL coordinates
 		for i in face.vertices.size():
 			face.tangents.append(tangent[1]) # Y

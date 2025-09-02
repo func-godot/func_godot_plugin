@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="FuncGodotFGDSolidClass" load_steps=3 format=3 uid="uid://dg5x44cc7flew"]
+[gd_resource type="Resource" script_class="FuncGodotFGDSolidClass" load_steps=4 format=3 uid="uid://dg5x44cc7flew"]
 
 [ext_resource type="Resource" uid="uid://nayxb8n7see2" path="res://addons/func_godot/fgd/phong_base.tres" id="1_kv0mq"]
+[ext_resource type="Resource" uid="uid://doo4ly322b4jc" path="res://addons/func_godot/fgd/vertex_merge_distance_base.tres" id="2_hovr4"]
 [ext_resource type="Script" uid="uid://5cow84q03m6a" path="res://addons/func_godot/src/fgd/func_godot_fgd_solid_class.gd" id="2_uffhi"]
 
 [resource]
@@ -27,7 +28,7 @@ add_collision_shape_face_range_metadata = false
 classname = "func_illusionary"
 description = "Static geometry with no collision. Builds a Node3D with a MeshInstance3D and an Occluder3D to aid in render culling of other VisualInstance3D nodes."
 func_godot_internal = false
-base_classes = Array[Resource]([ExtResource("1_kv0mq")])
+base_classes = Array[Resource]([ExtResource("1_kv0mq"), ExtResource("2_hovr4")])
 class_properties = {}
 class_property_descriptions = {}
 auto_apply_to_matching_node_properties = false

@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="FuncGodotFGDSolidClass" load_steps=2 format=3 uid="uid://bdji3873bg32h"]
+[gd_resource type="Resource" script_class="FuncGodotFGDSolidClass" load_steps=3 format=3 uid="uid://bdji3873bg32h"]
 
 [ext_resource type="Script" uid="uid://5cow84q03m6a" path="res://addons/func_godot/src/fgd/func_godot_fgd_solid_class.gd" id="1_62t8m"]
+[ext_resource type="Resource" uid="uid://doo4ly322b4jc" path="res://addons/func_godot/fgd/vertex_merge_distance_base.tres" id="1_h1046"]
 
 [resource]
 script = ExtResource("1_62t8m")
@@ -26,7 +27,7 @@ add_collision_shape_face_range_metadata = false
 classname = "worldspawn"
 description = "Default static world geometry. Builds a StaticBody3D with a single MeshInstance3D and a single convex CollisionShape3D shape. Also builds Occluder3D to aid in render culling of other VisualInstance3D nodes."
 func_godot_internal = false
-base_classes = Array[Resource]([])
+base_classes = Array[Resource]([ExtResource("1_h1046")])
 class_properties = {}
 class_property_descriptions = {}
 auto_apply_to_matching_node_properties = false
