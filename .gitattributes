@@ -1,0 +1,4 @@
+# Plugin export
+/** export-ignore
+/addons !export-ignore
+/addons/** !export-ignore
