@@ -322,10 +322,10 @@ static func get_face_tangent(face: FuncGodotData.FaceData) -> PackedFloat32Array
 
 #region MESH
 
-static func smooth_mesh_by_angle(mesh: ArrayMesh, angle_deg: float = 89.0) -> Mesh:
+static func smooth_mesh_by_angle(mesh: ArrayMesh, angle_deg: float = 89.0) -> ArrayMesh:
 	if not mesh:
 		push_error("Need a source mesh to smooth")
-		return
+		return null
 	
 	var angle: float = deg_to_rad(clampf(angle_deg, 0.0, 360.0))
 	
