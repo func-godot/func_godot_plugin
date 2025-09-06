@@ -154,6 +154,12 @@ class EntityData extends RefCounted:
 		return (definition
 				and definition is FuncGodotFGDSolidClass
 				and definition.build_visuals)
+
+	func is_gi_enabled() -> bool:
+		return (definition
+				and definition is FuncGodotFGDSolidClass
+				and definition.global_illumination_mode
+		)
 	
 	## Checks the entity's FGD resource definition, returning whether the Solid Class CollisionShapeType is set to Convex.
 	func is_collision_convex() -> bool:
