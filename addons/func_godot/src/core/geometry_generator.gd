@@ -8,7 +8,7 @@ const _SIGNATURE: String = "[GEO]"
 const _VERTEX_EPSILON 	:= FuncGodotUtil._VERTEX_EPSILON
 const _VERTEX_EPSILON2 	:= _VERTEX_EPSILON * _VERTEX_EPSILON
 
-const _HYPERPLANE_SIZE	:= 65355.0
+const _HYPERPLANE_SIZE	:= 32768.0
 
 const _OriginType 	:= FuncGodotFGDSolidClass.OriginType
 
@@ -121,9 +121,17 @@ func generate_face_vertices(brush: _BrushData, face_index: int, vertex_merge_dis
 		if winding.is_empty():
 			break
 	
-	# Reduce seams between vertices
-	for i in winding.size():
-		winding.set(i, winding.get(i).snappedf(vertex_merge_distance))
+	# Perform rounding and merge adjacent vertices that are equivalent
+	if vertex_merge_distance > 0:
+		var merged_winding : PackedVector3Array = PackedVector3Array()
+		var prev_vtx : Vector3 = winding[0].snappedf(vertex_merge_distance)
+		merged_winding.append(prev_vtx)
+		for i in range(1, winding.size()):
+			var cur_vtx : Vector3 = winding[i].snappedf(vertex_merge_distance)
+			if prev_vtx != cur_vtx:
+				merged_winding.append(cur_vtx)
+			prev_vtx = cur_vtx
+		winding = merged_winding
 
 	return winding
 
