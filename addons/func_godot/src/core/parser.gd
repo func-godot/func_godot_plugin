@@ -84,7 +84,7 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 	var missing_defs: PackedStringArray = []
 	
 	var default_point_class := FuncGodotFGDPointClass.new()
-	default_point_class.node_class = "Node3D"
+	default_point_class.node_class = "Marker3D"
 	
 	var default_solid_class := FuncGodotFGDSolidClass.new()
 	default_solid_class.build_occlusion = false
