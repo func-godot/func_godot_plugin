@@ -368,35 +368,22 @@ func generate_entity_node(entity_data: _EntityData, entity_index: int) -> Node:
 		var classname: String = properties["classname"]
 	
 	node_name += "_" + properties["classname"]
-	var default_point_def := FuncGodotFGDPointClass.new()
-	var default_solid_def := FuncGodotFGDSolidClass.new()
-	default_solid_def.collision_shape_type = FuncGodotFGDSolidClass.CollisionShapeType.NONE
 	
-	if entity_def:
-		var name_prop: String
-		if entity_def.name_property in properties:
-			name_prop = str(properties[entity_def.name_property])
-		elif map_settings.entity_name_property in properties:
-			name_prop = str(properties[map_settings.entity_name_property])
-		if not name_prop.is_empty():
-			node_name = "entity_" + name_prop
-		
-		if entity_def is FuncGodotFGDSolidClass:
-			node = generate_solid_entity_node(node, node_name, entity_data, entity_def)
-		elif entity_def is FuncGodotFGDPointClass:
-			node = generate_point_entity_node(node, node_name, properties, entity_def)
-		else:
-			push_error("Invalid entity definition for \"" + node_name + "\". Entity definition must be Solid Class or Point Class.")
-			node = generate_point_entity_node(node, node_name, properties, default_point_def)
-		
-		if node and entity_def.script_class:
-			node.set_script(entity_def.script_class)
-	else:
-		push_error("No entity definition found for \"" + node_name + "\"")
-		if entity_data.brushes.size():
-			node = generate_solid_entity_node(node, node_name, entity_data, default_solid_def)
-		else:
-			node = generate_point_entity_node(node, node_name, properties, default_point_def)
+	var name_prop: String
+	if entity_def.name_property in properties:
+		name_prop = str(properties[entity_def.name_property])
+	elif map_settings.entity_name_property in properties:
+		name_prop = str(properties[map_settings.entity_name_property])
+	if not name_prop.is_empty():
+		node_name = "entity_" + name_prop
+	
+	if entity_def is FuncGodotFGDSolidClass:
+		node = generate_solid_entity_node(node, node_name, entity_data, entity_def)
+	elif entity_def is FuncGodotFGDPointClass:
+		node = generate_point_entity_node(node, node_name, properties, entity_def)
+	
+	if node and entity_def.script_class:
+		node.set_script(entity_def.script_class)
 	
 	return node
 

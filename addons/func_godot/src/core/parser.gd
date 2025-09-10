@@ -81,6 +81,14 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 	
 	var entities_data: Array[_EntityData] = parse_data.entities
 	var entity_defs: Dictionary[String, FuncGodotFGDEntityClass] = map_settings.entity_fgd.get_entity_definitions()
+	var missing_defs: PackedStringArray = []
+	
+	var default_point_class := FuncGodotFGDPointClass.new()
+	default_point_class.node_class = "Node3D"
+	
+	var default_solid_class := FuncGodotFGDSolidClass.new()
+	default_solid_class.build_occlusion = false
+	default_solid_class.collision_shape_type = FuncGodotFGDSolidClass.CollisionShapeType.NONE
 	
 	declare_step.emit("Checking entity omission and definition status")
 	
@@ -98,6 +106,22 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 			var classname: String = entity.properties["classname"]
 			if classname in entity_defs:
 				entity.definition = entity_defs[classname]
+				if not entity.definition is FuncGodotFGDSolidClass and not entity.definition is FuncGodotFGDPointClass:
+					if missing_defs.find(classname) < 0:
+						push_error("Invalid entity definition for \"" + classname + "\". Entity definition must be Solid Class or Point Class.")
+						missing_defs.append(classname)
+					entity.definition = null
+			elif missing_defs.find(classname) < 0:
+				push_error("No entity definition found for \"" + classname + "\"")
+				missing_defs.append(classname)
+		
+		# Make sure we have a default definition to build entities from
+		# This will make sure nothing goes wrong in the build processes
+		if not entity.definition:
+			if entity.brushes.is_empty():
+				entity.definition = default_point_class
+			else:
+				entity.definition = default_solid_class
 	
 	# Delete omitted groups
 	declare_step.emit("Removing omitted layers and groups")
