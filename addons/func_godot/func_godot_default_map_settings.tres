@@ -13,6 +13,7 @@ entity_name_property = ""
 entity_smoothing_property = "_phong"
 entity_smoothing_angle_property = "_phong_angle"
 use_groups_hierarchy = false
+vertex_merge_distance_property = "_vertex_merge_distance"
 base_texture_dir = "res://textures"
 texture_file_extensions = Array[String](["png", "jpg", "jpeg", "bmp", "tga", "webp"])
 clip_texture = "special/clip"

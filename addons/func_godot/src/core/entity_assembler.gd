@@ -131,7 +131,7 @@ func generate_solid_entity_node(node: Node, node_name: String, data: _EntityData
 
 	if "position" in node:
 		if node.position is Vector3:
-			node.position = FuncGodotUtil.id_to_opengl(data.origin) * map_settings.scale_factor
+			node.position = FuncGodotUtil.id_to_opengl(data.origin)
 	
 	if not data.mesh_metadata.is_empty():
 		node.set_meta("func_godot_mesh_data", data.mesh_metadata)

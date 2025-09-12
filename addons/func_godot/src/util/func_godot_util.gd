@@ -240,22 +240,22 @@ static func get_valve_uv(vertex: Vector3, u_axis: Vector3, v_axis: Vector3, uv_b
 	return uv
 
 ## Returns UV coordinate calculated from the original id Standard UV format.
-static func get_quake_uv(vertex: Vector3, normal: Vector3, uv_basis := Transform2D.IDENTITY, texture_size := Vector2.ONE) -> Vector2: 
+static func get_quake_uv(vertex: Vector3, normal: Vector3, uv_in := Transform2D.IDENTITY, texture_size := Vector2.ONE) -> Vector2: 
+	var uv_out: Vector2
 	var nx := absf(normal.dot(Vector3.RIGHT))
 	var ny := absf(normal.dot(Vector3.UP))
 	var nz := absf(normal.dot(Vector3.FORWARD))
-	var uv: Vector2
 	
 	if ny >= nx and ny >= nz:
-		uv = Vector2(vertex.x, -vertex.z)
+		uv_out = Vector2(vertex.x, -vertex.z)
 	elif nx >= ny and nx >= nz:
-		uv = Vector2(vertex.y, -vertex.z)
+		uv_out = Vector2(vertex.y, -vertex.z)
 	else:
-		uv = Vector2(vertex.x, vertex.y)
+		uv_out = Vector2(vertex.x, vertex.y)
 	
-	var uv_out := uv.rotated(uv_basis.get_rotation())
-	uv_out /= uv_basis.get_scale()
-	uv_out += uv_basis.origin
+	uv_out = uv_out.rotated(uv_in.get_rotation())
+	uv_out /= uv_in.get_scale()
+	uv_out += uv_in.origin
 	uv_out /= texture_size
 	return uv_out
 

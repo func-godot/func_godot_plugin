@@ -8,8 +8,6 @@ const _SIGNATURE: String = "[GEO]"
 const _VERTEX_EPSILON 	:= FuncGodotUtil._VERTEX_EPSILON
 const _VERTEX_EPSILON2 	:= _VERTEX_EPSILON * _VERTEX_EPSILON
 
-const _HYPERPLANE_SIZE	:= 32768.0
-
 const _OriginType 	:= FuncGodotFGDSolidClass.OriginType
 
 const _GroupData		:= FuncGodotData.GroupData
@@ -21,6 +19,7 @@ const _VertexGroupData	:= FuncGodotData.VertexGroupData
 
 # Class members
 var map_settings: FuncGodotMapSettings = null
+var hyperplane_size: float = 512.0
 var entity_data: Array[_EntityData]
 var texture_materials: Dictionary[String, Material]
 var texture_sizes: Dictionary[String, Vector2]
@@ -30,8 +29,9 @@ var texture_sizes: Dictionary[String, Vector2]
 ## Emitted when beginning a new step of the generation process.
 signal declare_step(step: String)
 
-func _init(settings: FuncGodotMapSettings = null) -> void:
+func _init(settings: FuncGodotMapSettings = null, hplane_size: float = 512.0) -> void:
 	map_settings = settings
+	hyperplane_size = hplane_size
 
 #region TOOLS
 func is_skip(face: _FaceData) -> bool:
@@ -99,10 +99,11 @@ func generate_base_winding(plane: Plane) -> PackedVector3Array:
 
 	# construct oversized square on the plane to clip against
 	var winding := PackedVector3Array()
-	winding.append(centroid + (right *  _HYPERPLANE_SIZE) + (forward *  _HYPERPLANE_SIZE))
-	winding.append(centroid + (right * -_HYPERPLANE_SIZE) + (forward *  _HYPERPLANE_SIZE))
-	winding.append(centroid + (right * -_HYPERPLANE_SIZE) + (forward * -_HYPERPLANE_SIZE))
-	winding.append(centroid + (right *  _HYPERPLANE_SIZE) + (forward * -_HYPERPLANE_SIZE))
+	var h: float = hyperplane_size
+	winding.append(centroid + (right *  h) + (forward *  h))
+	winding.append(centroid + (right * -h) + (forward *  h))
+	winding.append(centroid + (right * -h) + (forward * -h))
+	winding.append(centroid + (right *  h) + (forward * -h))
 	return winding
 
 func generate_face_vertices(brush: _BrushData, face_index: int, vertex_merge_distance: float = 0.0) -> PackedVector3Array:
@@ -214,9 +215,9 @@ func determine_entity_origins(entity_index: int) -> void:
 					var origin_comps: PackedFloat64Array = entity.properties["origin"].split_floats(" ")
 					if origin_comps.size() > 2:
 						if entity.origin_type == _OriginType.ABSOLUTE:
-							entity.origin = Vector3(origin_comps[0], origin_comps[1], origin_comps[2])
+							entity.origin = Vector3(origin_comps[0], origin_comps[1], origin_comps[2]) * map_settings.scale_factor
 						else: # _OriginType.RELATIVE
-							entity.origin += Vector3(origin_comps[0], origin_comps[1], origin_comps[2])
+							entity.origin += Vector3(origin_comps[0], origin_comps[1], origin_comps[2]) * map_settings.scale_factor
 				
 			_OriginType.BRUSH:
 				if origin_mins != Vector3.INF:
@@ -320,7 +321,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 		def = entity.definition
 	
 	var op_entity_ogl_xf: Callable = func(v: Vector3) -> Vector3:
-		return (FuncGodotUtil.id_to_opengl(v - entity.origin) * map_settings.scale_factor)
+		return (FuncGodotUtil.id_to_opengl(v - entity.origin))
 	
 	# Surface groupings <texture_name, Array[Face]>
 	var surfaces: Dictionary[String, Array] = {}

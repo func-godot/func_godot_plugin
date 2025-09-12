@@ -43,6 +43,12 @@ var _map_file_internal: String = ""
 ## [enum BuildFlags] that can affect certain aspects of the build process.
 @export_flags("Unwrap UV2:1", "Show Profiling Info:2", "Disable Smooth Shading:4") var build_flags: int = 0
 
+## The hyperplane is an initial plane that all geometry faces are cut from, like a large sheet of marble before a sculptor begins chiseling. 
+## The hyperplane size would need to be able to cover your map's potential total area.
+## Smaller values can minimize floating point errors, reducing the effect of gaps between polygon seams.
+## Measured in Godot units, not Quake units.
+@export_range(256.0, 2048.0, 128.0) var hyperplane_size: float = 512.0
+
 ## Map build failure handler. Displays error message and emits [signal build_failed] signal.
 func fail_build(reason: String, notify: bool = false) -> void:
 	push_error(_SIGNATURE, " ", reason)
@@ -117,7 +123,7 @@ func build() -> void:
 	parser = null
 	
 	# Retrieve geometry
-	var generator := FuncGodotGeometryGenerator.new(map_settings)
+	var generator := FuncGodotGeometryGenerator.new(map_settings, hyperplane_size)
 	if build_flags & BuildFlags.SHOW_PROFILE_INFO:
 		print("\nGEOMETRY GENERATOR")
 		generator.declare_step.connect(FuncGodotUtil.print_profile_info.bind(generator._SIGNATURE))
