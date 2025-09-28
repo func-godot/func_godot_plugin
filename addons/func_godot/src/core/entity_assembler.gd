@@ -341,6 +341,9 @@ func apply_entity_properties(node: Node, data: _EntityData) -> void:
 				
 		if def.auto_apply_to_matching_node_properties:
 			for property in properties:
+				if property == 'scale' and def is FuncGodotFGDPointClass and def.apply_scale_on_map_build:
+					# scale has already been applied
+					continue
 				if property in node:
 					if typeof(node.get(property)) == typeof(properties[property]):
 						node.set(property, properties[property])
