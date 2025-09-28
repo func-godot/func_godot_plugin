@@ -95,8 +95,16 @@ func generate_solid_entity_node(node: Node, node_name: String, data: _EntityData
 			node.add_child(occluder_instance)
 			data.occluder_instance = occluder_instance
 		
+		# NOTE: Currently occuring in EntityAssembler until the appropriate method in GeometryGenerator is resolved
+		# For now, smooth entire mesh, then unwrap for lightmap if needed
 		if not (build_flags & FuncGodotMap.BuildFlags.DISABLE_SMOOTHING) and data.is_smooth_shaded(map_settings.entity_smoothing_property):
 			mesh_instance.mesh = FuncGodotUtil.smooth_mesh_by_angle(data.mesh, data.get_smoothing_angle(map_settings.entity_smoothing_angle_property))
+
+			if data.is_gi_enabled() and (build_flags & FuncGodotMap.BuildFlags.UNWRAP_UV2):
+				mesh_instance.mesh.lightmap_unwrap(
+					Transform3D.IDENTITY,
+					map_settings.uv_unwrap_texel_size * map_settings.scale_factor
+				)
 
 	# Collision generation
 	if data.shapes.size() and node is CollisionObject3D:

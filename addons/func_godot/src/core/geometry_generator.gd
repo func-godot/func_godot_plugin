@@ -528,9 +528,11 @@ func generate_entity_surfaces(entity_index: int) -> void:
 
 func unwrap_uv2s(entity_index: int, texel_size: float) -> void:
 	var entity: _EntityData = entity_data[entity_index]
-	if entity.mesh:
-		if (entity.definition as FuncGodotFGDSolidClass).global_illumination_mode:
-			entity.mesh.lightmap_unwrap(Transform3D.IDENTITY, texel_size)
+	# NOTE: This skips smoothed meshes as they need to be unwrapped after smoothing.
+	# Ideally smoothing will be performed here in GeoGen before this process.
+	# For now, since it occurs in EntityAssembler, skip it.
+	if entity.mesh and entity.is_gi_enabled() and not entity.is_smooth_shaded(map_settings.entity_smoothing_property):
+		entity.mesh.lightmap_unwrap(Transform3D.IDENTITY, texel_size)
 
 # Main build process
 func build(build_flags: int, entities: Array[_EntityData]) -> Error:
