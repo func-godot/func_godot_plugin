@@ -65,7 +65,10 @@ func _generate_model() -> void:
 	if target_map_editor == TargetMapEditor.TRENCHBROOM:
 		const model_key: String = "model"
 		if scale_expression.is_empty():
-			meta_properties[model_key] = '"%s"' % _get_local_path()
+			meta_properties[model_key] = '{"path": "%s", "scale": %s }' % [
+				_get_local_path(), 
+				ProjectSettings.get_setting("func_godot/default_inverse_scale_factor", 32.0) as float
+			]
 		else:
 			meta_properties[model_key] = '{"path": "%s", "scale": %s }' % [
 				_get_local_path(), 
