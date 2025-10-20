@@ -20,11 +20,11 @@ enum FuncGodotTargetMapEditors {
 @export_tool_button("Export FGD") var export_file := export_button
 
 func export_button() -> void:
+	if not Engine.is_editor_hint():
+		return
 	do_export_file(target_map_editor)
 
 func do_export_file(target_editor: FuncGodotTargetMapEditors = FuncGodotTargetMapEditors.TRENCHBROOM, fgd_output_folder: String = "") -> void:
-	if not Engine.is_editor_hint():
-		return
 	
 	if fgd_output_folder.is_empty():
 		fgd_output_folder = FuncGodotLocalConfig.get_setting(FuncGodotLocalConfig.PROPERTY.FGD_OUTPUT_FOLDER) as String
