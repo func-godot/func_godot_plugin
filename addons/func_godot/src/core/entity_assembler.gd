@@ -400,6 +400,9 @@ func generate_entity_node(entity_data: _EntityData, entity_index: int) -> Node:
 	
 	if node and entity_def.script_class:
 		node.set_script(entity_def.script_class)
+	if node and entity_def.group_names:
+		for group_name in entity_def.group_names:
+			node.add_to_group(group_name, true);
 	
 	return node
 
