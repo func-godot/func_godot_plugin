@@ -187,7 +187,12 @@ func generate_point_entity_node(node: Node, node_name: String, properties: Dicti
 			var angle = properties["angle"]
 			if not angle is float:
 				angle = float(angle)
-			angles.y += angle
+			if is_equal_approx(angle, -1):
+				angles.x = 90
+			elif is_equal_approx(angle, -2):
+				angles.x = -90
+			else:
+				angles.y += angle
 		angles.y += 180
 		node.rotation_degrees = angles
 	
