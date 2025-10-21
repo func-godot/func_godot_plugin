@@ -55,7 +55,7 @@ var prefix: String = ""
 @export var name_property := ""
 
 ## Optional Array of group names assigned when generating the node
-@export var group_names : Array[String] = ["func_godot_entity"]
+@export var node_groups : Array[String] = []
 
 ## Parses the definition and outputs it into the FGD format.
 func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM) -> String:

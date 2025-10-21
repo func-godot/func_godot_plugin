@@ -398,13 +398,15 @@ func generate_entity_node(entity_data: _EntityData, entity_index: int) -> Node:
 	elif entity_def is FuncGodotFGDPointClass:
 		node = generate_point_entity_node(node, node_name, properties, entity_def)
 	
-	if node and entity_def.script_class:
-		node.set_script(entity_def.script_class)
-	if node and entity_def.group_names:
-		for group_name in entity_def.group_names:
-			if group_name == "":
-				continue
-			node.add_to_group(group_name, true);
+	if node:
+		if entity_def.script_class:
+			node.set_script(entity_def.script_class)
+		
+		if entity_def.node_groups:
+			for node_group in entity_def.node_groups:
+				if node_group == "":
+					continue
+				node.add_to_group(node_group, true)
 	
 	return node
 
