@@ -127,9 +127,9 @@ func get_entity_definitions() -> Dictionary[String, FuncGodotFGDEntityClass]:
 		
 		if ent is FuncGodotFGDPointClass or ent is FuncGodotFGDSolidClass:
 			var entity_def = ent.duplicate()
-			var meta_properties := {}
-			var class_properties := {}
-			var class_property_descriptions := {}
+			var meta_properties: Dictionary[String, Variant] = {}
+			var class_properties: Dictionary[String, Variant] = {}
+			var class_property_descriptions: Dictionary[String, Variant] = {}
 
 			for base_class in _generate_base_class_list(entity_def):
 				for meta_property in base_class.meta_properties:
