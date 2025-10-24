@@ -52,6 +52,9 @@ enum CollisionShapeType {
 @export var build_occlusion : bool = false
 ## This Solid Class' [MeshInstance3D] will only be visible for [Camera3D]s whose cull mask includes any of these render layers.
 @export_flags_3d_render var render_layers: int = 1
+## This flag will mark whether interior faces are removed. These are faces that are completely obscured and not visible
+## This should be combined with vertex merging, otherwise some faces will not be removed due to the vertices having slight gaps
+@export var remove_interior_faces: bool = false
 
 @export_group("Collision Build")
 ## Controls how collisions are built for this Solid Class.

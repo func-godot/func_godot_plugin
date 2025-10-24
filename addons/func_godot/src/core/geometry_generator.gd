@@ -388,6 +388,41 @@ func generate_entity_surfaces(entity_index: int) -> void:
 			if face.vertices.size() < 3 or is_skip(face) or is_origin(face):
 				continue
 			
+			# Reject interior faces only if desired
+			if def.remove_interior_faces:
+				var facesToCheckCarefully: Array[_FaceData] = []
+				for face2: _FaceData in faces:
+					if face == face2:
+						continue
+					# Coplanar check
+					if is_equal_approx(face.plane.normal.cross(face2.plane.normal).length(), 0.0):
+						facesToCheckCarefully.append(face2);
+				# Any faces where all the verts are shared are checked.
+				var should_continue := false
+				for face2:_FaceData in facesToCheckCarefully:
+					# Check if all the verts in face1 are in face2
+					# If face1 is a triangle and face2 is a quad, as long as the vertices are equal,
+					var anyVertNotInFace := false
+					for vert in face.vertices:
+						if !face2.vertices.has(vert):
+							anyVertNotInFace = true
+							break;
+					if !anyVertNotInFace:
+						should_continue = true
+						break
+					# TODO: Need to check if this face is contained within the other one
+					# Non-trivial!
+					# This may be the wrong place to check it as I need to construct triangles
+					# Perhaps build_visual is where it should be done near
+					# I suspect I can do checks with Geometry3D.ray_intersects_triangle
+					# But I need to check the verts hit any of the triangles in that face!
+					# Geometry3D.ray_intersects_triangle() is what I'll need to use
+					# direction vector and from vector should use the plane normal
+					
+				if should_continue:
+					continue;
+
+			
 			# Create trimesh points regardless of texture
 			if build_concave:
 				var tris: PackedVector3Array
