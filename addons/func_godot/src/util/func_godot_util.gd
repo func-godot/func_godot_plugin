@@ -202,9 +202,7 @@ static func build_texture_map(entity_data: Array[FuncGodotData.EntityData], map_
 				
 				# Material generation
 				elif map_settings.default_material:
-					var material = map_settings.default_material.duplicate(true)
-					if material is ShaderMaterial and !map_settings.unique_shader:
-						material.shader = map_settings.default_material.shader;
+					var material = map_settings.default_material.duplicate(false)
 					var texture: Texture2D = load_texture(texture_name, wad_resources, map_settings)
 					texture_sizes[texture_name] = texture.get_size()
 					

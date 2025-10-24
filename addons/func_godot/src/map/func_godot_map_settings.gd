@@ -114,10 +114,6 @@ var scale_factor: float = 0.03125
 ## [i]NOTE: Materials do not use the [member default_material] settings after saving.[/i]
 @export var save_generated_materials: bool = true
 
-## When saving a generated material, whether to make a unique shader or use a reference to the shader.
-## [i]NOTE: Only relevant if [member save_generated_materials] is true and [member default_material] is a Shader Material.[/i]
-@export var unique_shader: bool = false
-
 #endregion
 
 @export_category("UV Unwrap")
