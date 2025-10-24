@@ -390,18 +390,15 @@ func generate_entity_surfaces(entity_index: int) -> void:
 			
 			# Reject interior faces only if desired
 			if def.remove_interior_faces:
-				var facesToCheckCarefully: Array[_FaceData] = []
+				var should_continue := false
 				for face2: _FaceData in faces:
 					if face == face2:
 						continue
-					# Coplanar check
-					if is_equal_approx(face.plane.normal.cross(face2.plane.normal).length(), 0.0):
-						facesToCheckCarefully.append(face2);
-				# Any faces where all the verts are shared are checked.
-				var should_continue := false
-				for face2:_FaceData in facesToCheckCarefully:
-					# Check if all the verts in face1 are in face2
-					# If face1 is a triangle and face2 is a quad, as long as the vertices are equal,
+					# Opposite planes
+					if !(face.plane.normal*-1.0).is_equal_approx(face2.plane.normal):
+						continue;
+
+					# Check for faces that share all their vertices.
 					var anyVertNotInFace := false
 					for vert in face.vertices:
 						if !face2.vertices.has(vert):
