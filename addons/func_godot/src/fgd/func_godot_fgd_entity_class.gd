@@ -54,6 +54,9 @@ var prefix: String = ""
 ## Nodes will be named `"entity_" + name_property`. An entity's name should be unique, otherwise you may run into unexpected behavior.
 @export var name_property := ""
 
+## Optional Array of group names assigned when generating the node
+@export var node_groups : Array[String] = []
+
 ## Parses the definition and outputs it into the FGD format.
 func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM) -> String:
 	# Class prefix
