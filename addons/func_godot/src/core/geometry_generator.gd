@@ -394,18 +394,20 @@ func generate_entity_surfaces(entity_index: int) -> void:
 				for face2: _FaceData in faces:
 					if face == face2:
 						continue
+					if !face2.plane.has_point(face.plane.get_center()):
+						continue
 					# Opposite planes
 					if !(face.plane.normal*-1.0).is_equal_approx(face2.plane.normal):
 						continue;
-
+					# Are there more ways to optimise this?
+					
 					# Check for faces that share all their vertices.
 					var anyVertNotInFace := false
 					for vert in face.vertices:
 						if !face2.vertices.has(vert):
-							anyVertNotInFace = true
+							should_continue = true
 							break;
-					if !anyVertNotInFace:
-						should_continue = true
+					if should_continue:
 						break
 					# TODO: Need to check if this face is contained within the other one
 					# Non-trivial!
