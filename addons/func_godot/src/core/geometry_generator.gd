@@ -323,8 +323,8 @@ func generate_entity_surfaces(entity_index: int) -> void:
 	var op_entity_ogl_xf: Callable = func(v: Vector3) -> Vector3:
 		return (FuncGodotUtil.id_to_opengl(v - entity.origin))
 	
-	# Surface groupings <texture_name, Array[Face]>
-	var surfaces: Dictionary[String, Array] = {}
+	# Surface groupings <cell, texture_name, Array[Face]>
+	var surfaces: Dictionary = {}
 
 	# Metadata
 	var current_metadata_index: int = 0
@@ -342,133 +342,150 @@ func generate_entity_surfaces(entity_index: int) -> void:
 			if is_skip(face) or is_origin(face):
 				continue
 			
-			if not surfaces.has(face.texture):
-				surfaces[face.texture] = []
-			surfaces[face.texture].append(face)
+			var cell := Vector3i.ZERO
+			if entity.definition.partition_grid_size > Vector3.ZERO:
+				cell = Vector3i(face.get_centroid() / entity.definition.partition_grid_size)
+			
+			if not surfaces.has(cell):
+				surfaces[cell] = {}
+			if not surfaces[cell].has(face.texture):
+				surfaces[cell][face.texture] = []
+			surfaces[cell][face.texture].append(face)
 	
 	# Cache order for consistency when rebuilding 
-	var textures: Array[String] = surfaces.keys()
-	
-	# Output mesh data
-	var mesh := ArrayMesh.new()
-	var mesh_arrays: Array[Array] = []
+	var cells: Array[Vector3i]
+	cells.assign(surfaces.keys())
 	var build_concave: bool = entity.is_collision_concave()
 	var concave_vertices: PackedVector3Array
-
-	# Iteration variables
-	var arrays: Array
-	var faces: Array
 	
-	# MULTISURFACE SCOPE BEGIN
-	for texture_name in textures:
-		# SURFACE SCOPE BEGIN
-		faces = surfaces[texture_name]
-		
-		# Get texture index for metadata
-		var tex_index: int = texture_names_metadata.size()
-		if def.add_textures_metadata:
-			texture_names_metadata.append(texture_name)
+	for cell: Vector3i in cells:
+		var textures: Array[String]
+		textures.assign(surfaces[cell].keys())
+	
+		# Output mesh data
+		var mesh := ArrayMesh.new()
+		var mesh_arrays: Array[Array] = []
 
-		# Prepare new array
-		arrays = Array()
-		arrays.resize(ArrayMesh.ARRAY_MAX)
-		arrays[Mesh.ARRAY_VERTEX] 	= PackedVector3Array()
-		arrays[Mesh.ARRAY_NORMAL] 	= PackedVector3Array()
-		arrays[Mesh.ARRAY_TANGENT] 	= PackedFloat32Array()
-		arrays[Mesh.ARRAY_TEX_UV] 	= PackedVector2Array()
-		arrays[Mesh.ARRAY_INDEX] 	= PackedInt32Array()
+		# Iteration variables
+		var arrays: Array
+		var faces: Array
 		
-		# Begin fresh index offset for this subarray
-		var index_offset: int = 0
-		
-		for face in faces:
-			# FACE SCOPE BEGIN
+		# MULTISURFACE SCOPE BEGIN
+		for texture_name in textures:
+			# SURFACE SCOPE BEGIN
+			faces = surfaces[cell][texture_name]
 			
-			# Reject invalid faces
-			if face.vertices.size() < 3 or is_skip(face) or is_origin(face):
+			# Get texture index for metadata
+			var tex_index: int = texture_names_metadata.find(texture_name)
+			if def.add_textures_metadata and tex_index < 0:
+				tex_index = texture_names_metadata.size()
+				texture_names_metadata.append(texture_name)
+			if tex_index < 0:
+				tex_index = 0
+
+			# Prepare new array
+			arrays = Array()
+			arrays.resize(ArrayMesh.ARRAY_MAX)
+			arrays[Mesh.ARRAY_VERTEX] 	= PackedVector3Array()
+			arrays[Mesh.ARRAY_NORMAL] 	= PackedVector3Array()
+			arrays[Mesh.ARRAY_TANGENT] 	= PackedFloat32Array()
+			arrays[Mesh.ARRAY_TEX_UV] 	= PackedVector2Array()
+			arrays[Mesh.ARRAY_INDEX] 	= PackedInt32Array()
+			
+			# Begin fresh index offset for this subarray
+			var index_offset: int = 0
+			
+			for face in faces:
+				# FACE SCOPE BEGIN
+				
+				# Reject invalid faces
+				if face.vertices.size() < 3 or is_skip(face) or is_origin(face):
+					continue
+				
+				# Create trimesh points regardless of texture
+				if build_concave:
+					var tris: PackedVector3Array
+					tris.resize(face.indices.size())
+					
+					# Add triangles from face indices directly
+					# TODO: This can possibly be merged with the below loop in a clever way
+					for i in face.indices.size():
+						tris[i] = op_entity_ogl_xf.call(face.vertices[face.indices[i]])
+					
+					concave_vertices.append_array(tris)
+					
+				# Do not generate visuals for clip textures
+				if is_clip(face):
+					continue
+				
+				# Handle metadata for this face
+				# Add metadata per triangle rather than per face to keep consistent metadata
+				var num_tris = face.indices.size() / 3
+				if def.add_textures_metadata:
+					var tex_array: Array[int] = []
+					tex_array.resize(num_tris)
+					tex_array.fill(tex_index)
+					textures_metadata.append_array(tex_array)
+				if def.add_face_normal_metadata:
+					var normal_array: Array[Vector3] = []
+					normal_array.resize(num_tris)
+					normal_array.fill(FuncGodotUtil.id_to_opengl(face.plane.normal))
+					normals_metadata.append_array(normal_array)
+				if def.add_face_position_metadata:
+					for i in num_tris:
+						var triangle_indices: Array[int] = []
+						var triangle_vertices: Array[Vector3] = []
+						triangle_indices.assign(face.indices.slice(i * 3, i * 3 + 3))
+						triangle_vertices.assign(triangle_indices.map(func(idx : int) -> Vector3: return face.vertices[idx]))
+						var position := FuncGodotUtil.op_vec3_avg(triangle_vertices)
+						positions_metadata.append(op_entity_ogl_xf.call(position))
+				if def.add_vertex_metadata:
+					for i in face.indices:
+						vertices_metadata.append(op_entity_ogl_xf.call(face.vertices[i]))
+				if def.add_collision_shape_to_face_indices_metadata:
+					face_index_metadata_map[face] = PackedInt32Array(range(current_metadata_index, current_metadata_index + num_tris))
+				current_metadata_index += num_tris
+				
+				# Append face data to surface array
+				for i in face.vertices.size():
+					# TODO: Mesh metadata may be generated here.
+					var v: Vector3 = face.vertices[i]
+					arrays[ArrayMesh.ARRAY_VERTEX].append(op_entity_ogl_xf.call(v))
+					arrays[ArrayMesh.ARRAY_NORMAL].append(FuncGodotUtil.id_to_opengl(face.normals[i]))
+					var tx_sz: Vector2 = texture_sizes.get(face.texture, Vector2.ONE * map_settings.inverse_scale_factor)
+					arrays[ArrayMesh.ARRAY_TEX_UV].append(FuncGodotUtil.get_face_vertex_uv(v, face, tx_sz))
+					
+					for j in 4:
+						arrays[ArrayMesh.ARRAY_TANGENT].append(face.tangents[(i * 4) + j])
+				
+				# Create offset indices for the visual mesh
+				var op_shift_index: Callable = (func(a: int) -> int: return a + index_offset)
+				arrays[ArrayMesh.ARRAY_INDEX].append_array(Array(face.indices).map(op_shift_index))
+				
+				index_offset += face.vertices.size()
+				
+				# FACE SCOPE END
+			
+			if FuncGodotUtil.filter_face(texture_name, map_settings):
 				continue
 			
-			# Create trimesh points regardless of texture
-			if build_concave:
-				var tris: PackedVector3Array
-				tris.resize(face.indices.size())
-				
-				# Add triangles from face indices directly
-				# TODO: This can possibly be merged with the below loop in a clever way
-				for i in face.indices.size():
-					tris[i] = op_entity_ogl_xf.call(face.vertices[face.indices[i]])
-				
-				concave_vertices.append_array(tris)
-				
-			# Do not generate visuals for clip textures
-			if is_clip(face):
-				continue
+			mesh_arrays.append(arrays)
 			
-			# Handle metadata for this face
-			# Add metadata per triangle rather than per face to keep consistent metadata
-			var num_tris = face.indices.size() / 3
-			if def.add_textures_metadata:
-				var tex_array: Array[int] = []
-				tex_array.resize(num_tris)
-				tex_array.fill(tex_index)
-				textures_metadata.append_array(tex_array)
-			if def.add_face_normal_metadata:
-				var normal_array: Array[Vector3] = []
-				normal_array.resize(num_tris)
-				normal_array.fill(FuncGodotUtil.id_to_opengl(face.plane.normal))
-				normals_metadata.append_array(normal_array)
-			if def.add_face_position_metadata:
-				for i in num_tris:
-					var triangle_indices: Array[int] = []
-					var triangle_vertices: Array[Vector3] = []
-					triangle_indices.assign(face.indices.slice(i * 3, i * 3 + 3))
-					triangle_vertices.assign(triangle_indices.map(func(idx : int) -> Vector3: return face.vertices[idx]))
-					var position := FuncGodotUtil.op_vec3_avg(triangle_vertices)
-					positions_metadata.append(op_entity_ogl_xf.call(position))
-			if def.add_vertex_metadata:
-				for i in face.indices:
-					vertices_metadata.append(op_entity_ogl_xf.call(face.vertices[i]))
-			if def.add_collision_shape_to_face_indices_metadata:
-				face_index_metadata_map[face] = PackedInt32Array(range(current_metadata_index, current_metadata_index + num_tris))
-			current_metadata_index += num_tris
-			
-			# Append face data to surface array
-			for i in face.vertices.size():
-				# TODO: Mesh metadata may be generated here.
-				var v: Vector3 = face.vertices[i]
-				arrays[ArrayMesh.ARRAY_VERTEX].append(op_entity_ogl_xf.call(v))
-				arrays[ArrayMesh.ARRAY_NORMAL].append(FuncGodotUtil.id_to_opengl(face.normals[i]))
-				var tx_sz: Vector2 = texture_sizes.get(face.texture, Vector2.ONE * map_settings.inverse_scale_factor)
-				arrays[ArrayMesh.ARRAY_TEX_UV].append(FuncGodotUtil.get_face_vertex_uv(v, face, tx_sz))
-				
-				for j in 4:
-					arrays[ArrayMesh.ARRAY_TANGENT].append(face.tangents[(i * 4) + j])
-			
-			# Create offset indices for the visual mesh
-			var op_shift_index: Callable = (func(a: int) -> int: return a + index_offset)
-			arrays[ArrayMesh.ARRAY_INDEX].append_array(Array(face.indices).map(op_shift_index))
-			
-			index_offset += face.vertices.size()
-			
-			# FACE SCOPE END
+			# SURFACE SCOPE END
 		
-		if FuncGodotUtil.filter_face(texture_name, map_settings):
-			continue
+		# MULTISURFACE SCOPE END
+		textures.erase(map_settings.clip_texture)
 		
-		mesh_arrays.append(arrays)
-		
-		# SURFACE SCOPE END
-	
-	# MULTISURFACE SCOPE END
-	textures.erase(map_settings.clip_texture)
+		if def.build_visuals:
+			# Build mesh
+			for array_index in mesh_arrays.size():
+				mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, mesh_arrays[array_index])
+				mesh.surface_set_name(array_index, textures[array_index])
+				mesh.surface_set_material(array_index, texture_materials[textures[array_index]])
+			
+			entity.meshes.append(mesh)
 	
 	if def.build_visuals:
-		# Build mesh
-		for array_index in mesh_arrays.size():
-			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, mesh_arrays[array_index])
-			mesh.surface_set_name(array_index, textures[array_index])
-			mesh.surface_set_material(array_index, texture_materials[textures[array_index]])
-		
 		# Apply mesh metadata	
 		if def.add_textures_metadata:
 			entity.mesh_metadata["texture_names"] = texture_names_metadata
@@ -479,11 +496,9 @@ func generate_entity_surfaces(entity_index: int) -> void:
 			entity.mesh_metadata["normals"] = normals_metadata
 		if def.add_face_position_metadata:
 			entity.mesh_metadata["positions"] = positions_metadata
-		
-		entity.mesh = mesh
 	
 	# Clear up unusued memory
-	arrays = []
+	#arrays = []
 	surfaces = {}
 	
 	if entity.is_collision_convex():
@@ -576,3 +591,42 @@ func build(build_flags: int, entities: Array[_EntityData]) -> Error:
 	
 	declare_step.emit("Geometry generation complete")
 	return OK
+
+
+class BrushMesh extends RefCounted:
+	var _mesh: ArrayMesh
+	var _arrays: Array[Array]
+	var _index_offset: int
+	var _entity_origin: Vector3
+	var _map_settings: FuncGodotMapSettings
+
+	func _init(map_settings: FuncGodotMapSettings, entity_origin: Vector3) -> void:
+		_mesh = ArrayMesh.new()
+		_map_settings = map_settings
+		_arrays.resize(ArrayMesh.ARRAY_MAX)
+		_index_offset = 0
+
+	func get_mesh() -> Mesh:
+		return _mesh
+
+	func add_face(face: _FaceData, texture_sizes: Dictionary[String, Vector2]) -> void:
+		for i in face.vertices.size():
+			# TODO: Mesh metadata may be generated here.
+			var v: Vector3 = face.vertices[i]
+			_arrays[ArrayMesh.ARRAY_VERTEX].append(_op_entity_ogl_xf(v))
+			_arrays[ArrayMesh.ARRAY_NORMAL].append(FuncGodotUtil.id_to_opengl(face.normals[i]))
+			var tx_sz: Vector2 = texture_sizes.get(face.texture, Vector2.ONE * _map_settings.inverse_scale_factor)
+			_arrays[ArrayMesh.ARRAY_TEX_UV].append(FuncGodotUtil.get_face_vertex_uv(v, face, tx_sz))
+
+			for j in 4:
+				_arrays[ArrayMesh.ARRAY_TANGENT].append(face.tangents[(i * 4) + j])
+
+		# Create offset indices for the visual mesh
+		_arrays[ArrayMesh.ARRAY_INDEX].append_array(Array(face.indices).map(_op_shift_index))
+		_index_offset += face.vertices.size()
+
+	func _op_shift_index(a: int) -> int:
+		return a + _index_offset
+
+	func _op_entity_ogl_xf(v: Vector3) -> Vector3:
+		return FuncGodotUtil.id_to_opengl(v - _entity_origin)

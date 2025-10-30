@@ -61,26 +61,27 @@ func generate_solid_entity_node(node: Node, node_name: String, data: _EntityData
 	var properties: Dictionary = data.properties
 	
 	# Mesh Instance generation
-	if data.mesh:
+	var mesh_instance_idx := 0
+	for mesh: Mesh in data.meshes:
 		var mesh_instance := MeshInstance3D.new()
-		mesh_instance.name = node_name + "_mesh_instance"
-		mesh_instance.mesh = data.mesh
+		mesh_instance.name = node_name + "_mesh_instance_" + str(mesh_instance_idx)
+		mesh_instance.mesh = mesh
 		mesh_instance.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
 		if definition.global_illumination_mode:
 			mesh_instance.gi_mode = definition.global_illumination_mode
 		mesh_instance.cast_shadow = definition.shadow_casting_setting
 		mesh_instance.layers = definition.render_layers
 		node.add_child(mesh_instance)
-		data.mesh_instance = mesh_instance
+		data.mesh_instances.append(mesh_instance)
 		
 		# Occluder generation
-		if definition.build_occlusion and data.mesh:
+		if definition.build_occlusion:
 			var verts: PackedVector3Array = []
 			var indices: PackedInt32Array = []
 			var index: int = 0
-			for surf_idx in range(data.mesh.get_surface_count()):
+			for surf_idx in range(mesh.get_surface_count()):
 				var vert_count: int = verts.size()
-				var surf_array: Array = data.mesh.surface_get_arrays(surf_idx)
+				var surf_array: Array = mesh.surface_get_arrays(surf_idx)
 				verts.append_array(surf_array[Mesh.ARRAY_VERTEX])
 				indices.resize(indices.size() + surf_array[Mesh.ARRAY_INDEX].size())
 				for new_index in surf_array[Mesh.ARRAY_INDEX]:
@@ -90,21 +91,23 @@ func generate_solid_entity_node(node: Node, node_name: String, data: _EntityData
 			var occluder := ArrayOccluder3D.new()
 			occluder.set_arrays(verts, indices)
 			var occluder_instance := OccluderInstance3D.new()
-			occluder_instance.name = node_name + "_occluder_instance"
+			occluder_instance.name = node_name + "_occluder_instance_" + str(mesh_instance_idx)
 			occluder_instance.occluder = occluder
 			node.add_child(occluder_instance)
-			data.occluder_instance = occluder_instance
+			data.occluder_instances.append(occluder_instance)
 		
 		# NOTE: Currently occuring in EntityAssembler until the appropriate method in GeometryGenerator is resolved
 		# For now, smooth entire mesh, then unwrap for lightmap if needed
 		if not (build_flags & FuncGodotMap.BuildFlags.DISABLE_SMOOTHING) and data.is_smooth_shaded(map_settings.entity_smoothing_property):
-			mesh_instance.mesh = FuncGodotUtil.smooth_mesh_by_angle(data.mesh, data.get_smoothing_angle(map_settings.entity_smoothing_angle_property))
+			mesh_instance.mesh = FuncGodotUtil.smooth_mesh_by_angle(mesh_instance.mesh, data.get_smoothing_angle(map_settings.entity_smoothing_angle_property))
 
 			if data.is_gi_enabled() and (build_flags & FuncGodotMap.BuildFlags.UNWRAP_UV2):
 				mesh_instance.mesh.lightmap_unwrap(
 					Transform3D.IDENTITY,
 					map_settings.uv_unwrap_texel_size * map_settings.scale_factor
 				)
+				
+		mesh_instance_idx += 1
 
 	# Collision generation
 	if data.shapes.size() and node is CollisionObject3D:
@@ -449,13 +452,13 @@ func build(map_node: FuncGodotMap, entities: Array[_EntityData], groups: Array[_
 						group.node.add_child(entity_node)
 			
 			entity_node.owner = scene_root
-			if entity_data.mesh_instance:
-				entity_data.mesh_instance.owner = scene_root
+			for mesh_instance in entity_data.mesh_instances:
+				mesh_instance.owner = scene_root
 			for shape in entity_data.collision_shapes:
 				if shape:
 					shape.owner = scene_root
-			if entity_data.occluder_instance:
-				entity_data.occluder_instance.owner = scene_root
+			for occluder_instance in entity_data.occluder_instances:
+				occluder_instance.owner = scene_root
 			
 			apply_entity_properties(entity_node, entity_data)
 	declare_step.emit("Entity assembly and property application complete")

@@ -135,9 +135,9 @@ class EntityData extends RefCounted:
 	## This can only be a [FuncGodotFGDSolidClass], [FuncGodotFGDPointClass], or [FuncGodotFGDModelPointClass].
 	var definition: FuncGodotFGDEntityClass = null
 	## Mesh resource generated during the geometry generation stage and applied during the entity assembly stage.
-	var mesh: ArrayMesh = null
+	var meshes: Array[ArrayMesh] = []
 	## MeshInstance3D node generated during the entity assembly stage.
-	var mesh_instance: MeshInstance3D = null
+	var mesh_instances: Array[MeshInstance3D] = []
 	## Optional mesh metadata compiled during the geometry generation stage, used to determine face information from collision.
 	var mesh_metadata: Dictionary = {}
 	## A collection of collision shape resources generated during the geometry generation stage and applied during the entity assembly stage.
@@ -145,7 +145,7 @@ class EntityData extends RefCounted:
 	## A collection of [CollisionShape3D] nodes generated during the entity assembly stage. Each node corresponds to a shape in the [member shapes] array.
 	var collision_shapes: Array[CollisionShape3D] = []
 	## [OccluderInstance3D] node generated during the entity assembly stage using the [member mesh] resource.
-	var occluder_instance: OccluderInstance3D = null
+	var occluder_instances: Array[OccluderInstance3D] = []
 	## True global position of the entity's generated node that the mesh's vertices are offset by during the geometry generation stage.
 	var origin: Vector3 = Vector3.ZERO
 
