@@ -395,6 +395,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 				for face2: _FaceData in faces:
 					if face == face2:
 						continue
+					# Are the planes aligned?
 					if !face2.plane.has_point(face.plane.get_center()):
 						continue
 					# Opposite planes
@@ -402,12 +403,12 @@ func generate_entity_surfaces(entity_index: int) -> void:
 						continue;
 
 					# Check for faces that share all their vertices.
-					var anyVertNotInFace := false
+					var all_verts_in_face := true
 					for vert in face.vertices:
 						if !face2.vertices.has(vert):
-							anyVertNotInFace = true
+							all_verts_in_face = false
 							break;
-					if !anyVertNotInFace:
+					if all_verts_in_face:
 						remove_face = true
 						break
 		
@@ -440,12 +441,10 @@ func generate_entity_surfaces(entity_index: int) -> void:
 					# All verts of face 1 are in face 2, so we can safely remove that face
 					if all_verts_in_face2:
 						remove_face = true
-						break;					
+						break;
 				if remove_face:
 					continue;
 			#endregion
-
-
 			
 			# Create trimesh points regardless of texture
 			if build_concave:
