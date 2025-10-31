@@ -388,10 +388,10 @@ func generate_entity_surfaces(entity_index: int) -> void:
 			if face.vertices.size() < 3 or is_skip(face) or is_origin(face):
 				continue
 			
-			# Reject interior faces only if desired
+			#region Reject interior faces only if desired
 			var cull_interior_faces: bool = (str_to_var(entity.properties.get(map_settings.cull_interior_faces_property, "0"))) == 1
 			if cull_interior_faces:
-				var should_continue := false
+				var remove_face := false
 				for face2: _FaceData in faces:
 					if face == face2:
 						continue
@@ -400,7 +400,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 					# Opposite planes
 					if !(face.plane.normal*-1.0).is_equal_approx(face2.plane.normal):
 						continue;
-					# Are there more ways to optimise this and skip faces?
+
 					# Check for faces that share all their vertices.
 					var anyVertNotInFace := false
 					for vert in face.vertices:
@@ -408,70 +408,43 @@ func generate_entity_surfaces(entity_index: int) -> void:
 							anyVertNotInFace = true
 							break;
 					if !anyVertNotInFace:
-						should_continue = true
+						remove_face = true
 						break
-					# Check if all tris for Face 1 is coplanar
-					var previousPlane: Plane = face.plane
-					var is_all_tris_coplanar := true
-					for i in range(face.vertices.size()/2):
-						var tri: Array[Vector3] = []
-						if i == 0:
-							i+=1
-						var new_plane = Plane(face.vertices[0], face.vertices[i], face.vertices[i+1])
-						if !previousPlane.has_point(new_plane.get_center()):
-							is_all_tris_coplanar = false
-							break;
-					# All triangles of face1 are NOT coplanar, no further faces can be removed.
-					if !is_all_tris_coplanar:
-						break;
-					# Check if all tris for Face 2 is coplanar and collect all tris for the next step
-					previousPlane = face2.plane
-					is_all_tris_coplanar = true
-					for i in range(face2.vertices.size()/2):
-						var tri: Array[Vector3] = []
-						if i == 0:
-							i+=1
-						var new_plane = Plane(face.vertices[0], face.vertices[i], face.vertices[i+1])
-						if !previousPlane.has_point(new_plane.get_center()):
-							is_all_tris_coplanar = false
-							break;
-					# All triangles of face2 are NOT coplanar, no further faces can be removed.
-					if !is_all_tris_coplanar:
-						break;
-					# All tris of Face2
-					var tris: Array[Array] = []
-					var tri: Array[Vector3] = []
-					for i in face2.indices:
-						tri.append(face2.vertices[i])
-						if tri.size() == 3:
-							tris.append(tri);
-							tri = []
+		
+					# Check if all vertices of Face1 intersect with any triangle of face 2
+					# If they do, then Face 1 is entirely overlapped on Face 2 and we can remove Face 1
 					var all_verts_in_face2 := true
 					for vert in face.vertices:
 						var vert_in_any_tri := false
-						var from := vert - previousPlane.normal
-						var to := previousPlane.normal
-						for tria in tris:
+						var from := vert - face2.plane.normal*0.001
+						var to := face2.plane.normal*0.001
+						
+						# Loop over all triangles in face 2 and see if the vert intersects any of them
+						for i in ((face2.indices.size()/3)):
 							var intersect = Geometry3D.ray_intersects_triangle(
 								from,
 								to,
-								tria[0],
-								tria[1],
-								tria[2]
+								face2.vertices[face2.indices[i*3]],
+								face2.vertices[face2.indices[i*3 + 1]],
+								face2.vertices[face2.indices[i*3 + 2]]
 							)
 							if !intersect:
 								continue
 							if intersect:
 								vert_in_any_tri = true
 								break;
+						# This vert didn't show up any triangle, can't remove this face
 						if !vert_in_any_tri:
 							all_verts_in_face2 = false
 							break
+					# All verts of face 1 are in face 2, so we can safely remove that face
 					if all_verts_in_face2:
-						should_continue = true
+						remove_face = true
 						break;					
-				if should_continue:
+				if remove_face:
 					continue;
+			#endregion
+
 
 			
 			# Create trimesh points regardless of texture
