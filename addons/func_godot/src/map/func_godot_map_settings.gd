@@ -41,6 +41,10 @@ var scale_factor: float = 0.03125
 ## Utilizing this property can help reduce instances of seams between polygons.
 @export var vertex_merge_distance_property: String = "_vertex_merge_distance"
 
+## Class property that tells whether interior faces should be culled for that brush entity
+## Interior faces are faces that are not visible from any angle
+@export var cull_interior_faces_property: String = "_cull_interior_faces"
+
 #endregion
 
 #region TEXTURES
