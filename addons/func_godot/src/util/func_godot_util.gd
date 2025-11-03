@@ -89,7 +89,10 @@ static func load_texture(texture_name: String, wad_resources: Array[QuakeWadFile
 	for texture_file_extension in map_settings.texture_file_extensions:
 		var texture_path: String = map_settings.base_texture_dir.path_join(texture_name + "." + texture_file_extension)
 		if ResourceLoader.exists(texture_path):
-			return load(texture_path)
+			# Verify what we're loading is in fact a Texture2D, since Godot 4.5+ doesn't seem to check: 
+			var to_load = load(texture_path)
+			if to_load is Texture2D:
+				return to_load
 	
 	var texture_name_lower: String = texture_name.to_lower()
 	for wad in wad_resources:
