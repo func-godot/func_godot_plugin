@@ -81,7 +81,18 @@ const _pbr_textures: PackedInt32Array = [
 	StandardMaterial3D.TEXTURE_AMBIENT_OCCLUSION,
 	StandardMaterial3D.TEXTURE_HEIGHTMAP,
 	ORMMaterial3D.TEXTURE_ORM
-	]
+]
+
+const _pbr_textures_enable_variable: PackedStringArray = [
+	null,
+	"normal_enabled",
+	null,
+	null,
+	"emission_enabled",
+	"ao_enabled",
+	"heightmap_enabled",
+	null
+]
 
 ## Searches for a Texture2D within the base texture directory or the WAD files added to map settings. 
 ## If not found, a default texture is returned.
@@ -155,6 +166,8 @@ static func build_base_material(map_settings: FuncGodotMapSettings, material: Ba
 				var pbr: String = pbr_suffixes[i] % [path, texture_file_extension]
 				if ResourceLoader.exists(pbr):
 					material.set_texture(_pbr_textures[i], load(pbr))
+					if _pbr_textures_enable_variable[i]:
+						material[_pbr_textures_enable_variable[i]] = true
 
 ## Builds both materials and sizes dictionaries for use in the geometry generation step of the build process. 
 ## Both dictionaries use texture names as keys. The materials dictionary uses [Material] as values, 
