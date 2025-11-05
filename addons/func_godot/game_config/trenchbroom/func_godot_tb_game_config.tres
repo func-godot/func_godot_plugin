@@ -9,26 +9,3 @@
 
 [resource]
 script = ExtResource("2_ns6ah")
-game_name = "FuncGodot"
-icon = ExtResource("6_tex5j")
-map_formats = Array[Dictionary]([{
-"format": "Valve",
-"initialmap": "initial_valve.map"
-}, {
-"format": "Standard",
-"initialmap": "initial_standard.map"
-}, {
-"format": "Quake2",
-"initialmap": "initial_quake2.map"
-}, {
-"format": "Quake3"
-}])
-textures_root_folder = "textures"
-texture_exclusion_patterns = Array[String](["*_albedo", "*_ao", "*_emission", "*_height", "*_metallic", "*_normal", "*_orm", "*_roughness", "*_sss"])
-palette_path = "textures/palette.lmp"
-fgd_file = ExtResource("1_8u1vq")
-entity_scale = "32"
-brush_tags = Array[Resource]([])
-brushface_tags = Array[Resource]([ExtResource("1_rsp20"), ExtResource("2_166i2"), ExtResource("3_stisi")])
-default_uv_scale = Vector2(1, 1)
-game_config_version = 0

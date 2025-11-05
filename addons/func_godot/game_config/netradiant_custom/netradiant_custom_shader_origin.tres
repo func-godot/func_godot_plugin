@@ -4,5 +4,4 @@
 
 [resource]
 script = ExtResource("1_ah2cp")
-texture_path = "textures/special/origin"
-shader_attributes = Array[String](["qer_trans 0.4"])
+texture_path = "textures/origin"

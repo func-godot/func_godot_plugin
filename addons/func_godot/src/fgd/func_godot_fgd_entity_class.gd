@@ -54,7 +54,7 @@ var prefix: String = ""
 ## Nodes will be named `"entity_" + name_property`. An entity's name should be unique, otherwise you may run into unexpected behavior.
 @export var name_property := ""
 
-## Optional Array of group names assigned when generating the node
+## Optional array of node groups to add the generated node to.
 @export var node_groups : Array[String] = []
 
 ## Parses the definition and outputs it into the FGD format.

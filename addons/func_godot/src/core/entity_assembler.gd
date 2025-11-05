@@ -402,11 +402,12 @@ func generate_entity_node(entity_data: _EntityData, entity_index: int) -> Node:
 		if entity_def.script_class:
 			node.set_script(entity_def.script_class)
 		
-		if entity_def.node_groups:
-			for node_group in entity_def.node_groups:
-				if node_group == "":
-					continue
-				node.add_to_group(node_group, true)
+		var node_groups: Array[String] = map_settings.entity_node_groups
+		node_groups.append_array(entity_def.node_groups)
+		for node_group in node_groups:
+			if node_group.is_empty():
+				continue
+			node.add_to_group(node_group, true)
 	
 	return node
 

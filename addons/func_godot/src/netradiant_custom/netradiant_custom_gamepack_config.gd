@@ -47,14 +47,14 @@ enum NetRadiantCustomMapType {
 @export var default_scale : String = "1.0"
 
 ## Clip texture path that gets applied to [i]weapclip[/i] and [i]nodraw[/i] shaders.
-@export var clip_texture: String = "textures/special/clip"
+@export var clip_texture: String = "textures/clip"
 
 ## Skip texture path that gets applied to [i]caulk[/i] and [i]nodrawnonsolid[/i] shaders.
-@export var skip_texture: String = "textures/special/skip"
+@export var skip_texture: String = "textures/skip"
 
 ## Quake map type NetRadiant will filter the map for, determining whether PatchDef entries are saved. 
 ## [color=red][b]WARNING![/b][/color] Toggling this option may be destructive!
-@export var map_type: NetRadiantCustomMapType = NetRadiantCustomMapType.QUAKE_1
+@export var map_type: NetRadiantCustomMapType = NetRadiantCustomMapType.QUAKE_3
 
 ## Variables to include in the exported gamepack's [code]default_build_menu.xml[/code].[br][br]
 ## Each [String] key defines a variable name, and its corresponding [String] value as the literal command-line string 

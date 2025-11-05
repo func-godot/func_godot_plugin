@@ -80,8 +80,21 @@ const _pbr_textures: PackedInt32Array = [
 	StandardMaterial3D.TEXTURE_EMISSION,
 	StandardMaterial3D.TEXTURE_AMBIENT_OCCLUSION,
 	StandardMaterial3D.TEXTURE_HEIGHTMAP,
-	ORMMaterial3D.TEXTURE_ORM
+	ORMMaterial3D.TEXTURE_ORM,
 	]
+
+# Used during auto-PBR processing. Must match the _pbr_textures order.
+# -1 means the feature is permanantly enabled.
+const _pbr_features: PackedInt32Array = [
+	-1,
+	BaseMaterial3D.FEATURE_NORMAL_MAPPING,
+	-1,
+	-1,
+	BaseMaterial3D.FEATURE_EMISSION,
+	BaseMaterial3D.FEATURE_AMBIENT_OCCLUSION,
+	BaseMaterial3D.FEATURE_HEIGHT_MAPPING,
+	-1,
+]
 
 ## Searches for a Texture2D within the base texture directory or the WAD files added to map settings. 
 ## If not found, a default texture is returned.
@@ -135,8 +148,8 @@ static func filter_face(texture: String, map_settings: FuncGodotMapSettings) -> 
 static func build_base_material(map_settings: FuncGodotMapSettings, material: BaseMaterial3D, texture: String) -> void:
 	var path: String = map_settings.base_texture_dir.path_join(texture)
 	# Check if there is a subfolder with our PBR textures
-	if DirAccess.open(path.path_join(path)):
-		path = path.path_join(path)
+	if DirAccess.open(path):
+		path = path.path_join(texture)
 	
 	var pbr_suffixes: PackedStringArray = [
 		map_settings.albedo_map_pattern,
@@ -149,12 +162,15 @@ static func build_base_material(map_settings: FuncGodotMapSettings, material: Ba
 		map_settings.orm_map_pattern,
 	]
 	
-	for texture_file_extension in map_settings.texture_file_extensions:
-		for i in pbr_suffixes.size():
-			if not pbr_suffixes[i].is_empty():
+	for i in pbr_suffixes.size():
+		if not pbr_suffixes[i].is_empty():
+			for texture_file_extension in map_settings.texture_file_extensions:
 				var pbr: String = pbr_suffixes[i] % [path, texture_file_extension]
 				if ResourceLoader.exists(pbr):
+					if _pbr_features[i] > -1:
+						material.set_feature(_pbr_features[i], true)
 					material.set_texture(_pbr_textures[i], load(pbr))
+					break
 
 ## Builds both materials and sizes dictionaries for use in the geometry generation step of the build process. 
 ## Both dictionaries use texture names as keys. The materials dictionary uses [Material] as values, 
@@ -215,6 +231,14 @@ static func build_texture_map(entity_data: Array[FuncGodotData.EntityData], map_
 						build_base_material(map_settings, material, texture_name)
 					elif material is ShaderMaterial:
 						material.set_shader_parameter(map_settings.default_material_albedo_uniform, texture)
+						var path: String = map_settings.base_texture_dir
+						for uniform in map_settings.shader_material_uniform_map_patterns.keys():
+							for texture_file_extension in map_settings.texture_file_extensions:
+								var uniform_texture_path: String = map_settings.shader_material_uniform_map_patterns[uniform] % [texture_name] + "." + texture_file_extension
+								uniform_texture_path = path.path_join(uniform_texture_path)
+								if ResourceLoader.exists(uniform_texture_path):
+									material.set_shader_parameter(uniform, load(uniform_texture_path))
+									break
 					
 					if (map_settings.save_generated_materials and material 
 						and texture_name != map_settings.clip_texture 

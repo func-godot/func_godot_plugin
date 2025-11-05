@@ -17,15 +17,12 @@ class_name FuncGodotFGDPointClass extends FuncGodotFGDEntityClass
 func _init() -> void:
 	prefix = "@PointClass"
 
-@export_group ("Scene")
 ## An optional [PackedScene] file to instantiate on map build. Overrides [member FuncGodotFGDEntityClass.node_class] and [member script_class].
 @export var scene_file: PackedScene
 
-@export_group ("Scripting")
 ## An optional [Script] resource to attach to the node generated on map build. Ignored if [member scene_file] is specified.
 @export var script_class: Script
 
-@export_group("Build")
 ## Toggles whether entity will use `angles`, `mangle`, or `angle` to determine rotations on [FuncGodotMap] build, prioritizing the key value pairs in that order. 
 ## Set to [code]false[/code] if you would like to define how the generated node is rotated yourself.
 @export var apply_rotation_on_map_build : bool = true
