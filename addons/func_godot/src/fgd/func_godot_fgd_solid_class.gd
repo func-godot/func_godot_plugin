@@ -34,7 +34,7 @@ enum CollisionShapeType {
 	CONCAVE ## Should have a concave collision shape
 }
 
-## Controls whether this Solid Class is the worldspawn, is combined with the worldspawn, or is spawned as its own free-standing entity.
+## Controls whether this Solid Class is the worldspawn or is spawned as its own free-standing entity.
 @export var spawn_type: SpawnType = SpawnType.ENTITY
 ## Controls how this Solid Class determines its center position. Only valid if [member spawn_type] is set to ENTITY.
 @export var origin_type: OriginType = OriginType.BRUSH
@@ -50,7 +50,9 @@ enum CollisionShapeType {
 @export var shadow_casting_setting : GeometryInstance3D.ShadowCastingSetting = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 ## Automatically build [OccluderInstance3D] for this entity.
 @export var build_occlusion : bool = false
-## This Solid Class' [MeshInstance3D] will only be visible for [Camera3D]s whose cull mask includes any of these render layers.
+## The grid size to partition the brushes into multiple meshes. Leave at zero to disable partitioning.
+@export var partition_grid_size := Vector3.ZERO
+## This Solid Class' [MeshInstance3D]s will only be visible for [Camera3D]s whose cull mask includes any of these render layers.
 @export_flags_3d_render var render_layers: int = 1
 
 @export_group("Collision Build")
