@@ -51,7 +51,7 @@ func generate_solid_entity_node(node: Node, node_name: String, data: _EntityData
 				node = ClassDB.instantiate(definition.node_class)
 		else:
 			var script: Script = get_script_by_class_name(definition.node_class)
-			if script != null and script is Script:
+			if script is Script:
 				node = script.new()
 	else:
 		node = Node3D.new()
@@ -160,7 +160,7 @@ func generate_point_entity_node(node: Node, node_name: String, properties: Dicti
 				node = ClassDB.instantiate(definition.node_class)
 		else:
 			var script: Script = get_script_by_class_name(definition.node_class)
-			if script != null and script is Script:
+			if script is Script:
 				node = script.new()
 	else:
 		node = Node3D.new()
