@@ -45,7 +45,7 @@ var prefix: String = ""
 
 @export_group("Node Generation")
 
-## Node to generate on map build. This can be a built-in Godot class, a GDScript class, or a GDExtension class. 
+## Node to generate on map build. This can be a built-in Godot class, a Script class, or a GDExtension class. 
 ## For Point Class entities that use Scene File instantiation leave this blank.
 @export var node_class := ""
 
