@@ -30,3 +30,39 @@ func _init() -> void:
 ## Toggles whether entity will use `scale` to determine the generated node or scene's scale. This is performed on the top level node. 
 ## The property can be a [float], [Vector3], or [Vector2]. Set to [code]false[/code] if you would like to define how the generated node is scaled yourself.
 @export var apply_scale_on_map_build: bool = true
+
+@export_subgroup("Models")
+@export var defaultModelPath: ModelDescriptor = null
+@export var conditionalStatements: Dictionary[String, ModelDescriptor]
+@export var modelScaleMultiplier: int = 32;
+@export var multiplyByScaleKey: bool = true
+
+func metadata_wrangle() -> String:
+	var scaleExpr := '"scale": '+str(modelScaleMultiplier)
+	if multiplyByScaleKey:
+		scaleExpr+="*scale"
+	var modelSwitcher := "";
+	if conditionalStatements or defaultModelPath:
+		modelSwitcher = "{{ "
+	
+	if conditionalStatements:
+		modelSwitcher += ""
+		for conditionalStatement in conditionalStatements.keys():
+			var modelDescriptor: ModelDescriptor = conditionalStatements.get(conditionalStatement)
+			if !modelDescriptor:
+				continue
+			modelSwitcher += conditionalStatement + ' -> { "path": "'+modelDescriptor.path+'", "frame":'+str(modelDescriptor.frame)+', "skin":'+str(modelDescriptor.skin)+', '+scaleExpr+' }, '
+		if !defaultModelPath:
+			modelSwitcher = modelSwitcher.trim_suffix(", ")
+	
+	if defaultModelPath:
+		modelSwitcher += '{ "path": "'+defaultModelPath.path+'", "frame":'+str(defaultModelPath.frame)+', "skin":'+str(defaultModelPath.skin)+', '+scaleExpr+' }'
+		
+	if conditionalStatements or defaultModelPath:
+		modelSwitcher += " }}"
+	return modelSwitcher
+
+func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM) -> String:
+	if (defaultModelPath or conditionalStatements.keys().size() > 0) and target_editor == FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM:
+		self.meta_properties["model"] = self.metadata_wrangle();
+	return super(target_editor);
