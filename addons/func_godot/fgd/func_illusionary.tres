@@ -6,34 +6,12 @@
 
 [resource]
 script = ExtResource("2_uffhi")
-spawn_type = 2
-origin_type = 3
-build_visuals = true
-global_illumination_mode = 1
-use_in_baked_light = true
-shadow_casting_setting = 1
 build_occlusion = true
-render_layers = 1
 collision_shape_type = 0
-collision_layer = 1
-collision_mask = 1
-collision_priority = 1.0
-collision_shape_margin = 0.04
-add_textures_metadata = false
-add_vertex_metadata = false
-add_face_position_metadata = false
-add_face_normal_metadata = false
-add_collision_shape_to_face_indices_metadata = false
-add_collision_shape_face_range_metadata = false
 classname = "func_illusionary"
 description = "Static geometry with no collision. Builds a Node3D with a MeshInstance3D and an Occluder3D to aid in render culling of other VisualInstance3D nodes."
-func_godot_internal = false
 base_classes = Array[Resource]([ExtResource("1_kv0mq"), ExtResource("2_hovr4")])
-class_properties = {}
-class_property_descriptions = {}
-auto_apply_to_matching_node_properties = false
-meta_properties = {
+meta_properties = Dictionary[String, Variant]({
 "color": Color(0.8, 0.8, 0.8, 1)
-}
+})
 node_class = "Node3D"
-name_property = ""

@@ -6,19 +6,10 @@
 script = ExtResource("1_h3atm")
 classname = "VertexMergeDistance"
 description = "Adjustable value to snap vertices to on map build. This can reduce instances of seams between polygons."
-func_godot_internal = false
-base_classes = Array[Resource]([])
-class_properties = {
-"_vertex_merge_distance": 0.008
-}
-class_property_descriptions = {
+class_properties = Dictionary[String, Variant]({
+"_vertex_merge_distance": 0.0625
+})
+class_property_descriptions = Dictionary[String, Variant]({
 "_vertex_merge_distance": "Adjustable value to snap vertices to on map build. This can reduce instances of seams between polygons."
-}
-auto_apply_to_matching_node_properties = false
-meta_properties = {
-"color": Color(0.8, 0.8, 0.8, 1),
-"size": AABB(-8, -8, -8, 8, 8, 8)
-}
-node_class = ""
-name_property = ""
+})
 metadata/_custom_type_script = "uid://ck575aqs1sbrb"
