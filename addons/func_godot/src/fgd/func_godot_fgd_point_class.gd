@@ -32,37 +32,51 @@ func _init() -> void:
 @export var apply_scale_on_map_build: bool = true
 
 @export_subgroup("Models")
-@export var defaultModelPath: ModelDescriptor = null
-@export var conditionalStatements: Dictionary[String, ModelDescriptor]
-@export var modelScaleMultiplier: int = 32;
-@export var multiplyByScaleKey: bool = true
+## The array of models to use. The order of this array is the order the conditions will be checked.
+@export var models: Array[FuncGodotFGDPointClassModelDescriptor]
+## The default model scale multiplier. Only relevant for Trenchbroom's model syntax.
+@export var model_scale_multiplier: int = 32;
+## Whether to multiply by the scale key on your entity. If true, this model won't render in Trenchbroom until a scale key is set.
+## If false, the scale will be the Model Scale Multiplier
+@export var multiply_by_scale_key: bool = true
 
-func metadata_wrangle() -> String:
-	var scaleExpr := '"scale": '+str(modelScaleMultiplier)
-	if multiplyByScaleKey:
-		scaleExpr+="*scale"
-	var modelSwitcher := "";
-	if conditionalStatements or defaultModelPath:
-		modelSwitcher = "{{ "
+func model_wrangle() -> String:
+	var scale_expr := '"scale": '+str(model_scale_multiplier)
+	if multiply_by_scale_key:
+		scale_expr+="*scale"
+	var model_switcher := "";
+	if models.size() > 0:
+		model_switcher = "{{ "
+	var default_model: FuncGodotFGDPointClassModelDescriptor = null
+	var conditions_checked: Dictionary[String, bool] = {}
 	
-	if conditionalStatements:
-		modelSwitcher += ""
-		for conditionalStatement in conditionalStatements.keys():
-			var modelDescriptor: ModelDescriptor = conditionalStatements.get(conditionalStatement)
-			if !modelDescriptor:
+	if models.size() > 0:
+		model_switcher += ""
+		for model:FuncGodotFGDPointClassModelDescriptor in models:
+			if !model:
 				continue
-			modelSwitcher += conditionalStatement + ' -> { "path": "'+modelDescriptor.path+'", "frame":'+str(modelDescriptor.frame)+', "skin":'+str(modelDescriptor.skin)+', '+scaleExpr+' }, '
-		if !defaultModelPath:
-			modelSwitcher = modelSwitcher.trim_suffix(", ")
-	
-	if defaultModelPath:
-		modelSwitcher += '{ "path": "'+defaultModelPath.path+'", "frame":'+str(defaultModelPath.frame)+', "skin":'+str(defaultModelPath.skin)+', '+scaleExpr+' }'
+			if conditions_checked.get(model.condition, false):
+				printerr("Model Descriptor with condition is duplicate: " + model.condition)
+				continue;
+			conditions_checked[model.condition] = true
+			if model.condition == "":
+				default_model = model;
+				continue
+			model_switcher += model.condition + ' -> { "path": "'+model.path+'", "frame":'+str(model.frame)+', "skin":'+str(model.skin)+', '+scale_expr+' }, '
+		if !default_model:
+			model_switcher = model_switcher.trim_suffix(", ")
+			
+	if default_model:
+		model_switcher += '{ "path": "'+default_model.path+'", "frame":'+str(default_model.frame)+', "skin":'+str(default_model.skin)+', '+scale_expr+' }'
 		
-	if conditionalStatements or defaultModelPath:
-		modelSwitcher += " }}"
-	return modelSwitcher
+	if models.size() > 0:
+		model_switcher += " }}"
+	return model_switcher
+
 
 func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM) -> String:
-	if (defaultModelPath or conditionalStatements.keys().size() > 0) and target_editor == FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM:
-		self.meta_properties["model"] = self.metadata_wrangle();
+	if models.size() > 0 and target_editor == FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM:
+		self.meta_properties["model"] = self.model_wrangle();
+	# TODO: Expand for other editors
+	# could also have an option to use studio or studioprop
 	return super(target_editor);
