@@ -119,21 +119,21 @@ var scale_factor: float = 0.03125
 
 @export_subgroup("BaseMaterial3D Map Patterns")
 ## Automatic PBR material generation albedo map pattern.
-@export var albedo_map_pattern: String = "%s_albedo.%s"
+@export var albedo_map_pattern: String = "%s_albedo"
 ## Automatic PBR material generation normal map pattern.
-@export var normal_map_pattern: String = "%s_normal.%s"
+@export var normal_map_pattern: String = "%s_normal"
 ## Automatic PBR material generation metallic map pattern
-@export var metallic_map_pattern: String = "%s_metallic.%s"
+@export var metallic_map_pattern: String = "%s_metallic"
 ## Automatic PBR material generation roughness map pattern
-@export var roughness_map_pattern: String = "%s_roughness.%s"
+@export var roughness_map_pattern: String = "%s_roughness"
 ## Automatic PBR material generation emission map pattern
-@export var emission_map_pattern: String = "%s_emission.%s"
+@export var emission_map_pattern: String = "%s_emission"
 ## Automatic PBR material generation ambient occlusion map pattern
-@export var ao_map_pattern: String = "%s_ao.%s"
+@export var ao_map_pattern: String = "%s_ao"
 ## Automatic PBR material generation height map pattern
-@export var height_map_pattern: String = "%s_height.%s"
+@export var height_map_pattern: String = "%s_height"
 ## Automatic PBR material generation ORM map pattern
-@export var orm_map_pattern: String = "%s_orm.%s"
+@export var orm_map_pattern: String = "%s_orm"
 @export_subgroup("")
 
 ## Save automatically generated materials to disk, allowing reuse across [FuncGodotMap] nodes. 

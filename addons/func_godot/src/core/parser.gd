@@ -92,7 +92,7 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 	default_solid_class.collision_shape_type = FuncGodotFGDSolidClass.CollisionShapeType.NONE
 	default_solid_class.origin_type = FuncGodotFGDSolidClass.OriginType.BRUSH
 	
-	declare_step.emit("Checking entity omission and definition status")
+	declare_step.emit("Checking entity omission, definition status, and property types")
 	
 	for i in range(entities_data.size() - 1, -1, -1):
 		var entity: _EntityData = entities_data[i]
@@ -124,6 +124,125 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 				entity.definition = default_point_class
 			else:
 				entity.definition = default_solid_class
+		
+		# Convert the string values of the entity's properties Dictionary to various 
+		# Variant formats based on the entity definition's class property defaults.
+		var def := entity.definition
+		var properties: Dictionary = entity.properties
+		for property in properties:
+			var prop_string = entity.properties[property]
+			if property in def.class_properties:
+				var prop_default: Variant = def.class_properties[property]
+				
+				match typeof(prop_default):
+					TYPE_INT:
+						properties[property] = prop_string.to_int()
+					TYPE_FLOAT:
+						properties[property] = prop_string.to_float()
+					TYPE_BOOL:
+						properties[property] = bool(prop_string.to_int())
+					TYPE_VECTOR3:
+						var prop_comps: PackedFloat64Array = prop_string.split_floats(" ")
+						if prop_comps.size() > 2:
+							properties[property] = Vector3(prop_comps[0], prop_comps[1], prop_comps[2])
+						else:
+							push_error("Invalid Vector3 format for \'" + property + "\' in entity \'" + def.classname + "\': " + prop_string)
+							properties[property] = prop_default
+					TYPE_VECTOR3I:
+						var prop_vec: Vector3i = prop_default
+						var prop_comps: PackedStringArray = prop_string.split(" ")
+						if prop_comps.size() > 2:
+							for v in 3:
+								prop_vec[v] = prop_comps[v].to_int()
+						else:
+							push_error("Invalid Vector3i format for \'" + property + "\' in entity \'" + def.classname + "\': " + prop_string)
+						properties[property] = prop_vec
+					TYPE_COLOR:
+						var prop_color: Color = prop_default
+						var prop_comps: PackedStringArray = prop_string.split(" ")
+						if prop_comps.size() > 2:
+							prop_color.r8 = prop_comps[0].to_int()
+							prop_color.g8 = prop_comps[1].to_int()
+							prop_color.b8 = prop_comps[2].to_int()
+							prop_color.a = 1.0
+						else:
+							push_error("Invalid Color format for \'" + property + "\' in entity \'" + def.classname + "\': " + prop_string)
+						properties[property] = prop_color
+					TYPE_DICTIONARY:
+						var prop_desc = def.class_property_descriptions[property]
+						if prop_desc is Array and prop_desc.size() > 1 and prop_desc[1] is int:
+							properties[property] = prop_string.to_int()
+					TYPE_ARRAY:
+						properties[property] = prop_string.to_int()
+					TYPE_VECTOR2:
+						var prop_comps: PackedFloat64Array = prop_string.split_floats(" ")
+						if prop_comps.size() > 1:
+							properties[property] = Vector2(prop_comps[0], prop_comps[1])
+						else:
+							push_error("Invalid Vector2 format for \'" + property + "\' in entity \'" + def.classname + "\': " + prop_string)
+							properties[property] = prop_default
+					TYPE_VECTOR2I:
+						var prop_vec: Vector2i = prop_default
+						var prop_comps: PackedStringArray = prop_string.split(" ")
+						if prop_comps.size() > 1:
+							for v in 2:
+								prop_vec[v] = prop_comps[v].to_int()
+						else:
+							push_error("Invalid Vector2i format for \'" + property + "\' in entity \'" + def.classname + "\': " + prop_string)
+							properties[property] = prop_vec
+					TYPE_VECTOR4:
+						var prop_comps: PackedFloat64Array = prop_string.split_floats(" ")
+						if prop_comps.size() > 3:
+							properties[property] = Vector4(prop_comps[0], prop_comps[1], prop_comps[2], prop_comps[3])
+						else:
+							push_error("Invalid Vector4 format for \'" + property + "\' in entity \'" + def.classname + "\': " + prop_string)
+							properties[property] = prop_default
+					TYPE_VECTOR4I:
+						var prop_vec: Vector4i = prop_default
+						var prop_comps: PackedStringArray = prop_string.split(" ")
+						if prop_comps.size() > 3:
+							for v in 4:
+								prop_vec[v] = prop_comps[v].to_int()
+						else:
+							push_error("Invalid Vector4i format for \'" + property + "\' in entity \'" + def.classname + "\': " + prop_string)
+						properties[property] = prop_vec
+					TYPE_STRING_NAME:
+						properties[property] = StringName(prop_string)
+					TYPE_NODE_PATH:
+						properties[property] = prop_string
+					TYPE_OBJECT:
+						properties[property] = prop_string
+		
+		# Assign properties not defined with defaults from the entity definition
+		for property in def.class_properties:
+			if not property in properties:
+				var prop_default: Variant = def.class_properties[property]
+				# Flags
+				if prop_default is Array:
+					var prop_flags_sum := 0
+					for prop_flag in prop_default:
+						if prop_flag is Array and prop_flag.size() > 2:
+							if prop_flag[2] and prop_flag[1] is int:
+								prop_flags_sum += prop_flag[1]
+					properties[property] = prop_flags_sum
+				# Choices
+				elif prop_default is Dictionary:
+					var prop_desc = def.class_property_descriptions.get(property, "")
+					if prop_desc is Array and prop_desc.size() > 1 and (prop_desc[1] is int or prop_desc[1] is String):
+						properties[property] = prop_desc[1]
+					elif prop_default.size():
+						properties[property] = prop_default[prop_default.keys().front()]
+					else:
+						properties[property] = 0
+				# Materials, Shaders, and Sounds
+				elif prop_default is Resource:
+					properties[property] = prop_default.resource_path
+				# Target Destination and Target Source
+				elif prop_default is NodePath or prop_default is Object or prop_default == null:
+					properties[property] = ""
+				# Everything else
+				else:
+					properties[property] = prop_default
 	
 	# Delete omitted groups
 	declare_step.emit("Removing omitted layers and groups")

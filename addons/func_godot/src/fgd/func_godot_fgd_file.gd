@@ -23,9 +23,6 @@ func export_button() -> void:
 	do_export_file(target_map_editor)
 
 func do_export_file(target_editor: FuncGodotTargetMapEditors = FuncGodotTargetMapEditors.TRENCHBROOM, fgd_output_folder: String = "") -> void:
-	if not Engine.is_editor_hint():
-		return
-	
 	if fgd_output_folder.is_empty():
 		fgd_output_folder = FuncGodotLocalConfig.get_setting(FuncGodotLocalConfig.PROPERTY.FGD_OUTPUT_FOLDER) as String
 	if fgd_output_folder.is_empty():
@@ -76,6 +73,9 @@ func do_export_file(target_editor: FuncGodotTargetMapEditors = FuncGodotTargetMa
 ## Array of resources that inherit from [FuncGodotFGDEntityClass]. This array defines the entities that will be added to the exported FGD file and the nodes that will be generated in a [FuncGodotMap].
 @export var entity_definitions: Array[Resource] = []
 
+## Toggles whether [FuncGodotFGDModelPointClass] resources will generate models from their [PackedScene] files.
+@export var generate_model_point_class_models: bool = true
+
 func build_class_text(target_editor: FuncGodotTargetMapEditors = FuncGodotTargetMapEditors.TRENCHBROOM) -> String:
 	var res : String = ""
 
@@ -91,6 +91,8 @@ func build_class_text(target_editor: FuncGodotTargetMapEditors = FuncGodotTarget
 			continue
 		if ent.func_godot_internal:
 			continue
+		if ent is FuncGodotFGDModelPointClass:
+			ent._model_generation_enabled = generate_model_point_class_models
 		
 		var ent_text = ent.build_def_text(target_editor)
 		res += ent_text

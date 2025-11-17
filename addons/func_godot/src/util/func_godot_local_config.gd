@@ -55,18 +55,6 @@ const _CONFIG_PROPERTIES: Array[Dictionary] = [
 		"hint": PROPERTY_HINT_GLOBAL_DIR,
 		"func_godot_type": PROPERTY.MAP_EDITOR_GAME_PATH
 	},
-	#{
-		#"name": "game_path_models_folder",
-		#"usage": PROPERTY_USAGE_EDITOR,
-		#"type": TYPE_STRING,
-		#"func_godot_type": PROPERTY.GAME_PATH_MODELS_FOLDER
-	#},
-	#{
-		#"name": "default_inverse_scale_factor",
-		#"usage": PROPERTY_USAGE_EDITOR,
-		#"type": TYPE_FLOAT,
-		#"func_godot_type": PROPERTY.DEFAULT_INVERSE_SCALE
-	#}
 ]
 
 var _settings_dict: Dictionary
@@ -117,9 +105,13 @@ func _get_config_property(name: StringName) -> Variant:
 ## Reload this system's configuration settings into the Local Config resource.
 func reload_func_godot_settings() -> void:
 	_loaded = true
-	var path = _get_path()
+	var path = "user://func_godot_config.json"
 	if not FileAccess.file_exists(path):
-		return
+		var application_name: String = ProjectSettings.get('application/config/name')
+		application_name = application_name.replace(" ", "_")
+		path = "user://" + application_name  + "_FuncGodotConfig.json"
+		if not FileAccess.file_exists(path):
+			return
 	var settings = FileAccess.get_file_as_string(path)
 	_settings_dict = {}
 	if not settings or settings.is_empty():
@@ -137,14 +129,9 @@ func _try_loading() -> void:
 func export_func_godot_settings() -> void:
 	if _settings_dict.size() == 0: 
 		return
-	var path = _get_path()
+	var path = "user://func_godot_config.json"
 	var file = FileAccess.open(path, FileAccess.WRITE)
 	var json = JSON.stringify(_settings_dict)
 	file.store_line(json)
 	_loaded = false
-	print("Saved settings to ", path)
-
-func _get_path() -> String:
-	var application_name: String = ProjectSettings.get('application/config/name')
-	application_name = application_name.replace(" ", "_")
-	return 'user://' + application_name  + '_FuncGodotConfig.json'
+	print("Saved settings to ", file.get_path_absolute())
