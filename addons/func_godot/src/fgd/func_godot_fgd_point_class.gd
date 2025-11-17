@@ -73,10 +73,17 @@ func model_wrangle() -> String:
 		model_switcher += " }}"
 	return model_switcher
 
+func studio_wrangle() -> String:
+	if models.size() > 1:
+		push_warning("When using a non-Trenchbroom editor, only the first Model provided is used");
+	var model := models[0]
+	return '"'+model.path+'"'
+
 
 func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM) -> String:
-	if models.size() > 0 and target_editor == FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM:
-		self.meta_properties["model"] = self.model_wrangle();
-	# TODO: Expand for other editors
-	# could also have an option to use studio or studioprop
+	if models.size() > 0:
+		if target_editor == FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM:
+			self.meta_properties["model"] = self.model_wrangle();
+		else:
+			self.meta_properties["studio"] = self.studio_wrangle();
 	return super(target_editor);
