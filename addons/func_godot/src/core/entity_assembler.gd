@@ -297,7 +297,7 @@ func generate_entity_node(entity_data: _EntityData, entity_index: int) -> Node:
 		if entity_def.script_class:
 			node.set_script(entity_def.script_class)
 		
-		var node_groups: Array[String] = map_settings.entity_node_groups
+		var node_groups: Array[String] = map_settings.entity_node_groups.duplicate()
 		node_groups.append_array(entity_def.node_groups)
 		for node_group in node_groups:
 			if node_group.is_empty():
