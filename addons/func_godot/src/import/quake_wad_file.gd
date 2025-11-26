@@ -10,5 +10,5 @@ class_name QuakeWadFile extends Resource
 ## Collection of [ImageTexture] imported from the WAD file.
 @export var textures: Dictionary[String, ImageTexture]
 
-func _init(textures: Dictionary = Dictionary()):
+func _init(textures: Dictionary[String, ImageTexture] = {}):
 	self.textures = textures
