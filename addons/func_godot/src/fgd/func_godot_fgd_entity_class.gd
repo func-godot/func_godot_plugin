@@ -234,3 +234,17 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 	res += "]" + FuncGodotUtil.newline()
 	
 	return res
+
+func retrieve_all_class_properties(properties: Dictionary[String, Variant] = {}) -> Dictionary[String, Variant]:
+	for key in class_properties.keys():
+		properties[key] = class_properties[key]
+	for b in base_classes:
+		properties = b.retrieve_all_class_properties(properties)
+	return properties
+
+func retrieve_all_class_property_descriptions(descriptions: Dictionary[String, Variant] = {}) -> Dictionary[String, Variant]:
+	for key in class_property_descriptions.keys():
+		descriptions[key] = class_property_descriptions[key]
+	for b in base_classes:
+		descriptions = b.retrieve_all_class_property_descriptions(descriptions)
+	return descriptions

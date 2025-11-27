@@ -94,6 +94,10 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 	
 	declare_step.emit("Checking entity omission, definition status, and property types")
 	
+	# Cache retrieved class property defaults. Format is Dictionary[Classname, Properties].
+	var prop_defaults_cache: Dictionary[String, Dictionary] = {}
+	var prop_descriptions_cache: Dictionary[String, Dictionary] = {}
+	
 	for i in range(entities_data.size() - 1, -1, -1):
 		var entity: _EntityData = entities_data[i]
 		
@@ -213,10 +217,14 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 					TYPE_OBJECT:
 						properties[property] = prop_string
 		
+		# Retrieve default properties.
+		var def_properties: Dictionary[String, Variant] = prop_defaults_cache.get(def.classname, def.retrieve_all_class_properties())
+		var def_descriptions: Dictionary[String, Variant] = prop_descriptions_cache.get(def.classname, def.retrieve_all_class_property_descriptions())
+		
 		# Assign properties not defined with defaults from the entity definition
-		for property in def.class_properties:
+		for property in def_properties:
 			if not property in properties:
-				var prop_default: Variant = def.class_properties[property]
+				var prop_default: Variant = def_properties[property]
 				# Flags
 				if prop_default is Array:
 					var prop_flags_sum := 0
@@ -227,7 +235,7 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 					properties[property] = prop_flags_sum
 				# Choices
 				elif prop_default is Dictionary:
-					var prop_desc = def.class_property_descriptions.get(property, "")
+					var prop_desc = def_descriptions.get(property, "")
 					if prop_desc is Array and prop_desc.size() > 1 and (prop_desc[1] is int or prop_desc[1] is String):
 						properties[property] = prop_desc[1]
 					elif prop_default.size():
