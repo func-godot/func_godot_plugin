@@ -70,7 +70,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files) 
 	var file = FileAccess.open(source_file, FileAccess.READ)
 	if file == null:
 		var err = FileAccess.get_open_error()
-		print(['Error opening super.wad file: ', err])
+		printerr(['Error opening super.wad file: ', err])
 		return err
 	
 	# Read WAD header
@@ -81,13 +81,13 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files) 
 	if magic_string == 'WAD3':
 		wad_format = WadFormat.HalfLife
 	elif magic_string != 'WAD2':
-		print('Error: Invalid WAD magic')
+		printerr('Error: Invalid WAD magic')
 		return ERR_INVALID_DATA
 	
 	var palette_path : String = options['palette_file']
 	var palette_file : QuakePaletteFile = load(palette_path) as QuakePaletteFile
 	if wad_format == WadFormat.Quake and not palette_file:
-		print('Error: Invalid Quake palette file')
+		printerr('Error: Invalid Quake palette file')
 		file.close()
 		return ERR_CANT_ACQUIRE_RESOURCE
 	

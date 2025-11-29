@@ -26,22 +26,22 @@ func do_export_file(target_editor: FuncGodotTargetMapEditors = FuncGodotTargetMa
 	if fgd_output_folder.is_empty():
 		fgd_output_folder = FuncGodotLocalConfig.get_setting(FuncGodotLocalConfig.PROPERTY.FGD_OUTPUT_FOLDER) as String
 	if fgd_output_folder.is_empty():
-		print("Skipping export: No game config folder")
+		printerr("Skipping export: No game config folder")
 		return
 
 	if fgd_name == "":
-		print("Skipping export: Empty FGD name")
+		printerr("Skipping export: Empty FGD name")
 	
 	if not DirAccess.dir_exists_absolute(fgd_output_folder):
 		if DirAccess.make_dir_recursive_absolute(fgd_output_folder) != OK:
-			print("Skipping export: Failed to create directory")
+			printerr("Skipping export: Failed to create directory")
 			return
 
 	var fgd_file = fgd_output_folder.path_join(fgd_name + ".fgd")
 	
 	var file_obj := FileAccess.open(fgd_file, FileAccess.WRITE)
 	if not file_obj:
-		print("Failed to open file for writing: ", fgd_file)
+		printerr("Failed to open file for writing: ", fgd_file)
 		return
 	
 	print("Exporting FGD to ", fgd_file)
