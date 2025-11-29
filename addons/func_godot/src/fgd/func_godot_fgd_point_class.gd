@@ -57,7 +57,7 @@ func _build_model_branch_text(descriptor: FuncGodotFGDPointClassDisplayDescripto
 	if not descriptor.skin.is_empty():
 		model_string += ', \"skin\": %s' % descriptor.skin
 	if not descriptor.frame.is_empty():
-		model_string += ', \"frame\": % s' % descriptor.frame
+		model_string += ', \"frame\": %s' % descriptor.frame
 	if not descriptor.scale.is_empty():
 		model_string += ', \"scale\": %s' % descriptor.scale
 	
