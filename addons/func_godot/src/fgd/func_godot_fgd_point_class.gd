@@ -90,10 +90,12 @@ func _build_model_text() -> String:
 		
 		model_string += '%s -> %s, ' % [d.conditional, _build_model_branch_text(d)]
 	
-	if not default_display:
-		default_display = display_descriptors[-1]
+	if default_display:
+		model_string += '%s }}' % _build_model_branch_text(default_display)
+	else:
+		model_string = model_string.trim_suffix(', ')
+		model_string += ' }}'
 	
-	model_string += '%s }}' % _build_model_branch_text(default_display)
 	return model_string
 
 func _build_studio_text() -> String:
