@@ -45,7 +45,7 @@ var prefix: String = ""
 
 @export_group("Node Generation")
 
-## Node to generate on map build. This can be a built-in Godot class, a GDScript class, or a GDExtension class. 
+## Node to generate on map build. This can be a built-in Godot class, a Script class, or a GDExtension class. 
 ## For Point Class entities that use Scene File instantiation leave this blank.
 @export var node_class := ""
 
@@ -54,7 +54,7 @@ var prefix: String = ""
 ## Nodes will be named `"entity_" + name_property`. An entity's name should be unique, otherwise you may run into unexpected behavior.
 @export var name_property := ""
 
-## Optional Array of group names assigned when generating the node
+## Optional array of node groups to add the generated node to.
 @export var node_groups : Array[String] = []
 
 ## Parses the definition and outputs it into the FGD format.
@@ -234,3 +234,17 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 	res += "]" + FuncGodotUtil.newline()
 	
 	return res
+
+func retrieve_all_class_properties(properties: Dictionary[String, Variant] = {}) -> Dictionary[String, Variant]:
+	for key in class_properties.keys():
+		properties[key] = class_properties[key]
+	for b in base_classes:
+		properties = b.retrieve_all_class_properties(properties)
+	return properties
+
+func retrieve_all_class_property_descriptions(descriptions: Dictionary[String, Variant] = {}) -> Dictionary[String, Variant]:
+	for key in class_property_descriptions.keys():
+		descriptions[key] = class_property_descriptions[key]
+	for b in base_classes:
+		descriptions = b.retrieve_all_class_property_descriptions(descriptions)
+	return descriptions

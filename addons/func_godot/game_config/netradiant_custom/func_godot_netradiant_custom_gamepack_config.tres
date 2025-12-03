@@ -8,17 +8,6 @@
 
 [resource]
 script = ExtResource("2_en8ro")
-gamepack_name = "func_godot"
-game_name = "FuncGodot"
-base_game_path = ""
-fgd_file = ExtResource("1_gct4v")
-netradiant_custom_shaders = Array[Resource]([ExtResource("2_w7psh"), ExtResource("3_6gpk8"), ExtResource("4_8rl60")])
-texture_types = PackedStringArray("png", "jpg", "jpeg", "bmp", "tga")
 model_types = PackedStringArray("glb", "gltf", "obj")
 sound_types = PackedStringArray("wav", "ogg")
-default_scale = "1.0"
-clip_texture = "textures/special/clip"
-skip_texture = "textures/special/skip"
-map_type = 1
-default_build_menu_variables = {}
-default_build_menu_commands = {}
+texture_types = PackedStringArray("png", "jpg", "jpeg", "bmp", "tga")

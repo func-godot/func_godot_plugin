@@ -31,7 +31,7 @@ enum GameConfigVersion {
 	{ "format": "Quake3" }
 ]
 
-@export_category("Textures")
+@export_group("Textures")
 
 ## Path to top level textures folder relative to the game path. Also referred to as materials in the latest versions of TrenchBroom.
 @export var textures_root_folder: String = "textures"
@@ -42,7 +42,7 @@ enum GameConfigVersion {
 ## Palette path relative to your Game Path. Only needed for Quake WAD2 files. Half-Life WAD3 files contain the palettes within the texture information.
 @export var palette_path: String = "textures/palette.lmp"
 
-@export_category("Entities")
+@export_group("Entities")
 
 ## [FuncGodotFGDFile] resource to include with this game. If using multiple FGD File resources, 
 ## this should be the master FGD File that contains them in [member FuncGodotFGDFile.base_fgd_files].
@@ -52,8 +52,11 @@ enum GameConfigVersion {
 ## See [url="https://trenchbroom.github.io/manual/latest/#game_configuration_files_entities"]TrenchBroom Manual Entity Configuration Information[/url] for more information.
 @export var entity_scale: String = "32"
 
+## Toggles whether [FuncGodotFGDModelPointClass] resources will generate models from their [PackedScene] files.
+@export var generate_model_point_class_models: bool = true
+
 ## Arrays containing the [TrenchbroomTag] resource type.
-@export_category("Tags")
+@export_group("Tags")
 
 ## [TrenchbroomTag] resources that apply to brush entities.
 @export var brush_tags : Array[Resource] = []
@@ -65,12 +68,12 @@ enum GameConfigVersion {
 	preload("res://addons/func_godot/game_config/trenchbroom/tb_face_tag_origin.tres")
 ]
 
-@export_category("Face Attributes")
+@export_group("Face Attributes")
 
 ## Default scale of textures on new brushes and when UV scale is reset.
 @export var default_uv_scale : Vector2 = Vector2(1, 1)
 
-@export_category("Compatibility")
+@export_group("Compatibility")
 
 ## Game configuration format compatible with the version of TrenchBroom being used.
 @export var game_config_version: GameConfigVersion = GameConfigVersion.Latest
@@ -229,6 +232,7 @@ func export_file() -> void:
 	
 	# FGD
 	var export_fgd : FuncGodotFGDFile = fgd_file.duplicate()
+	export_fgd.generate_model_point_class_models = generate_model_point_class_models
 	export_fgd.do_export_file(FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM, config_folder)
 	print("TrenchBroom Game Config export complete\n")
 

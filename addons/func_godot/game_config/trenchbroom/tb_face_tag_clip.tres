@@ -5,7 +5,4 @@
 [resource]
 script = ExtResource("1_7td58")
 tag_name = "Clip"
-tag_attributes = Array[String](["transparent"])
-tag_match_type = 0
 tag_pattern = "clip"
-texture_name = ""

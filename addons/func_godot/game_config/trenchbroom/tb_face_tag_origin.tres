@@ -5,7 +5,4 @@
 [resource]
 script = ExtResource("1_enkfc")
 tag_name = "Origin"
-tag_attributes = Array[String](["transparent"])
-tag_match_type = 0
 tag_pattern = "origin"
-texture_name = ""

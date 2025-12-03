@@ -5,7 +5,4 @@
 [resource]
 script = ExtResource("1_2teqe")
 tag_name = "Skip"
-tag_attributes = Array[String](["transparent"])
-tag_match_type = 0
 tag_pattern = "skip"
-texture_name = ""

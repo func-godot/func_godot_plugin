@@ -4,5 +4,4 @@
 
 [resource]
 script = ExtResource("1_cuylw")
-texture_path = "textures/special/clip"
-shader_attributes = Array[String](["qer_trans 0.4"])
+texture_path = "textures/clip"

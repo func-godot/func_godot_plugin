@@ -34,7 +34,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files) 
 	var file = FileAccess.open(source_file, FileAccess.READ)
 	if file == null:
 		var err = FileAccess.get_open_error()
-		print(['Error opening super.lmp file: ', err])
+		printerr(['Error opening super.lmp file: ', err])
 		return err
 
 	var colors := PackedColorArray()

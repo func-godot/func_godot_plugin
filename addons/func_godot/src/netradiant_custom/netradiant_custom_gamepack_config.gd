@@ -27,6 +27,9 @@ enum NetRadiantCustomMapType {
 ## this should be the master FGD that contains them in [member FuncGodotFGDFile.base_fgd_files].
 @export var fgd_file : FuncGodotFGDFile = preload("res://addons/func_godot/fgd/func_godot_fgd.tres")
 
+## Toggles whether [FuncGodotFGDModelPointClass] resources will generate models from their [PackedScene] files.
+@export var generate_model_point_class_models: bool = true
+
 ## Collection of [NetRadiantCustomShader] resources for shader file generation.
 @export var netradiant_custom_shaders : Array[Resource] = [
 	preload("res://addons/func_godot/game_config/netradiant_custom/netradiant_custom_shader_clip.tres"),
@@ -34,28 +37,30 @@ enum NetRadiantCustomMapType {
 	preload("res://addons/func_godot/game_config/netradiant_custom/netradiant_custom_shader_origin.tres")
 ]
 
-## Supported texture file types.
-@export var texture_types : PackedStringArray = ["png", "jpg", "jpeg", "bmp", "tga"]
-
 ## Supported model file types.
 @export var model_types : PackedStringArray = ["glb", "gltf", "obj"]
 
 ## Supported audio file types.
 @export var sound_types : PackedStringArray = ["wav", "ogg"]
 
+## Quake map type NetRadiant will filter the map for, determining whether PatchDef entries are saved. 
+## [color=red][b]WARNING![/b][/color] Toggling this option may be destructive!
+@export var map_type: NetRadiantCustomMapType = NetRadiantCustomMapType.QUAKE_3
+
+@export_group("Textures")
+## Supported texture file types.
+@export var texture_types : PackedStringArray = ["png", "jpg", "jpeg", "bmp", "tga"]
+
 ## Default scale of textures in NetRadiant Custom.
 @export var default_scale : String = "1.0"
 
 ## Clip texture path that gets applied to [i]weapclip[/i] and [i]nodraw[/i] shaders.
-@export var clip_texture: String = "textures/special/clip"
+@export var clip_texture: String = "textures/clip"
 
 ## Skip texture path that gets applied to [i]caulk[/i] and [i]nodrawnonsolid[/i] shaders.
-@export var skip_texture: String = "textures/special/skip"
+@export var skip_texture: String = "textures/skip"
 
-## Quake map type NetRadiant will filter the map for, determining whether PatchDef entries are saved. 
-## [color=red][b]WARNING![/b][/color] Toggling this option may be destructive!
-@export var map_type: NetRadiantCustomMapType = NetRadiantCustomMapType.QUAKE_1
-
+@export_group("Build Menu")
 ## Variables to include in the exported gamepack's [code]default_build_menu.xml[/code].[br][br]
 ## Each [String] key defines a variable name, and its corresponding [String] value as the literal command-line string 
 ## to execute in place of this variable identifier[br][br]
@@ -312,5 +317,6 @@ func export_file() -> void:
 	
 	# FGD
 	var export_fgd : FuncGodotFGDFile = fgd_file.duplicate()
+	export_fgd.generate_model_point_class_models = generate_model_point_class_models
 	export_fgd.do_export_file(FuncGodotFGDFile.FuncGodotTargetMapEditors.NET_RADIANT_CUSTOM, gamepacks_folder + "/" + gamepack_name + ".game/" + base_game_path)
 	print("NetRadiant Custom Gamepack export complete\n")

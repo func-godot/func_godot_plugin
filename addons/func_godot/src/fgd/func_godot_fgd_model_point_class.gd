@@ -29,6 +29,8 @@ enum TargetMapEditor {
 ## Creates a .gdignore file in the model export folder to prevent Godot importing the display models. Only needs to be generated once.
 @export_tool_button("Generate GD Ignore File", "FileAccess") var generate_gd_ignore_file : Callable = _generate_gd_ignore_file
 
+var _model_generation_enabled: bool = false
+
 func _generate_gd_ignore_file() -> void:
 	if Engine.is_editor_hint():
 		var path: String = _get_game_path().path_join(_get_model_folder())
@@ -45,7 +47,9 @@ func _generate_gd_ignore_file() -> void:
 
 ## Builds and saves the display model into the specified destination, then parses the definition and outputs it into the FGD format.
 func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM) -> String:
-	_generate_model()
+	if _model_generation_enabled:
+		_generate_model()
+		_model_generation_enabled = false
 	return super()
 
 func _generate_model() -> void:
