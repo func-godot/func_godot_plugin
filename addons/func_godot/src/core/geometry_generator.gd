@@ -389,7 +389,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 				continue
 			
 			#region Reject interior faces only if desired
-			var cull_interior_faces: bool = (str_to_var(entity.properties.get(map_settings.cull_interior_faces_property, "0"))) == 1
+			var cull_interior_faces: bool = entity.properties.get(map_settings.cull_interior_faces_property, false)
 			if cull_interior_faces:
 				var remove_face := false
 				for face2: _FaceData in faces:
