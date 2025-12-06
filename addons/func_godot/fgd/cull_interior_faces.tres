@@ -10,6 +10,6 @@ class_properties = Dictionary[String, Variant]({
 "_cull_interior_faces": false
 })
 class_property_descriptions = Dictionary[String, Variant]({
-"_cull_interior_faces": "If true it culls interior faces"
+"_cull_interior_faces": "If true, cull interior faces with matching vertices or faces that are flush within a larger face. Note: This has a performance impact that scales with how many brushes are in the brush entity."
 })
 metadata/_custom_type_script = "uid://cgkrrgcimlr8y"
