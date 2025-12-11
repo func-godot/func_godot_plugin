@@ -381,12 +381,69 @@ func generate_entity_surfaces(entity_index: int) -> void:
 		# Begin fresh index offset for this subarray
 		var index_offset: int = 0
 		
-		for face in faces:
+		for face: _FaceData in faces:
 			# FACE SCOPE BEGIN
 			
 			# Reject invalid faces
 			if face.vertices.size() < 3 or is_skip(face) or is_origin(face):
 				continue
+			
+			#region Reject interior faces only if desired
+			if entity.properties.get(map_settings.cull_interior_faces_property, false):
+				var remove_face := false
+				for face2: _FaceData in faces:
+					if face == face2:
+						continue
+					# Are the planes aligned?
+					if !face2.plane.has_point(face.plane.get_center()):
+						continue
+					# Opposite planes
+					if !(face.plane.normal*-1.0).is_equal_approx(face2.plane.normal):
+						continue;
+
+					# Check for faces that share all their vertices.
+					var all_verts_in_face := true
+					for vert in face.vertices:
+						if !face2.vertices.has(vert):
+							all_verts_in_face = false
+							break;
+					if all_verts_in_face:
+						remove_face = true
+						break
+		
+					# Check if all vertices of Face1 intersect with any triangle of face 2
+					# If they do, then Face 1 is entirely overlapped on Face 2 and we can remove Face 1
+					var all_verts_in_face2 := true
+					for vert in face.vertices:
+						var vert_in_any_tri := false
+						var from := vert - face2.plane.normal*0.001
+						var to := face2.plane.normal*0.001
+						
+						# Loop over all triangles in face 2 and see if the vert intersects any of them
+						for i in ((face2.indices.size()/3)):
+							var intersect = Geometry3D.ray_intersects_triangle(
+								from,
+								to,
+								face2.vertices[face2.indices[i*3]],
+								face2.vertices[face2.indices[i*3 + 1]],
+								face2.vertices[face2.indices[i*3 + 2]]
+							)
+							if !intersect:
+								continue
+							if intersect:
+								vert_in_any_tri = true
+								break;
+						# This vert didn't show up any triangle, can't remove this face
+						if !vert_in_any_tri:
+							all_verts_in_face2 = false
+							break
+					# All verts of face 1 are in face 2, so we can safely remove that face
+					if all_verts_in_face2:
+						remove_face = true
+						break;
+				if remove_face:
+					continue;
+			#endregion
 			
 			# Create trimesh points regardless of texture
 			if build_concave:
