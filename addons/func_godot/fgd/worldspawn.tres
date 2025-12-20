@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="FuncGodotFGDSolidClass" load_steps=3 format=3 uid="uid://bdji3873bg32h"]
+[gd_resource type="Resource" script_class="FuncGodotFGDSolidClass" load_steps=4 format=3 uid="uid://bdji3873bg32h"]
 
 [ext_resource type="Script" uid="uid://5cow84q03m6a" path="res://addons/func_godot/src/fgd/func_godot_fgd_solid_class.gd" id="1_62t8m"]
 [ext_resource type="Resource" uid="uid://doo4ly322b4jc" path="res://addons/func_godot/fgd/vertex_merge_distance_base.tres" id="1_h1046"]
+[ext_resource type="Resource" uid="uid://bcdsueg5pysfq" path="res://addons/func_godot/fgd/cull_interior_faces.tres" id="2_ky6lr"]
 
 [resource]
 script = ExtResource("1_62t8m")
@@ -10,7 +11,7 @@ origin_type = 1
 collision_mask = 0
 classname = "worldspawn"
 description = "Default static world geometry. Builds a StaticBody3D with a single MeshInstance3D and a single convex CollisionShape3D shape."
-base_classes = Array[Resource]([ExtResource("1_h1046")])
+base_classes = Array[Resource]([ExtResource("1_h1046"), ExtResource("2_ky6lr")])
 meta_properties = Dictionary[String, Variant]({
 "color": Color(0.8, 0.8, 0.8, 1)
 })

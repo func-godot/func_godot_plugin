@@ -1,15 +1,16 @@
-[gd_resource type="Resource" script_class="FuncGodotFGDSolidClass" load_steps=4 format=3 uid="uid://ch3e0dix85uhb"]
+[gd_resource type="Resource" script_class="FuncGodotFGDSolidClass" load_steps=5 format=3 uid="uid://ch3e0dix85uhb"]
 
 [ext_resource type="Resource" uid="uid://nayxb8n7see2" path="res://addons/func_godot/fgd/phong_base.tres" id="1_ar63x"]
 [ext_resource type="Resource" uid="uid://doo4ly322b4jc" path="res://addons/func_godot/fgd/vertex_merge_distance_base.tres" id="2_j7vgq"]
 [ext_resource type="Script" uid="uid://5cow84q03m6a" path="res://addons/func_godot/src/fgd/func_godot_fgd_solid_class.gd" id="2_lhb87"]
+[ext_resource type="Resource" uid="uid://bcdsueg5pysfq" path="res://addons/func_godot/fgd/cull_interior_faces.tres" id="3_1mhrv"]
 
 [resource]
 script = ExtResource("2_lhb87")
 collision_shape_type = 0
 classname = "func_detail_illusionary"
 description = "Static geometry with no collision. Builds a Node3D with a MeshInstance3D. Does not occlude other VisualInstance3D nodes."
-base_classes = Array[Resource]([ExtResource("1_ar63x"), ExtResource("2_j7vgq")])
+base_classes = Array[Resource]([ExtResource("1_ar63x"), ExtResource("2_j7vgq"), ExtResource("3_1mhrv")])
 meta_properties = Dictionary[String, Variant]({
 "color": Color(0.8, 0.8, 0.8, 1)
 })

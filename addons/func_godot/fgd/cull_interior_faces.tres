@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="FuncGodotFGDBaseClass" load_steps=2 format=3 uid="uid://bcdsueg5pysfq"]
+
+[ext_resource type="Script" uid="uid://ck575aqs1sbrb" path="res://addons/func_godot/src/fgd/func_godot_fgd_base_class.gd" id="1_21jph"]
+
+[resource]
+script = ExtResource("1_21jph")
+classname = "CullInteriorFaces"
+description = "Cull interior faces option for SolidClass Geometry"
+class_properties = Dictionary[String, Variant]({
+"_cull_interior_faces": false
+})
+class_property_descriptions = Dictionary[String, Variant]({
+"_cull_interior_faces": "If true, cull interior faces with matching vertices or faces that are flush within a larger face. Note: This has a performance impact that scales with how many brushes are in the brush entity."
+})
+metadata/_custom_type_script = "uid://cgkrrgcimlr8y"

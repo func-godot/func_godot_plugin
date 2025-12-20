@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="FuncGodotFGDSolidClass" load_steps=4 format=3 uid="uid://b70vf4t5dc70t"]
+[gd_resource type="Resource" script_class="FuncGodotFGDSolidClass" load_steps=5 format=3 uid="uid://b70vf4t5dc70t"]
 
 [ext_resource type="Resource" uid="uid://nayxb8n7see2" path="res://addons/func_godot/fgd/phong_base.tres" id="1_5mwee"]
 [ext_resource type="Script" uid="uid://5cow84q03m6a" path="res://addons/func_godot/src/fgd/func_godot_fgd_solid_class.gd" id="2_8o081"]
 [ext_resource type="Resource" uid="uid://doo4ly322b4jc" path="res://addons/func_godot/fgd/vertex_merge_distance_base.tres" id="2_bp8pb"]
+[ext_resource type="Resource" uid="uid://bcdsueg5pysfq" path="res://addons/func_godot/fgd/cull_interior_faces.tres" id="3_xnsya"]
 
 [resource]
 script = ExtResource("2_8o081")
@@ -11,7 +12,7 @@ collision_shape_type = 2
 collision_mask = 0
 classname = "func_geo"
 description = "Static collidable geometry. Builds a StaticBody3D with a MeshInstance3D, a single concave CollisionShape3D, and an OccluderInstance3D."
-base_classes = Array[Resource]([ExtResource("1_5mwee"), ExtResource("2_bp8pb")])
+base_classes = Array[Resource]([ExtResource("1_5mwee"), ExtResource("2_bp8pb"), ExtResource("3_xnsya")])
 meta_properties = Dictionary[String, Variant]({
 "color": Color(0.8, 0.8, 0.8, 1)
 })
