@@ -164,7 +164,7 @@ func generate_point_entity_node(node: Node, node_name: String, properties: Dicti
 			var script: Script = get_script_by_class_name(definition.node_class)
 			if script is Script:
 				node = script.new()
-	else:
+	if not node:
 		node = Node3D.new()
 	
 	node.name = node_name
