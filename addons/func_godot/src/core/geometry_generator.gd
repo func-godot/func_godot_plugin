@@ -307,6 +307,17 @@ func smooth_entity_vertices(entity_index: int) -> void:
 
 #endregion
 
+func get_plane_lookup_key(plane: Plane) -> Vector4i:
+	# I don't think this constant needs to be exposed, but it avoids floating point errors
+	const OCCLUSION_PRECISION := 100.0;
+
+	return Vector4i(
+		int(round(plane.normal.x*OCCLUSION_PRECISION)),
+		int(round(plane.normal.y*OCCLUSION_PRECISION)),
+		int(round(plane.normal.z*OCCLUSION_PRECISION)),
+		int(round(plane.d*OCCLUSION_PRECISION))
+	)
+
 func generate_entity_surfaces(entity_index: int) -> void:
 	var entity: _EntityData = entity_data[entity_index]
 	
@@ -380,6 +391,15 @@ func generate_entity_surfaces(entity_index: int) -> void:
 		
 		# Begin fresh index offset for this subarray
 		var index_offset: int = 0
+		# build lookup table if we're doing cull interior faces
+		var interior_faces_lookup_dict : Dictionary; # [Vector4i, Array[_FaceData]]
+		if entity.properties.get(map_settings.cull_interior_faces_property, false):
+			for face: _FaceData in faces:
+				var vec := get_plane_lookup_key(face.plane)
+				if interior_faces_lookup_dict.has(vec):
+					(interior_faces_lookup_dict[vec] as Array[_FaceData]).push_back(face)
+				else:
+					interior_faces_lookup_dict[vec] = [face]
 		
 		for face: _FaceData in faces:
 			# FACE SCOPE BEGIN
@@ -391,7 +411,14 @@ func generate_entity_surfaces(entity_index: int) -> void:
 			#region Reject interior faces only if desired
 			if entity.properties.get(map_settings.cull_interior_faces_property, false):
 				var remove_face := false
-				for face2: _FaceData in faces:
+				# We want to lookup opposite planes
+				var opposite_plane = Plane(face.plane)
+				opposite_plane.d *= -1;
+				opposite_plane.normal *= -1;
+				var vec := get_plane_lookup_key(opposite_plane)
+				var faces_from_lookup = ((interior_faces_lookup_dict.get(vec, [])) as Array[_FaceData]);
+				
+				for face2: _FaceData in faces_from_lookup:
 					if face == face2:
 						continue
 					# Are the planes aligned?
