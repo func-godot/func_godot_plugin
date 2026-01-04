@@ -55,7 +55,9 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 				if data.is_empty():
 					printerr("Error: Failed to open map file (" + line + ")")
 					return parse_data
-				map_data = data.split("\n")
+				map_data = data.split("\r\n")
+				if (len(map_data) == 1):
+					map_data = data.split("\n")
 				break
 	else:
 		while not file.eof_reached():
