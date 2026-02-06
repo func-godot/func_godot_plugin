@@ -69,6 +69,28 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 		declare_step.emit("Parsing as Source VMF")
 		parse_data = _parse_vmf(map_data, map_settings, parse_data)
 	
+	# Parse the actual map.
+	return parse_map(map_data, map_settings, parse_data)
+
+
+## Parses the raw data as Quake MAP, as with `parse_map_data(`, but using raw map data instead of a file path.
+func parse_raw_map_data(raw_data: String, map_settings: FuncGodotMapSettings) -> _ParseData:
+	var map_data: PackedStringArray = raw_data.replace("\r", "").split("\n")
+	var parse_data = _ParseData.new()
+	parse_data = _parse_quake_map(map_data, map_settings, parse_data)
+	return parse_map(map_data, map_settings, parse_data)
+
+
+## Parses the raw data as Source VMF, as with `parse_map_data(`, but using raw map data instead of a file path.
+func parse_raw_vmf_data(raw_data: String, map_settings: FuncGodotMapSettings) -> _ParseData:
+	var map_data: PackedStringArray = raw_data.replace("\r", "").split("\n")
+	var parse_data = _ParseData.new()
+	parse_data = _parse_vmf(map_data, map_settings, parse_data)
+	return parse_map(map_data, map_settings, parse_data)
+
+
+## Actual map parser.
+func parse_map(map_data: PackedStringArray, map_settings: FuncGodotMapSettings, parse_map: _ParseData) -> _ParseData:
 	# Determine group hierarchy
 	declare_step.emit("Determining groups hierarchy")
 	var groups_data: Array[_GroupData] = parse_data.groups
