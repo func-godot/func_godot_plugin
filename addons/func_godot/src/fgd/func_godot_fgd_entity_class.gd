@@ -57,6 +57,10 @@ var prefix: String = ""
 ## Optional array of node groups to add the generated node to.
 @export var node_groups : Array[String] = []
 
+## Optional script where `_func_godot_attach_properties` will be called, passing this Entity Resource during FGD Export
+## This can be used to programmatically generated class properties when you need it
+@export var class_property_extender: Script
+
 ## Parses the definition and outputs it into the FGD format.
 func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM) -> String:
 	# Class prefix
@@ -65,6 +69,13 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 	# Meta properties
 	var base_str = ""
 	var meta_props = meta_properties.duplicate()
+
+	# Attach generated class properties first
+	if self.class_property_extender:
+		var ex: Node = self.class_property_extender.new()
+		if ex.has_method("_func_godot_attach_properties"):
+			ex.call("_func_godot_attach_properties", self)
+		ex.queue_free()
 	
 	for base_class in base_classes:
 		if not 'classname' in base_class:
