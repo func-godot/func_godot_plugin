@@ -296,7 +296,8 @@ static func get_valve_uv(vertex: Vector3, u_axis: Vector3, v_axis: Vector3, uv_b
 
 ## Returns UV coordinate calculated from the original id Standard UV format.
 static func get_quake_uv(vertex: Vector3, normal: Vector3, uv_in := Transform2D.IDENTITY, texture_size := Vector2.ONE) -> Vector2: 
-	# Match TrenchBroom/Quake paraxial axis selection, including signed +X/-X handling.
+	# Quake Standard UVs are paraxial: choose one of 6 cardinal projection bases,
+	# then apply per-face rotation/scale/offset from uv_in in that basis.
 	var base_normals: Array[Vector3] = [
 		Vector3(0.0, 0.0, 1.0),
 		Vector3(0.0, 0.0, -1.0),
@@ -305,6 +306,8 @@ static func get_quake_uv(vertex: Vector3, normal: Vector3, uv_in := Transform2D.
 		Vector3(0.0, 1.0, 0.0),
 		Vector3(0.0, -1.0, 0.0),
 	]
+	# These arrays are index-coupled: base_normals[i] uses base_u_axes[i]/base_v_axes[i].
+	# Keep ordering aligned if edited.
 	var base_u_axes: Array[Vector3] = [
 		Vector3(1.0, 0.0, 0.0),
 		Vector3(1.0, 0.0, 0.0),
@@ -322,6 +325,7 @@ static func get_quake_uv(vertex: Vector3, normal: Vector3, uv_in := Transform2D.
 		Vector3(0.0, 0.0, -1.0),
 	]
 
+	# Pick the projection basis whose canonical normal is closest to the face normal.
 	var best_index: int = 0
 	var best_dot: float = 0.0
 	for i in base_normals.size():
@@ -330,8 +334,8 @@ static func get_quake_uv(vertex: Vector3, normal: Vector3, uv_in := Transform2D.
 			best_dot = d
 			best_index = i
 
-	# Extract rotation directly from the basis to avoid Transform2D decomposition ambiguity
-	# on mirrored UV scales (common in Quake/Quake2 maps).
+	# Derive rotation from basis vectors directly to avoid Transform2D decomposition
+	# ambiguity on mirrored UV scales.
 	var rot: float = atan2(-uv_in.x.y, uv_in.x.x)
 	var u_axis := base_u_axes[best_index]
 	var v_axis := base_v_axes[best_index]
@@ -339,7 +343,8 @@ static func get_quake_uv(vertex: Vector3, normal: Vector3, uv_in := Transform2D.
 	u_axis = u_axis.rotated(rot_axis, rot)
 	v_axis = v_axis.rotated(rot_axis, rot)
 
-	# Preserve signed UV scale. get_scale() can drop sign information on mirrored faces.
+	# Derive signed scale by projecting onto rotated UV axes.
+	# Transform2D.get_scale() can lose sign information on mirrored faces.
 	var rot_x := Vector2(cos(rot), -sin(rot))
 	var rot_y := Vector2(sin(rot), cos(rot))
 	var sx: float = uv_in.x.dot(rot_x)
