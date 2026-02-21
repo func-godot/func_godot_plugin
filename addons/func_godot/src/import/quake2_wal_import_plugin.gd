@@ -29,7 +29,7 @@ func _get_import_options(path, preset) -> Array[Dictionary]:
 			"name": "palette_file",
 			"default_value": DEFAULT_PALETTE_PATH,
 			"property_hint": PROPERTY_HINT_FILE,
-			"hint_string": "*.lmp,*.pcx,*.tres,*.res"
+			"hint_string": "*.lmp"
 		},
 		{
 			"name": "generate_mipmaps",
@@ -52,35 +52,6 @@ func _build_fallback_palette() -> PackedColorArray:
 	for i in 256:
 		var t: float = float(i) / 255.0
 		colors.append(Color(t, t, t, 1.0))
-	return colors
-
-func _load_pcx_palette(palette_path: String) -> PackedColorArray:
-	var file := FileAccess.open(palette_path, FileAccess.READ)
-	if file == null:
-		return PackedColorArray()
-
-	var length: int = file.get_length()
-	# PCX palette footer is 0x0C + 768 RGB bytes.
-	if length < 769:
-		file.close()
-		return PackedColorArray()
-
-	file.seek(length - 769)
-	var marker: int = file.get_8()
-	if marker != 0x0C:
-		file.close()
-		return PackedColorArray()
-
-	var bytes: PackedByteArray = file.get_buffer(768)
-	file.close()
-	if bytes.size() != 768:
-		return PackedColorArray()
-
-	var colors := PackedColorArray()
-	colors.resize(256)
-	for i in 256:
-		var idx: int = i * 3
-		colors[i] = Color8(bytes[idx], bytes[idx + 1], bytes[idx + 2], 255)
 	return colors
 
 func _import(source_file, save_path, options, r_platform_variants, r_gen_files) -> Error:
@@ -126,12 +97,9 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files) 
 	var colors: PackedColorArray = PackedColorArray()
 	var palette_path: String = options.get("palette_file", DEFAULT_PALETTE_PATH)
 	if not palette_path.is_empty():
-		if palette_path.to_lower().ends_with(".pcx"):
-			colors = _load_pcx_palette(palette_path)
-		else:
-			var palette_resource: QuakePaletteFile = load(palette_path) as QuakePaletteFile
-			if palette_resource and palette_resource.colors.size() >= 256:
-				colors = palette_resource.colors
+		var palette_resource: QuakePaletteFile = load(palette_path) as QuakePaletteFile
+		if palette_resource and palette_resource.colors.size() >= 256:
+			colors = palette_resource.colors
 		if colors.size() < 256:
 			push_warning("Invalid palette file for .wal import (%s). Using fallback grayscale palette." % palette_path)
 
