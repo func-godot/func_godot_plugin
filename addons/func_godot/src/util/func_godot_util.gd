@@ -296,20 +296,63 @@ static func get_valve_uv(vertex: Vector3, u_axis: Vector3, v_axis: Vector3, uv_b
 
 ## Returns UV coordinate calculated from the original id Standard UV format.
 static func get_quake_uv(vertex: Vector3, normal: Vector3, uv_in := Transform2D.IDENTITY, texture_size := Vector2.ONE) -> Vector2: 
-	var uv_out: Vector2
-	var nx := absf(normal.dot(Vector3.RIGHT))
-	var ny := absf(normal.dot(Vector3.UP))
-	var nz := absf(normal.dot(Vector3.FORWARD))
-	
-	if ny >= nx and ny >= nz:
-		uv_out = Vector2(vertex.x, -vertex.z)
-	elif nx >= ny and nx >= nz:
-		uv_out = Vector2(vertex.y, -vertex.z)
-	else:
-		uv_out = Vector2(vertex.x, vertex.y)
-	
-	uv_out = uv_out.rotated(uv_in.get_rotation())
-	uv_out /= uv_in.get_scale()
+	# Match TrenchBroom/Quake paraxial axis selection, including signed +X/-X handling.
+	var base_normals: Array[Vector3] = [
+		Vector3(0.0, 0.0, 1.0),
+		Vector3(0.0, 0.0, -1.0),
+		Vector3(1.0, 0.0, 0.0),
+		Vector3(-1.0, 0.0, 0.0),
+		Vector3(0.0, 1.0, 0.0),
+		Vector3(0.0, -1.0, 0.0),
+	]
+	var base_u_axes: Array[Vector3] = [
+		Vector3(1.0, 0.0, 0.0),
+		Vector3(1.0, 0.0, 0.0),
+		Vector3(0.0, 1.0, 0.0),
+		Vector3(0.0, 1.0, 0.0),
+		Vector3(1.0, 0.0, 0.0),
+		Vector3(1.0, 0.0, 0.0),
+	]
+	var base_v_axes: Array[Vector3] = [
+		Vector3(0.0, -1.0, 0.0),
+		Vector3(0.0, -1.0, 0.0),
+		Vector3(0.0, 0.0, -1.0),
+		Vector3(0.0, 0.0, -1.0),
+		Vector3(0.0, 0.0, -1.0),
+		Vector3(0.0, 0.0, -1.0),
+	]
+
+	var best_index: int = 0
+	var best_dot: float = 0.0
+	for i in base_normals.size():
+		var d: float = normal.dot(base_normals[i])
+		if d > best_dot:
+			best_dot = d
+			best_index = i
+
+	# Extract rotation directly from the basis to avoid Transform2D decomposition ambiguity
+	# on mirrored UV scales (common in Quake/Quake2 maps).
+	var rot: float = atan2(-uv_in.x.y, uv_in.x.x)
+	var u_axis := base_u_axes[best_index]
+	var v_axis := base_v_axes[best_index]
+	var rot_axis := base_v_axes[best_index].cross(base_u_axes[best_index]).normalized()
+	u_axis = u_axis.rotated(rot_axis, rot)
+	v_axis = v_axis.rotated(rot_axis, rot)
+
+	# Preserve signed UV scale. get_scale() can drop sign information on mirrored faces.
+	var rot_x := Vector2(cos(rot), -sin(rot))
+	var rot_y := Vector2(sin(rot), cos(rot))
+	var sx: float = uv_in.x.dot(rot_x)
+	var sy: float = uv_in.y.dot(rot_y)
+	if is_zero_approx(sx):
+		sx = uv_in.x.length()
+	if is_zero_approx(sy):
+		sy = uv_in.y.length()
+	var uv_out := Vector2(
+		u_axis.dot(vertex) / sx,
+		v_axis.dot(vertex) / sy
+	)
+
 	uv_out += uv_in.origin
 	uv_out /= texture_size
 	return uv_out
