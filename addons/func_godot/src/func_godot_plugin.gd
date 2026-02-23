@@ -5,6 +5,7 @@ class_name FuncGodotPlugin extends EditorPlugin
 var map_import_plugin : QuakeMapImportPlugin = null
 var palette_import_plugin : QuakePaletteImportPlugin = null
 var wad_import_plugin: QuakeWadImportPlugin = null
+var wal_import_plugin: Quake2WalImportPlugin = null
 
 #var func_godot_map_progress_bar: Control = null
 var edited_object_ref: WeakRef = weakref(null)
@@ -27,10 +28,12 @@ func _enter_tree() -> void:
 	map_import_plugin = QuakeMapImportPlugin.new()
 	palette_import_plugin = QuakePaletteImportPlugin.new()
 	wad_import_plugin = QuakeWadImportPlugin.new()
+	wal_import_plugin = Quake2WalImportPlugin.new()
 	
 	add_import_plugin(map_import_plugin)
 	add_import_plugin(palette_import_plugin)
 	add_import_plugin(wad_import_plugin)
+	add_import_plugin(wal_import_plugin)
 	
 	#func_godot_map_progress_bar = create_func_godot_map_progress_bar()
 	#func_godot_map_progress_bar.set_visible(false)
@@ -79,10 +82,13 @@ func _exit_tree() -> void:
 	remove_import_plugin(palette_import_plugin)
 	if wad_import_plugin:
 		remove_import_plugin(wad_import_plugin)
+	if wal_import_plugin:
+		remove_import_plugin(wal_import_plugin)
 		
 	map_import_plugin = null
 	palette_import_plugin = null
 	wad_import_plugin = null
+	wal_import_plugin = null
 	
 	#if func_godot_map_progress_bar:
 		#remove_control_from_container(EditorPlugin.CONTAINER_INSPECTOR_BOTTOM, func_godot_map_progress_bar)

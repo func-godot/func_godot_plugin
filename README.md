@@ -17,7 +17,7 @@ For more help or to contribute to the community, join us on the [**Official Func
 
 - Godot Scene Generation
   - Supports Quake `map` and Hammer `vmf`
-  - Supports Quake WAD2, Half-Life WAD3, and `lmp` palette formats
+  - Supports Quake WAD2, Quake 2 `wal`, Half-Life WAD3, and `lmp` palette formats
   - Meshes from `map` brush geometry
   - Materials and UVs from map texture definitions
   - Convex and concave collision shapes

@@ -1,0 +1,14 @@
+[remap]
+
+importer="func_godot.palette"
+type="Resource"
+uid="uid://bpw44bw4be31x"
+path="res://.godot/imported/quake2_palette.lmp-1e75c5b4fb672527308fc35f536ee6bf.tres"
+
+[deps]
+
+source_file="res://addons/func_godot/quake2_palette.lmp"
+dest_files=["res://.godot/imported/quake2_palette.lmp-1e75c5b4fb672527308fc35f536ee6bf.tres"]
+
+[params]
+
