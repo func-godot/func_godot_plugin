@@ -52,6 +52,10 @@ enum GameConfigVersion {
 ## See [url="https://trenchbroom.github.io/manual/latest/#game_configuration_files_entities"]TrenchBroom Manual Entity Configuration Information[/url] for more information.
 @export var entity_scale: String = "32"
 
+## Controls whether default entity properties are instantiated automatically when TrenchBroom creates a new entity.
+## See [url="https://trenchbroom.github.io/manual/latest/#entity_properties_defaults"]TrenchBroom Manual Default Entity Properties[/url] for more information.
+@export var set_default_properties: bool = false
+
 ## Toggles whether [FuncGodotFGDModelPointClass] resources will generate models from their [PackedScene] files.
 @export var generate_model_point_class_models: bool = true
 
@@ -124,6 +128,7 @@ func _build_class_text() -> String:
 				palette_path,
 				fgd_filename_str,
 				entity_scale,
+				set_default_properties,
 				brush_tags_str,
 				brushface_tags_str,
 				uv_scale_str
@@ -304,7 +309,8 @@ func _get_game_config_v9v8_text() -> String:
 	"entities": {
 		"definitions": [ %s ],
 		"defaultcolor": "0.6 0.6 0.6 1.0",
-		"scale": %s
+		"scale": %s,
+		"setDefaultProperties": %s
 	},
 	"tags": {
 		"brush": [
