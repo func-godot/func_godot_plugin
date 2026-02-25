@@ -17,6 +17,13 @@ enum BuildFlags {
 	DISABLE_SMOOTHING	= 1 << 2	## Force disable processing of vertex normal smooth shading.
 }
 
+## Enum for how to process raw data, instead of file path.
+enum ForceBuildRaw {
+	NONE,		# Use file path like normal
+	QUAKE_MAP,	# Use raw data as a Quake Map file.
+	SOURCE_VDF	# Use raw data as a Source VDF file.
+}
+
 ## Emitted when the build process fails.
 signal build_failed
 
@@ -49,6 +56,13 @@ var _map_file_internal: String = ""
 ## Measured in Godot units, not Quake units.
 @export_range(256.0, 2048.0, 128.0) var hyperplane_size: float = 512.0
 
+## Flipping this flag will make the parser build use `raw_data` instead of a file path.
+## This is only available in code, not editor.
+var force_build_raw := ForceBuildRaw.NONE
+## Raw map data.
+## Only available in code, not editor.
+var raw_data: String = ""
+
 ## Map build failure handler. Displays error message and emits [signal build_failed] signal.
 func fail_build(reason: String, notify: bool = false) -> void:
 	push_error(_SIGNATURE, " ", reason)
@@ -64,6 +78,16 @@ func clear_children() -> void:
 
 ## Checks if a [QuakeMapFile] for the build process is provided and can be found.
 func verify() -> Error:
+	# Skip checking for the file if we've forced raw build data.
+	if force_build_raw != ForceBuildRaw.NONE:
+		if raw_data.is_empty():
+			fail_build("Error: `raw_data` is empty, but force_build_raw != ForceBuildRaw.NONE")
+			return ERR_DOES_NOT_EXIST
+		return OK
+	elif raw_data.is_empty() == false:
+		fail_build("Error: `raw_data` is set, but `force_build_raw == ForceBuildRaw.NONE`.")
+		return ERR_INVALID_PARAMETER
+
 	# Prioritize global map file path for building at runtime
 	_map_file_internal = global_map_file if global_map_file != "" else local_map_file
 	
@@ -111,7 +135,16 @@ func build() -> void:
 	if build_flags & BuildFlags.SHOW_PROFILE_INFO:
 		print("\nPARSER")
 		parser.declare_step.connect(FuncGodotUtil.print_profile_info.bind(parser._SIGNATURE))
-	var parse_data: FuncGodotData.ParseData = parser.parse_map_data(_map_file_internal, map_settings)
+
+	# Parse files or raw file data, depending on `force_build_raw` state.
+	var parse_data: FuncGodotData.ParseData
+	match force_build_raw:
+		ForceBuildRaw.NONE:
+			parse_data = parser.parse_map_data(_map_file_internal, map_settings)
+		ForceBuildRaw.QUAKE_MAP:
+			parse_data = parser.parse_raw_map_data(raw_data, map_settings)
+		ForceBuildRaw.SOURCE_VDF:
+			parse_data = parser.parse_raw_vmf_data(raw_data, map_settings)
 	
 	if parse_data.entities.is_empty():
 		return	# Already printed failure message in parser, just return here
