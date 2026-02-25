@@ -213,7 +213,10 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 					TYPE_STRING_NAME:
 						properties[property] = StringName(prop_string)
 					TYPE_NODE_PATH:
-						properties[property] = prop_string
+						if prop_string.begins_with("$") or prop_string.begins_with("%"):
+							properties[property] = NodePath(prop_string)
+						else:
+							properties[property] = prop_string
 					TYPE_OBJECT:
 						properties[property] = prop_string
 		
