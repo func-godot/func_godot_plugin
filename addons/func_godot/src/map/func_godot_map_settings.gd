@@ -94,6 +94,10 @@ var scale_factor: float = 0.03125
 @export var origin_texture: String = "origin":
 	set(tex):
 		origin_texture = tex.to_lower()
+
+## If true, skip brushes where every face has the same texture and that texture name contains [code]"sky"[/code].
+## Matching is case-insensitive and based on the texture name only.
+@export var exclude_sky_brushes: bool = false
 @export_subgroup("")
 
 ## Optional [QuakeWadFile] resources to apply textures from. See the [Quake Wiki](https://quakewiki.org/wiki/Texture_Wad) for more information on Quake Texture WADs.

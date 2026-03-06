@@ -18,6 +18,19 @@ const _ParseData	:= FuncGodotData.ParseData
 ## It is connected to [method FuncGodotUtil.print_profile_info] method if [member FuncGodotMap.build_flags] SHOW_PROFILE_INFO flag is set.
 signal declare_step(step: String)
 
+func _is_excluded_sky_brush(brush: _BrushData, map_settings: FuncGodotMapSettings) -> bool:
+	if not map_settings or not map_settings.exclude_sky_brushes:
+		return false
+	if not brush or brush.faces.is_empty():
+		return false
+	var texture_name: String = brush.faces[0].texture.to_lower()
+	if not texture_name.contains("sky"):
+		return false
+	for face in brush.faces:
+		if face.texture.to_lower() != texture_name:
+			return false
+	return true
+
 ## Parses the map file, generating entity and group data and sub-data, then returns the generated data as an array of arrays. 
 ## The first array is Array[FuncGodotData.EntityData], while the second array is Array[FuncGodotData.GroupData].
 func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _ParseData:
@@ -290,7 +303,8 @@ func _parse_quake_map(map_data: PackedStringArray, map_settings: FuncGodotMapSet
 		# Commit entity or brush
 		if line.begins_with("}"):
 			if brush:
-				ent.brushes.append(brush)
+				if not _is_excluded_sky_brush(brush, map_settings):
+					ent.brushes.append(brush)
 				brush = null
 			elif patch:
 				if scope:
@@ -496,7 +510,7 @@ func _parse_vmf(map_data: PackedStringArray, map_settings: FuncGodotMapSettings,
 				scope -= 1
 			if not scope:
 				if brush:
-					if brush.faces.size():
+					if brush.faces.size() and not _is_excluded_sky_brush(brush, map_settings):
 						ent.brushes.append(brush)
 					brush = null
 				elif ent:
