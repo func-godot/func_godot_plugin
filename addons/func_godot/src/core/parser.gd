@@ -271,7 +271,7 @@ func _parse_quake_map(map_data: PackedStringArray, map_settings: FuncGodotMapSet
 	var scope: int = 0 # Scope level, to keep track of where we are in PatchDef parsing
 	
 	for line in map_data:
-		line = line.replace("\t", "")
+		line = line.replace("\t", "").replace("\r", "")
 		
 		#region START DATA
 		# Start entity, brush, or patchdef
