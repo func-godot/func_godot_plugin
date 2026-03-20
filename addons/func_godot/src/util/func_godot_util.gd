@@ -126,14 +126,10 @@ const _pbr_features: PackedInt32Array = [
 ## Searches for a Texture2D within the base texture directory or the WAD files added to map settings. 
 ## If not found, a default texture is returned.
 static func load_texture(texture_name: String, wad_resources: Array[QuakeWadFile], map_settings: FuncGodotMapSettings) -> Texture2D:
+	var texture: Texture2D = load_texture_recursive(texture_name, map_settings.base_texture_dir, map_settings.texture_file_extensions)
 	for texture_file_extension in map_settings.texture_file_extensions:
-		var texture_path: String = map_settings.base_texture_dir.path_join(texture_name + "." + texture_file_extension)
-		if ResourceLoader.exists(texture_path):
-			var texture_file = load(texture_path)
-			if texture_file is Texture2D:
-				return texture_file
-			else:
-				printerr("Error: Texture load failed! (%s) not a valid Texture2D resource", texture_path)
+		if texture != null:
+			return texture
 	
 	var texture_name_lower: String = texture_name.to_lower()
 	for wad in wad_resources:
@@ -141,6 +137,29 @@ static func load_texture(texture_name: String, wad_resources: Array[QuakeWadFile
 			return wad.textures[texture_name_lower]
 	
 	return load(default_texture_path)
+	
+## searching for subdirectories and multiple file extensions.
+static func load_texture_recursive(texture_name: String, base_dir: String, extensions: Array) -> Texture2D:
+	var dirs: PackedStringArray = DirAccess.get_directories_at(base_dir)
+	if dirs.is_empty():
+		for texture_file_extension in extensions:
+			var texture_path: String = base_dir.path_join(texture_name + "." + texture_file_extension)
+			if ResourceLoader.exists(texture_path):
+				var texture_file = load(texture_path)
+				if texture_file is Texture2D:
+					return texture_file
+				else:
+					printerr("Error: Texture load failed! (%s) not a valid Texture2D resource", texture_path)
+					
+		return null
+		
+	for dir in dirs:
+		var path: String = base_dir.path_join(dir)
+		var texture: Texture2D = load_texture_recursive(texture_name, path, extensions)
+		if texture != null:
+			return texture
+	
+	return null
 
 ## Filters faces textured with Skip during the geometry generation step of the build process.
 static func is_skip(texture: String, map_settings: FuncGodotMapSettings) -> bool:
