@@ -138,7 +138,7 @@ static func load_texture(texture_name: String, wad_resources: Array[QuakeWadFile
 	
 	return load(default_texture_path)
 	
-## searching for subdirectories and multiple file extensions.
+## Searching for subdirectories and multiple file extensions.
 static func load_texture_recursive(texture_name: String, base_dir: String, extensions: Array) -> Texture2D:
 	var dirs: PackedStringArray = DirAccess.get_directories_at(base_dir)
 	if dirs.is_empty():
