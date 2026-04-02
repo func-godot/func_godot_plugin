@@ -422,7 +422,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 					if face == face2:
 						continue
 					# Are the planes aligned?
-					if !face2.plane.has_point(face.plane.get_center()):
+					if !face2.plane.has_point(face.plane.get_center(), 0.0001):
 						continue
 					# Opposite planes
 					if !(face.plane.normal*-1.0).is_equal_approx(face2.plane.normal):
