@@ -56,7 +56,12 @@ func generate_solid_entity_node(node: Node, node_name: String, data: _EntityData
 	else:
 		node = Node3D.new()
 	
-	node.name = node_name
+	if node_name.begins_with("%"):
+		node_name = node_name.trim_prefix("%")
+		node.name = node_name
+		node.unique_name_in_owner = true
+	else:
+		node.name = node_name
 	node_name = node_name.trim_suffix(definition.classname).trim_suffix("_")
 	var properties: Dictionary[String, Variant] = data.properties
 	
@@ -286,7 +291,10 @@ func generate_entity_node(entity_data: _EntityData, entity_index: int) -> Node:
 	elif map_settings.entity_name_property in properties:
 		name_prop = str(properties[map_settings.entity_name_property])
 	if not name_prop.is_empty():
-		node_name = "entity_" + name_prop
+		if name_prop.begins_with("%"):
+			node_name = name_prop
+		else:
+			node_name = "entity_" + name_prop
 	
 	if entity_def is FuncGodotFGDSolidClass:
 		node = generate_solid_entity_node(node, node_name, entity_data, entity_def)
