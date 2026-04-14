@@ -7,6 +7,33 @@ const _VEC3_UP_ID		:= Vector3(0.0, 0.0, 1.0)
 const _VEC3_RIGHT_ID		:= Vector3(0.0, 1.0, 0.0)
 const _VEC3_FORWARD_ID 	:= Vector3(1.0, 0.0, 0.0)
 
+# Quake Standard UV paraxial basis tables.
+# These arrays are index-coupled: normals[i] uses u_axes[i]/v_axes[i].
+const _QUAKE_STD_UV_BASE_NORMALS: Array[Vector3] = [
+	Vector3(0.0, 0.0, 1.0),
+	Vector3(0.0, 0.0, -1.0),
+	Vector3(1.0, 0.0, 0.0),
+	Vector3(-1.0, 0.0, 0.0),
+	Vector3(0.0, 1.0, 0.0),
+	Vector3(0.0, -1.0, 0.0),
+]
+const _QUAKE_STD_UV_BASE_U_AXES: Array[Vector3] = [
+	Vector3(1.0, 0.0, 0.0),
+	Vector3(1.0, 0.0, 0.0),
+	Vector3(0.0, 1.0, 0.0),
+	Vector3(0.0, 1.0, 0.0),
+	Vector3(1.0, 0.0, 0.0),
+	Vector3(1.0, 0.0, 0.0),
+]
+const _QUAKE_STD_UV_BASE_V_AXES: Array[Vector3] = [
+	Vector3(0.0, -1.0, 0.0),
+	Vector3(0.0, -1.0, 0.0),
+	Vector3(0.0, 0.0, -1.0),
+	Vector3(0.0, 0.0, -1.0),
+	Vector3(0.0, 0.0, -1.0),
+	Vector3(0.0, 0.0, -1.0),
+]
+
 ## Connected by the [FuncGodotMap] node to the build process' sub-components if the 
 ## [member FuncGodotMap.build_flags]'s SHOW_PROFILE_INFO flag is set.
 static func print_profile_info(message: String, signature: String) -> void:
@@ -296,20 +323,41 @@ static func get_valve_uv(vertex: Vector3, u_axis: Vector3, v_axis: Vector3, uv_b
 
 ## Returns UV coordinate calculated from the original id Standard UV format.
 static func get_quake_uv(vertex: Vector3, normal: Vector3, uv_in := Transform2D.IDENTITY, texture_size := Vector2.ONE) -> Vector2: 
-	var uv_out: Vector2
-	var nx := absf(normal.dot(Vector3.RIGHT))
-	var ny := absf(normal.dot(Vector3.UP))
-	var nz := absf(normal.dot(Vector3.FORWARD))
-	
-	if ny >= nx and ny >= nz:
-		uv_out = Vector2(vertex.x, -vertex.z)
-	elif nx >= ny and nx >= nz:
-		uv_out = Vector2(vertex.y, -vertex.z)
-	else:
-		uv_out = Vector2(vertex.x, vertex.y)
-	
-	uv_out = uv_out.rotated(uv_in.get_rotation())
-	uv_out /= uv_in.get_scale()
+	# Quake Standard UVs are paraxial: choose one of 6 cardinal projection bases,
+	# then apply per-face rotation/scale/offset from uv_in in that basis.
+	# Pick the projection basis whose canonical normal is closest to the face normal.
+	var best_index: int = 0
+	var best_dot_product: float = -INF
+	for i in _QUAKE_STD_UV_BASE_NORMALS.size():
+		var d: float = normal.dot(_QUAKE_STD_UV_BASE_NORMALS[i])
+		if d > best_dot_product:
+			best_dot_product = d
+			best_index = i
+
+	# Derive rotation from basis vectors directly to avoid Transform2D decomposition
+	# ambiguity on mirrored UV scales.
+	var rot: float = atan2(-uv_in.x.y, uv_in.x.x)
+	var base_u_axis: Vector3 = _QUAKE_STD_UV_BASE_U_AXES[best_index]
+	var base_v_axis: Vector3 = _QUAKE_STD_UV_BASE_V_AXES[best_index]
+	var rot_axis: Vector3 = base_v_axis.cross(base_u_axis).normalized()
+	var u_axis: Vector3 = base_u_axis.rotated(rot_axis, rot)
+	var v_axis: Vector3 = base_v_axis.rotated(rot_axis, rot)
+
+	# Derive signed scale by projecting onto rotated UV axes.
+	# Transform2D.get_scale() can lose sign information on mirrored faces.
+	var rot_x := Vector2(cos(rot), -sin(rot))
+	var rot_y := Vector2(sin(rot), cos(rot))
+	var sx: float = uv_in.x.dot(rot_x)
+	var sy: float = uv_in.y.dot(rot_y)
+	if is_zero_approx(sx):
+		sx = uv_in.x.length()
+	if is_zero_approx(sy):
+		sy = uv_in.y.length()
+	var uv_out := Vector2(
+		u_axis.dot(vertex) / sx,
+		v_axis.dot(vertex) / sy
+	)
+
 	uv_out += uv_in.origin
 	uv_out /= texture_size
 	return uv_out

@@ -72,7 +72,7 @@ var scale_factor: float = 0.03125
 @export_dir var base_texture_dir: String = "res://textures"
 
 ## File extensions to search for texture data.
-@export var texture_file_extensions: Array[String] = ["png", "jpg", "jpeg", "bmp", "tga", "webp"]
+@export var texture_file_extensions: Array[String] = ["png", "jpg", "jpeg", "bmp", "tga", "webp", "wal"]
 
 @export_subgroup("Hint Textures")
 ## Optional path for the clip texture, relative to [member base_texture_dir]. 
