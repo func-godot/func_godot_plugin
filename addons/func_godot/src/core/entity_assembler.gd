@@ -264,14 +264,15 @@ func apply_entity_properties(node: Node, data: _EntityData) -> void:
 				if property in node:
 					if typeof(node.get(property)) == typeof(properties[property]):
 						node.set(property, properties[property])
-					else:
+					elif typeof(properties[property] == TYPE_STRING):
 						match typeof(node.get(property)):
-							TYPE_STRING,TYPE_STRING_NAME:
-								node.set(property,properties[property])
+							TYPE_STRING, TYPE_STRING_NAME:
+								node.set(property, properties[property])
 							TYPE_NODE_PATH:
-								node.set(property,NodePath(properties[property]))
+								node.set(property, NodePath(properties[property]))
 							_:
 								push_error("Entity %s property \'%s\' type mismatch with matching generated node property." % [node.name, property])
+					else:
 						push_error("Entity %s property \'%s\' type mismatch with matching generated node property." % [node.name, property])
 	
 	if "func_godot_properties" in node:
