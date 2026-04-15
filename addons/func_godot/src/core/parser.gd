@@ -21,10 +21,10 @@ signal declare_step(step: String)
 func _find_unescaped_quote(text: String, start: int = 0) -> int:
 	var index := maxi(start, 0)
 	while index < text.length():
-		if text.unicode_at(index) == 34: # "
+		if text.unicode_at(index) == 34: # 34 = double quote (")
 			var backslash_count := 0
 			var check := index - 1
-			while check >= 0 and text.unicode_at(check) == 92: # \
+			while check >= 0 and text.unicode_at(check) == 92: # 92 = backslash (\)
 				backslash_count += 1
 				check -= 1
 			if backslash_count % 2 == 0:
@@ -49,9 +49,9 @@ func _parse_quoted_key_value_line(line: String) -> Dictionary:
 	property_data["key"] = line.substr(1, key_end - 1)
 
 	var value_open := key_end + 1
-	while value_open < line.length() and line.unicode_at(value_open) <= 32:
+	while value_open < line.length() and line.unicode_at(value_open) <= 32: # 32 = space; <= 32 skips ASCII whitespace/control chars
 		value_open += 1
-	if value_open >= line.length() or line.unicode_at(value_open) != 34:
+	if value_open >= line.length() or line.unicode_at(value_open) != 34: # 34 = double quote (")
 		return property_data
 	value_open += 1
 
