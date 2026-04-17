@@ -264,7 +264,7 @@ func apply_entity_properties(node: Node, data: _EntityData) -> void:
 				if property in node:
 					if typeof(node.get(property)) == typeof(properties[property]):
 						node.set(property, properties[property])
-					elif typeof(properties[property] == TYPE_STRING):
+					elif typeof(properties[property]) == TYPE_STRING:
 						match typeof(node.get(property)):
 							TYPE_STRING, TYPE_STRING_NAME:
 								node.set(property, properties[property])
