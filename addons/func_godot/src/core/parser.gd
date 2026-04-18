@@ -18,6 +18,54 @@ const _ParseData	:= FuncGodotData.ParseData
 ## It is connected to [method FuncGodotUtil.print_profile_info] method if [member FuncGodotMap.build_flags] SHOW_PROFILE_INFO flag is set.
 signal declare_step(step: String)
 
+func _find_unescaped_quote(text: String, start: int = 0) -> int:
+	var index := maxi(start, 0)
+	while index < text.length():
+		if text.unicode_at(index) == 34: # 34 = double quote (")
+			var backslash_count := 0
+			var check := index - 1
+			while check >= 0 and text.unicode_at(check) == 92: # 92 = backslash (\)
+				backslash_count += 1
+				check -= 1
+			if backslash_count % 2 == 0:
+				return index
+		index += 1
+	return -1
+
+func _parse_quoted_key_value_line(line: String) -> Dictionary:
+	var property_data := {
+		"valid": false,
+		"complete": false,
+		"key": "",
+		"value": "",
+		"trailing": "",
+	}
+	if not line.begins_with("\""):
+		return property_data
+
+	var key_end := _find_unescaped_quote(line, 1)
+	if key_end < 0:
+		return property_data
+	property_data["key"] = line.substr(1, key_end - 1)
+
+	var value_open := key_end + 1
+	while value_open < line.length() and line.unicode_at(value_open) <= 32: # 32 = space; <= 32 skips ASCII whitespace/control chars
+		value_open += 1
+	if value_open >= line.length() or line.unicode_at(value_open) != 34: # 34 = double quote (")
+		return property_data
+	value_open += 1
+
+	var value_end := _find_unescaped_quote(line, value_open)
+	property_data["valid"] = true
+	if value_end < 0:
+		property_data["value"] = line.substr(value_open)
+		return property_data
+
+	property_data["complete"] = true
+	property_data["value"] = line.substr(value_open, value_end - value_open)
+	property_data["trailing"] = line.substr(value_end + 1).strip_edges()
+	return property_data
+
 ## Parses the map file, generating entity and group data and sub-data, then returns the generated data as an array of arrays. 
 ## The first array is Array[FuncGodotData.EntityData], while the second array is Array[FuncGodotData.GroupData].
 func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _ParseData:
@@ -68,6 +116,10 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 	elif map_file.to_lower().contains(".vmf"):
 		declare_step.emit("Parsing as Source VMF")
 		parse_data = _parse_vmf(map_data, map_settings, parse_data)
+
+	if parse_data == null:
+		printerr("Error: Failed to parse map file (%s)" % map_file)
+		return _ParseData.new()
 	
 	# Determine group hierarchy
 	declare_step.emit("Determining groups hierarchy")
@@ -272,9 +324,34 @@ func _parse_quake_map(map_data: PackedStringArray, map_settings: FuncGodotMapSet
 	var brush: _BrushData = null
 	var patch: _PatchData = null
 	var scope: int = 0 # Scope level, to keep track of where we are in PatchDef parsing
+	var multiline_property_active := false
+	var multiline_property_key := ""
+	var multiline_property_value := ""
+	var multiline_property_line := -1
 	
-	for line in map_data:
+	for line_index in map_data.size():
+		var line: String = map_data[line_index]
+		var line_number := line_index + 1
 		line = line.replace("\t", "").replace("\r", "")
+
+		if multiline_property_active:
+			var value_end := _find_unescaped_quote(line)
+			if value_end == -1:
+				multiline_property_value += "\n" + line
+			else:
+				multiline_property_value += "\n" + line.substr(0, value_end)
+				var trailing: String = line.substr(value_end + 1).strip_edges()
+				if not trailing.is_empty():
+					push_warning("Unexpected trailing data after multiline property at line %d, ignoring: %s" % [line_number, trailing])
+				if ent == null:
+					push_error("Malformed Quake MAP property continuation at line %d" % line_number)
+					return null
+				ent.properties[multiline_property_key] = multiline_property_value
+				multiline_property_active = false
+				multiline_property_key = ""
+				multiline_property_value = ""
+				multiline_property_line = -1
+			continue
 		
 		#region START DATA
 		# Start entity, brush, or patchdef
@@ -339,13 +416,22 @@ func _parse_quake_map(map_data: PackedStringArray, map_settings: FuncGodotMapSet
 		
 		#region PROPERTY DATA
 		# Retrieve key value pairs
-		if line.begins_with("\""):
-			var tokens: PackedStringArray = line.split("\" \"")
-			if tokens.size() < 2:
-				tokens = line.split("\"\"")
-			var key: String = tokens[0].trim_prefix("\"")
-			var value: String = tokens[1].trim_suffix("\"")
-			ent.properties[key] = value
+		if ent and not brush and not patch and line.begins_with("\""):
+			var property_data: Dictionary = _parse_quoted_key_value_line(line)
+			if not property_data["valid"]:
+				push_warning("Malformed Quake MAP property at line %d, skipping: %s" % [line_number, line])
+				continue
+			if property_data["complete"]:
+				var trailing: String = property_data["trailing"]
+				if not trailing.is_empty():
+					push_warning("Unexpected trailing data after property at line %d, ignoring: %s" % [line_number, trailing])
+				ent.properties[property_data["key"]] = property_data["value"]
+			else:
+				multiline_property_active = true
+				multiline_property_key = property_data["key"]
+				multiline_property_value = property_data["value"]
+				multiline_property_line = line_number
+			continue
 		#endregion
 		
 		#region BRUSH DATA
@@ -441,7 +527,11 @@ func _parse_quake_map(map_data: PackedStringArray, map_settings: FuncGodotMapSet
 			brush = null
 			patch = _PatchData.new()
 			continue
-		#endregion
+	#endregion
+
+	if multiline_property_active:
+		push_error("Unterminated multiline property \"%s\" starting at line %d" % [multiline_property_key, multiline_property_line])
+		return null
 	
 	#region ASSIGN GROUPS
 	for e in entities_data:
