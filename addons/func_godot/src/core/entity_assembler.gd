@@ -305,8 +305,6 @@ func generate_entity_node(entity_data: _EntityData, entity_index: int) -> Node:
 	if not name_prop.is_empty():
 		if name_prop.begins_with("%"):
 			node_name = name_prop
-		elif name_prop.begins_with("$"):
-			node_name = name_prop.trim_prefix("$")
 		else:
 			node_name = "entity_" + name_prop
 	
