@@ -215,9 +215,9 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 						prop_type = "decal"
 					elif value is AudioStream:
 						prop_type = "sound"
-				else:
-					prop_type = "target_source"
-					prop_val = "\"\""
+			TYPE_STRING_NAME:
+				prop_type = "target_source"
+				prop_val = "\"\""
 		
 		if prop_val:
 			res += "\t"
