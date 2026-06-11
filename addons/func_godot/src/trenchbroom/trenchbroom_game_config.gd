@@ -238,8 +238,13 @@ func export_file() -> void:
 	# FGD
 	var export_fgd : FuncGodotFGDFile = fgd_file.duplicate()
 	export_fgd.generate_model_point_class_models = generate_model_point_class_models
-	export_fgd.do_export_file(FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM, config_folder)
-	print("TrenchBroom Game Config export complete\n")
+
+	var export_err := export_fgd.do_export_file(FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM, config_folder)
+
+	if export_err != OK:
+		printerr("Could not export FGD.")
+	else:
+		print("TrenchBroom Game Config export complete\n")
 
 #region GameConfigDeclarations
 func _get_game_config_v4_text() -> String:

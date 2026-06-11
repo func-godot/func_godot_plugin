@@ -22,12 +22,12 @@ enum FuncGodotTargetMapEditors {
 func export_button() -> void:
 	do_export_file(target_map_editor)
 
-func do_export_file(target_editor: FuncGodotTargetMapEditors = FuncGodotTargetMapEditors.TRENCHBROOM, fgd_output_folder: String = "") -> void:
+func do_export_file(target_editor: FuncGodotTargetMapEditors = FuncGodotTargetMapEditors.TRENCHBROOM, fgd_output_folder: String = "") -> Error:
 	if fgd_output_folder.is_empty():
 		fgd_output_folder = FuncGodotLocalConfig.get_setting(FuncGodotLocalConfig.PROPERTY.FGD_OUTPUT_FOLDER) as String
 	if fgd_output_folder.is_empty():
 		printerr("Skipping export: No game config folder")
-		return
+		return ERR_DOES_NOT_EXIST
 
 	if fgd_name == "":
 		printerr("Skipping export: Empty FGD name")
@@ -35,18 +35,23 @@ func do_export_file(target_editor: FuncGodotTargetMapEditors = FuncGodotTargetMa
 	if not DirAccess.dir_exists_absolute(fgd_output_folder):
 		if DirAccess.make_dir_recursive_absolute(fgd_output_folder) != OK:
 			printerr("Skipping export: Failed to create directory")
-			return
+			return ERR_CANT_CREATE
+
+	var content := build_class_text(target_editor)
+	if content.is_empty():
+		return ERR_INVALID_DATA
 
 	var fgd_file = fgd_output_folder.path_join(fgd_name + ".fgd")
-	
 	var file_obj := FileAccess.open(fgd_file, FileAccess.WRITE)
 	if not file_obj:
 		printerr("Failed to open file for writing: ", fgd_file)
-		return
+		return ERR_FILE_CANT_OPEN
 	
 	print("Exporting FGD to ", fgd_file)
-	file_obj.store_string(build_class_text(target_editor))
+	file_obj.store_string(content)
 	file_obj.close()
+
+	return OK
 
 @export_group("Map Editor")
 
@@ -79,25 +84,54 @@ func do_export_file(target_editor: FuncGodotTargetMapEditors = FuncGodotTargetMa
 func build_class_text(target_editor: FuncGodotTargetMapEditors = FuncGodotTargetMapEditors.TRENCHBROOM) -> String:
 	var res : String = ""
 
-	for base_fgd in base_fgd_files:
+	for base_index in base_fgd_files.size():
+		var base_fgd = base_fgd_files[base_index]
 		if base_fgd is FuncGodotFGDFile:
 			res += base_fgd.build_class_text(target_editor)
 		else:
-			printerr("Base Fgd Files contains incorrect resource type! Should only be type FuncGodotFGDFile.")
-	
+			printerr("FGD base files array contains an element with invalid type (should be FuncGodotFGDFile) at position %s - skipping" % base_index)
+
 	var entities = get_fgd_classes()
-	for ent in entities:
-		if not ent is FuncGodotFGDEntityClass:
+
+	var classnames: Dictionary[String, int] = {}
+	var failure: bool = false
+
+	for ent_index in entities.size():
+		var ent = entities[ent_index]
+
+		if ent is not FuncGodotFGDEntityClass:
+			printerr("FGD entities array contains an element with invalid type (should be derived from FuncGodotFGDEntityClass) at position %s - skipping" % ent_index)
 			continue
 		if ent.func_godot_internal:
 			continue
 		if ent is FuncGodotFGDModelPointClass:
 			ent._model_generation_enabled = generate_model_point_class_models
+
+		if ent.classname.is_empty():
+			printerr("FGD class cannot be exported with empty classname (in position %s)" % ent_index)
+			failure = true
+			continue
+
+		if classnames.has(ent.classname):
+			printerr("Duplicate class name found: %s (in positions %s and %s)" % [
+				ent.classname,
+				classnames[ent.classname],
+				ent_index,
+			])
+			failure = true
+			continue
 		
+		classnames[ent.classname] = ent_index 
+
 		var ent_text = ent.build_def_text(target_editor)
 		res += ent_text
+
 		if ent != entities[-1]:
 			res += "\n"
+	
+	if failure:
+		return ""
+
 	return res
 
 ## This getter does a little bit of validation. Providing only an array of non-null uniquely-named entity definitions

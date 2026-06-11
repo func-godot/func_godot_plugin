@@ -278,13 +278,13 @@ func export_file() -> void:
 					file.store_string('\t<var name="%s">%s</var>\n' % [key, default_build_menu_variables[key]])
 				
 				else:
-					push_error(
+					printerr(
 						"Variable key '%s' value '%s' is invalid type: %s; should be: String" % [
 						key, default_build_menu_variables[key], 
 						type_string(typeof(default_build_menu_variables[key]))
 						])
 			else:
-				push_error(
+				printerr(
 					"Variable '%s' is an invalid key type: %s; should be: String" % [
 						key, type_string(typeof(key))
 						])
@@ -302,14 +302,14 @@ func export_file() -> void:
 						if command is String:
 							file.store_string('\t\t<command>%s</command>\n' % command)
 						else:
-							push_error("Build option '%s' has invalid command: %s with type: %s; should be: String" % [
+							printerr("Build option '%s' has invalid command: %s with type: %s; should be: String" % [
 								key, command, type_string(typeof(command))
 								])	
 						
 					file.store_string('\t</build>\n')
 			
 			else:
-				push_error("Build option '%s' is an invalid type: %s; should be: String" % [
+				printerr("Build option '%s' is an invalid type: %s; should be: String" % [
 					key, type_string(typeof(key))
 					])
 		
@@ -318,5 +318,9 @@ func export_file() -> void:
 	# FGD
 	var export_fgd : FuncGodotFGDFile = fgd_file.duplicate()
 	export_fgd.generate_model_point_class_models = generate_model_point_class_models
-	export_fgd.do_export_file(FuncGodotFGDFile.FuncGodotTargetMapEditors.NET_RADIANT_CUSTOM, gamepacks_folder + "/" + gamepack_name + ".game/" + base_game_path)
-	print("NetRadiant Custom Gamepack export complete\n")
+	
+	var export_err := export_fgd.do_export_file(FuncGodotFGDFile.FuncGodotTargetMapEditors.NET_RADIANT_CUSTOM, gamepacks_folder + "/" + gamepack_name + ".game/" + base_game_path)
+	if export_err != OK:
+		printerr("Could not export FGD.")
+	else:
+		print("NetRadiant Custom Gamepack export complete\n")
