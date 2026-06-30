@@ -64,7 +64,7 @@ func _generate_model() -> void:
 		printerr("could not create gltf file")
 		return
 	node.queue_free()
-
+	
 	if target_map_editor == TargetMapEditor.TRENCHBROOM:
 		const model_key: String = "model"
 		if scale_expression.is_empty():
@@ -79,7 +79,7 @@ func _generate_model() -> void:
 			]
 	else:
 		meta_properties["studio"] = '"%s"' % _get_local_path()
-
+	
 	if generate_size_property:
 		meta_properties["size"] = _generate_size_from_aabb(scene_file.instantiate())
 
@@ -112,11 +112,11 @@ func _create_gltf_file(gltf_state: GLTFState, path: String, node: Node3D) -> boo
 	var global_export_path = path
 	var gltf_document := GLTFDocument.new()
 	gltf_state.create_animations = false
-
+	
 	node.rotate_x(deg_to_rad(rotation_offset.x))
 	node.rotate_y(deg_to_rad(rotation_offset.y))
 	node.rotate_z(deg_to_rad(rotation_offset.z))
-
+	
 	# With TrenchBroom we can specify a scale expression, but for other editors we need to scale our models manually.
 	if target_map_editor != TargetMapEditor.TRENCHBROOM:
 		var scale_factor: Vector3 = Vector3.ONE
@@ -132,12 +132,12 @@ func _create_gltf_file(gltf_state: GLTFState, path: String, node: Node3D) -> boo
 		if scale_factor.length() == 0:
 			scale_factor = Vector3.ONE # Don't let the node scale into oblivion!
 		node.scale *= scale_factor
-
+		
 	var error: Error = gltf_document.append_from_scene(node, gltf_state)
 	if error != Error.OK:
 		printerr("Failed appending to gltf document", error)
 		return false
-
+		
 	call_deferred("_save_to_file_system", gltf_document, gltf_state, global_export_path)
 	return true
 
@@ -146,7 +146,7 @@ func _save_to_file_system(gltf_document: GLTFDocument, gltf_state: GLTFState, pa
 	if error != Error.OK:
 		printerr("Failed creating dir", error)
 		return
-
+		
 	error = gltf_document.write_to_filesystem(gltf_state, path)
 	if error != Error.OK:
 		printerr("Failed writing to file system", error)
@@ -158,20 +158,20 @@ func _get_node_aabb(node: Node3D, parent_global_transform: Transform3D) -> AABB:
 	var current_global_transform = parent_global_transform * node.transform
 	if node is MeshInstance3D:
 		aabb = current_global_transform * node.mesh.get_aabb()
-
+		
 	for child in node.get_children():
 		aabb = aabb.merge(_get_node_aabb(child, current_global_transform))
-
+		
 	return aabb
 
 func _generate_size_from_aabb(scene: Node3D) -> AABB:
 	var aabb := _get_node_aabb(scene, Transform3D.IDENTITY)
-
+	
 	# Reorient the AABB so it matches TrenchBroom's coordinate system
 	var size_prop := AABB()
 	size_prop.position = Vector3(aabb.position.z, aabb.position.x, aabb.position.y)
 	size_prop.size = Vector3(aabb.size.z, aabb.size.x, aabb.size.y)
-
+	
 	# Scale the size bounds to our scale factor
 	# Scale factor will need to be set if we decide to auto-generate our bounds
 	var scale_factor: Vector3 = Vector3.ONE
@@ -185,7 +185,7 @@ func _generate_size_from_aabb(scene: Node3D) -> AABB:
 					scale_factor *= Vector3(scale_arr[0], scale_arr[1], scale_arr[2])
 			elif scale_expression.to_float() > 0:
 				scale_factor *= scale_expression.to_float()
-
+				
 	size_prop.position *= scale_factor
 	size_prop.size *= scale_factor
 	size_prop.size += size_prop.position
