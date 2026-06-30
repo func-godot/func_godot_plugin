@@ -29,7 +29,7 @@ func _get_visible_name() -> String:
 	return 'Quake WAD'
 
 func _get_resource_type() -> String:
-	return 'Resource'
+	return 'QuakeWadFile'
 
 func _get_recognized_extensions() -> PackedStringArray:
 	return PackedStringArray(['wad'])
