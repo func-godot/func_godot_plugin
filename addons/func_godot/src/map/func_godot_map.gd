@@ -62,7 +62,7 @@ func clear_children() -> void:
 		remove_child(child)
 		child.queue_free()
 	if Engine.is_editor_hint():
-		EditorInterface.mark_scene_as_unsaved()
+		Engine.get_singleton(&"EditorInterface").mark_scene_as_unsaved()
 
 ## Checks if a [QuakeMapFile] for the build process is provided and can be found.
 func verify() -> Error:
