@@ -1,7 +1,7 @@
 @tool
 @icon("res://addons/func_godot/icons/icon_godambler3d.svg")
 class_name FuncGodotFGDModelPointClass extends FuncGodotFGDPointClass
-## A special type of [FuncGodotFGDPointClass] entity that automatically generates a special simplified GLB model file for the map editor display. 
+## A special type of [FuncGodotFGDPointClass] entity that automatically generates a special simplified GLB model file for the map editor display.
 ## Only supported in map editors that support GLTF or GLB.
 ##
 ## @tutorial(Quake Wiki Entity Article): https://quakewiki.org/wiki/Entity
@@ -54,8 +54,7 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 
 func _generate_model() -> void:
 	if not scene_file:
-		return 
-	
+		return
 	var gltf_state := GLTFState.new()
 	var path: String = _get_export_dir()
 	var node: Node3D = _get_node()
@@ -70,23 +69,23 @@ func _generate_model() -> void:
 		const model_key: String = "model"
 		if scale_expression.is_empty():
 			meta_properties[model_key] = '{"path": "%s", "scale": %s }' % [
-				_get_local_path(), 
+				_get_local_path(),
 				ProjectSettings.get_setting("func_godot/default_inverse_scale_factor", 32.0) as float
 			]
 		else:
 			meta_properties[model_key] = '{"path": "%s", "scale": %s }' % [
-				_get_local_path(), 
+				_get_local_path(),
 				scale_expression
 			]
 	else:
 		meta_properties["studio"] = '"%s"' % _get_local_path()
 	
 	if generate_size_property:
-		meta_properties["size"] = _generate_size_from_aabb(gltf_state.meshes, gltf_state.get_nodes())
+		meta_properties["size"] = _generate_size_from_aabb(scene_file.instantiate())
 
 func _get_node() -> Node3D:
 	var node := scene_file.instantiate()
-	if node is Node3D: 
+	if node is Node3D:
 		return node as Node3D
 	node.queue_free()
 	printerr("Scene is not of type 'Node3D'")
@@ -133,12 +132,12 @@ func _create_gltf_file(gltf_state: GLTFState, path: String, node: Node3D) -> boo
 		if scale_factor.length() == 0:
 			scale_factor = Vector3.ONE # Don't let the node scale into oblivion!
 		node.scale *= scale_factor
-	
+		
 	var error: Error = gltf_document.append_from_scene(node, gltf_state)
 	if error != Error.OK:
 		printerr("Failed appending to gltf document", error)
 		return false
-	
+		
 	call_deferred("_save_to_file_system", gltf_document, gltf_state, global_export_path)
 	return true
 
@@ -146,27 +145,27 @@ func _save_to_file_system(gltf_document: GLTFDocument, gltf_state: GLTFState, pa
 	var error: Error = DirAccess.make_dir_recursive_absolute(path.get_base_dir())
 	if error != Error.OK:
 		printerr("Failed creating dir", error)
-		return 
-	
+		return
+		
 	error = gltf_document.write_to_filesystem(gltf_state, path)
 	if error != Error.OK:
 		printerr("Failed writing to file system", error)
-		return 
+		return
 	print('Exported model to ', path)
 
-func _generate_size_from_aabb(meshes: Array[GLTFMesh], nodes: Array[GLTFNode]) -> AABB:
+func _get_node_aabb(node: Node3D, parent_global_transform: Transform3D) -> AABB:
 	var aabb := AABB()
-	for mesh in meshes:
-		aabb = aabb.merge(mesh.mesh.get_mesh().get_aabb())
-	var pos_ofs := Vector3.ZERO
-	if not nodes.is_empty():
-		var ct: int = 0
-		for node in nodes:
-			if node.parent == 0:
-				pos_ofs += node.position
-				ct += 1
-		pos_ofs /= maxi(ct, 1)
-	aabb.position += pos_ofs
+	var current_global_transform = parent_global_transform * node.transform
+	if node is MeshInstance3D:
+		aabb = current_global_transform * node.mesh.get_aabb()
+		
+	for child in node.get_children():
+		aabb = aabb.merge(_get_node_aabb(child, current_global_transform))
+		
+	return aabb
+
+func _generate_size_from_aabb(scene: Node3D) -> AABB:
+	var aabb := _get_node_aabb(scene, Transform3D.IDENTITY)
 	
 	# Reorient the AABB so it matches TrenchBroom's coordinate system
 	var size_prop := AABB()
@@ -186,7 +185,7 @@ func _generate_size_from_aabb(meshes: Array[GLTFMesh], nodes: Array[GLTFNode]) -
 					scale_factor *= Vector3(scale_arr[0], scale_arr[1], scale_arr[2])
 			elif scale_expression.to_float() > 0:
 				scale_factor *= scale_expression.to_float()
-	
+				
 	size_prop.position *= scale_factor
 	size_prop.size *= scale_factor
 	size_prop.size += size_prop.position
