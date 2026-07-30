@@ -40,7 +40,7 @@ enum GameConfigVersion {
 @export var texture_exclusion_patterns: Array[String] = ["*_albedo", "*_ao", "*_emission", "*_height", "*_metallic", "*_normal", "*_orm", "*_roughness", "*_sss"]
 
 ## Palette path relative to your Game Path. Only needed for Quake WAD2 files. Half-Life WAD3 files contain the palettes within the texture information.
-@export var palette_path: String = "textures/palette.lmp"
+@export var palette_path: String = ""
 
 @export_group("Entities")
 
