@@ -12,6 +12,13 @@ class_name FuncGodotData
 ## [FuncGodotData.GroupData][br]
 ## [FuncGodotData.EntityData][br]
 
+## Bitflag settings that control various aspects of the build process.
+enum BuildFlags {
+	UNWRAP_UV2 			= 1 << 0,	## Unwrap UV2s during geometry generation for lightmap baking.
+	SHOW_PROFILE_INFO 	= 1 << 1,	## Print build step information during build process.
+	DISABLE_SMOOTHING	= 1 << 2	## Force disable processing of vertex normal smooth shading.
+}
+
 ## Data struct representing both a single map plane and a mesh face. Generated during parsing by plane definitions in the map file, 
 ## it is further modified and utilized during the geo generation stage to create the final entity meshes.
 class FaceData extends RefCounted:

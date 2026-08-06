@@ -652,7 +652,7 @@ func build(build_flags: int, entities: Array[_EntityData]) -> Error:
 	task_id = WorkerThreadPool.add_group_task(generate_entity_surfaces, entity_count, -1, false, "Generate Surfaces")
 	WorkerThreadPool.wait_for_group_task_completion(task_id)
 	
-	if build_flags & FuncGodotMap.BuildFlags.UNWRAP_UV2:
+	if build_flags & FuncGodotData.BuildFlags.UNWRAP_UV2:
 		declare_step.emit("Unwrapping UV2s")
 		var texel_size: float = map_settings.uv_unwrap_texel_size * map_settings.scale_factor
 		for entity_index in entity_count:

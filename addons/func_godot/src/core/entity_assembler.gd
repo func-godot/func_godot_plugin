@@ -19,8 +19,9 @@ var build_flags: int = 0
 ## It is connected to [method FuncGodotUtil.print_profile_info] method if [member FuncGodotMap.build_flags] SHOW_PROFILE_INFO flag is set.
 signal declare_step(step: String)
 
-func _init(settings: FuncGodotMapSettings) -> void:
+func _init(settings: FuncGodotMapSettings, flags: int) -> void:
 	map_settings = settings
+	build_flags = flags
 
 ## Attempts to retrieve a [Script] via class name, to allow for [GDScript] class instantiation.
 static func get_script_by_class_name(name_of_class: String) -> Script:
@@ -106,10 +107,10 @@ func generate_solid_entity_node(node: Node, node_name: String, data: _EntityData
 		
 		# NOTE: Currently occuring in EntityAssembler until the appropriate method in GeometryGenerator is resolved
 		# For now, smooth entire mesh, then unwrap for lightmap if needed
-		if not (build_flags & FuncGodotMap.BuildFlags.DISABLE_SMOOTHING) and data.is_smooth_shaded(map_settings.entity_smoothing_property):
+		if not (build_flags & FuncGodotData.BuildFlags.DISABLE_SMOOTHING) and data.is_smooth_shaded(map_settings.entity_smoothing_property):
 			mesh_instance.mesh = FuncGodotUtil.smooth_mesh_by_angle(data.mesh, data.get_smoothing_angle(map_settings.entity_smoothing_angle_property))
 
-			if data.is_gi_enabled() and (build_flags & FuncGodotMap.BuildFlags.UNWRAP_UV2):
+			if data.is_gi_enabled() and (build_flags & FuncGodotData.BuildFlags.UNWRAP_UV2):
 				mesh_instance.mesh.lightmap_unwrap(
 					Transform3D.IDENTITY,
 					map_settings.uv_unwrap_texel_size * map_settings.scale_factor
@@ -328,9 +329,8 @@ func generate_entity_node(entity_data: _EntityData, entity_index: int) -> Node:
 
 ## Main entity assembly process called by [FuncGodotMap]. Generates and sorts group nodes in the [SceneTree] first, 
 ## then generates and assembles [Node]s based upon the provided [FuncGodotData.EntityData] and adds them to the [SceneTree].
-func build(map_node: FuncGodotMap, entities: Array[_EntityData], groups: Array[_GroupData]) -> void:
-	var scene_root := map_node.get_tree().edited_scene_root if map_node.is_inside_tree() else map_node
-	build_flags = map_node.build_flags
+func build(entities: Array[_EntityData], groups: Array[_GroupData]) -> Node3D:
+	var map_node := Node3D.new()
 	
 	if map_settings.use_groups_hierarchy:
 		declare_step.emit("Generating %s groups" % groups.size())
@@ -341,12 +341,12 @@ func build(map_node: FuncGodotMap, entities: Array[_EntityData], groups: Array[_
 		for group in groups:
 			if group.parent_id < 0:
 				map_node.add_child(group.node)
-				group.node.owner = scene_root
+				group.node.owner = map_node
 			else:
 				for parent in groups:
 					if group.parent_id == parent.id:
 						parent.node.add_child(group.node)
-						group.node.owner = scene_root
+						group.node.owner = map_node
 		declare_step.emit("Groups generation and sorting complete")
 	
 	declare_step.emit("Assembling %s entities" % entities.size())
@@ -364,14 +364,15 @@ func build(map_node: FuncGodotMap, entities: Array[_EntityData], groups: Array[_
 					if entity_data.group.id == group.id:
 						group.node.add_child(entity_node)
 			
-			entity_node.owner = scene_root
+			entity_node.owner = map_node
 			if entity_data.mesh_instance:
-				entity_data.mesh_instance.owner = scene_root
+				entity_data.mesh_instance.owner = map_node
 			for shape in entity_data.collision_shapes:
 				if shape:
-					shape.owner = scene_root
+					shape.owner = map_node
 			if entity_data.occluder_instance:
-				entity_data.occluder_instance.owner = scene_root
+				entity_data.occluder_instance.owner = map_node
 			
 			apply_entity_properties(entity_node, entity_data)
 	declare_step.emit("Entity assembly and property application complete")
+	return map_node

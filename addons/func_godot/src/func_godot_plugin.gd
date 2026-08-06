@@ -6,6 +6,8 @@ var map_import_plugin : QuakeMapImportPlugin = null
 var palette_import_plugin : QuakePaletteImportPlugin = null
 var wad_import_plugin: QuakeWadImportPlugin = null
 var wal_import_plugin: Quake2WalImportPlugin = null
+var map_scene_import_plugin: MapSceneImportPlugin = null
+var map_scene_post_import_plugin: MapScenePostImportPlugin = null
 
 #var func_godot_map_progress_bar: Control = null
 var edited_object_ref: WeakRef = weakref(null)
@@ -15,7 +17,7 @@ func _get_plugin_name() -> String:
 
 func _handles(object: Object) -> bool:
 	return object is FuncGodotMap
-
+	
 func _edit(object: Object) -> void:
 	edited_object_ref = weakref(object)
 
@@ -76,6 +78,11 @@ func _enter_tree() -> void:
 		ProjectSettings.set_as_basic("func_godot/model_point_class_save_path", true)
 		ProjectSettings.set_initial_value("func_godot/model_point_class_save_path", "")
 
+	map_scene_import_plugin = MapSceneImportPlugin.new()
+	map_scene_post_import_plugin = MapScenePostImportPlugin.new()
+	add_scene_format_importer_plugin(map_scene_import_plugin)
+	add_scene_post_import_plugin(map_scene_post_import_plugin)
+
 func _exit_tree() -> void:
 	remove_custom_type("FuncGodotMap")
 	remove_import_plugin(map_import_plugin)
@@ -84,12 +91,16 @@ func _exit_tree() -> void:
 		remove_import_plugin(wad_import_plugin)
 	if wal_import_plugin:
 		remove_import_plugin(wal_import_plugin)
-		
+	remove_scene_format_importer_plugin(map_scene_import_plugin)
+	remove_scene_post_import_plugin(map_scene_post_import_plugin)
+	
 	map_import_plugin = null
 	palette_import_plugin = null
 	wad_import_plugin = null
 	wal_import_plugin = null
-	
+	map_scene_import_plugin = null
+	map_scene_post_import_plugin = null
+
 	#if func_godot_map_progress_bar:
 		#remove_control_from_container(EditorPlugin.CONTAINER_INSPECTOR_BOTTOM, func_godot_map_progress_bar)
 		#func_godot_map_progress_bar.queue_free()
@@ -121,17 +132,3 @@ func _exit_tree() -> void:
 	#var progress_label = func_godot_map_progress_bar.get_node("ProgressLabel")
 	#func_godot_map_progress_bar.value = progress
 	#progress_label.text = step.capitalize()
-
-## Callback for when the build process for a [FuncGodotMap] is finished.
-func func_godot_map_build_complete(func_godot_map: FuncGodotMap) -> void:
-	#var progress_label = func_godot_map_progress_bar.get_node("ProgressLabel")
-	#progress_label.text = "Build Complete"
-	
-	#if func_godot_map.is_connected("build_progress",Callable(self,"func_godot_map_build_progress")):
-		#func_godot_map.disconnect("build_progress",Callable(self,"func_godot_map_build_progress"))
-	
-	if func_godot_map.is_connected("build_complete",Callable(self,"func_godot_map_build_complete")):
-		func_godot_map.disconnect("build_complete",Callable(self,"func_godot_map_build_complete"))
-	
-	if func_godot_map.is_connected("build_failed",Callable(self,"func_godot_map_build_complete")):
-		func_godot_map.disconnect("build_failed",Callable(self,"func_godot_map_build_complete"))
