@@ -1,3 +1,4 @@
+@tool
 @icon("res://addons/func_godot/icons/icon_godot_ranger.svg")
 class_name FuncGodotEntityAssembler extends RefCounted
 ## Entity assembly class that is instantiated by a [FuncGodotMap] node.
@@ -329,8 +330,10 @@ func generate_entity_node(entity_data: _EntityData, entity_index: int) -> Node:
 
 ## Main entity assembly process called by [FuncGodotMap]. Generates and sorts group nodes in the [SceneTree] first, 
 ## then generates and assembles [Node]s based upon the provided [FuncGodotData.EntityData] and adds them to the [SceneTree].
-func build(entities: Array[_EntityData], groups: Array[_GroupData]) -> Node3D:
-	var map_node := Node3D.new()
+func build(entities: Array[_EntityData], groups: Array[_GroupData], map_node: Node3D = null) -> Node3D:
+	if not map_node:
+		map_node = Node3D.new()
+	var root_node = map_node.owner if map_node.owner else map_node
 	
 	if map_settings.use_groups_hierarchy:
 		declare_step.emit("Generating %s groups" % groups.size())
@@ -341,12 +344,12 @@ func build(entities: Array[_EntityData], groups: Array[_GroupData]) -> Node3D:
 		for group in groups:
 			if group.parent_id < 0:
 				map_node.add_child(group.node)
-				group.node.owner = map_node
+				group.node.owner = root_node
 			else:
 				for parent in groups:
 					if group.parent_id == parent.id:
 						parent.node.add_child(group.node)
-						group.node.owner = map_node
+						group.node.owner = root_node
 		declare_step.emit("Groups generation and sorting complete")
 	
 	declare_step.emit("Assembling %s entities" % entities.size())
@@ -364,14 +367,14 @@ func build(entities: Array[_EntityData], groups: Array[_GroupData]) -> Node3D:
 					if entity_data.group.id == group.id:
 						group.node.add_child(entity_node)
 			
-			entity_node.owner = map_node
+			entity_node.owner = root_node
 			if entity_data.mesh_instance:
-				entity_data.mesh_instance.owner = map_node
+				entity_data.mesh_instance.owner = root_node
 			for shape in entity_data.collision_shapes:
 				if shape:
-					shape.owner = map_node
+					shape.owner = root_node
 			if entity_data.occluder_instance:
-				entity_data.occluder_instance.owner = map_node
+				entity_data.occluder_instance.owner = root_node
 			
 			apply_entity_properties(entity_node, entity_data)
 	declare_step.emit("Entity assembly and property application complete")
