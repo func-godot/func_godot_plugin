@@ -54,7 +54,7 @@ enum GameConfigVersion {
 
 ## Controls whether default entity properties are instantiated automatically when TrenchBroom creates a new entity.
 ## See [url="https://trenchbroom.github.io/manual/latest/#entity_properties_defaults"]TrenchBroom Manual Default Entity Properties[/url] for more information.
-@export var set_default_properties: bool = false
+@export var set_default_properties: bool = true
 
 ## Toggles whether [FuncGodotFGDModelPointClass] resources will generate models from their [PackedScene] files.
 @export var generate_model_point_class_models: bool = true
