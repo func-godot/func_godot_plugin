@@ -19,6 +19,9 @@ var build_flags: int = 0
 ## It is connected to [method FuncGodotUtil.print_profile_info] method if [member FuncGodotMap.build_flags] SHOW_PROFILE_INFO flag is set.
 signal declare_step(step: String)
 
+## Emitted when the map build is complete. [code]_func_godot_build_complete()[/code] is automatically connected to this for generated entities.
+signal build_complete
+
 func _init(settings: FuncGodotMapSettings) -> void:
 	map_settings = settings
 
@@ -250,7 +253,7 @@ func generate_point_entity_node(node: Node, node_name: String, properties: Dicti
 
 ## Converts the [String] values of the entity data's [code]properties[/code] [Dictionary] to various [Variant] formats 
 ## based upon the [FuncGodotFGDEntity]'s class properties, then attempts to send those properties to a [code]func_godot_properties[/code] [Dictionary] 
-## and an [code]_func_godot_apply_properties(properties: Dictionary)[/code] method on the node. A deferred call to [code]_func_godot_build_complete()[/code] is also made.
+## and an [code]_func_godot_apply_properties(properties: Dictionary)[/code] method on the node. A call to [code]_func_godot_build_complete()[/code] will be made once the rest of the map build completes.
 func apply_entity_properties(node: Node, data: _EntityData) -> void:
 	var properties: Dictionary[String, Variant] = data.properties
 	
@@ -282,7 +285,7 @@ func apply_entity_properties(node: Node, data: _EntityData) -> void:
 		node.call("_func_godot_apply_properties", properties)
 	
 	if node.has_method("_func_godot_build_complete"):
-		node.call_deferred("_func_godot_build_complete")
+		build_complete.connect(node.get("_func_godot_build_complete"), CONNECT_ONE_SHOT)
 
 ## Generate a [Node] from [FuncGodotData.EntityData]. The returned node value can be [code]null[/code], 
 ## in the case of [FuncGodotFGDSolidClass] entities with no [FuncGodotData.BrushData] entries.
