@@ -215,6 +215,17 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 						prop_type = "decal"
 					elif value is AudioStream:
 						prop_type = "sound"
+					elif value is FuncGodotChoicesProperty:
+						prop_type = "choices"
+						prop_val = FuncGodotUtil.newline() + "\t[" + FuncGodotUtil.newline()
+						var choices_prop := value as FuncGodotChoicesProperty
+						for choice_value in choices_prop.choices:
+							var choice_name := choices_prop.choices[choice_value]
+							if choice_value is String and not (choice_value as String).begins_with("\""):
+								choice_value = "\"" + choice_value + "\""
+							prop_val += "\t\t" + str(choice_value) + " : \"" + choice_name + "\"" + FuncGodotUtil.newline()
+						prop_val += "\t]"
+						prop_description += " : " + str(choices_prop.default_value)
 				else:
 					prop_type = "target_source"
 					prop_val = "\"\""
@@ -233,7 +244,7 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 			
 			if value is bool:
 				res += " : 1 = " if value else " : 0 = "
-			elif value is Dictionary or value is Array:
+			elif value is Dictionary or value is Array or value is FuncGodotChoicesProperty:
 				res += " = "
 			else:
 				res += " : "
