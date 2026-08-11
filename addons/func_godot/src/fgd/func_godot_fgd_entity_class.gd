@@ -198,7 +198,11 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 				prop_type = "flags"
 				prop_val = FuncGodotUtil.newline() + "\t[" + FuncGodotUtil.newline()
 				for arr_val in value:
-					prop_val += "\t\t" + str(arr_val[1]) + " : \"" + str(arr_val[0]) + "\" : " + ("1" if arr_val[2] else "0") + FuncGodotUtil.newline()
+					if arr_val is FuncGodotFlagsPropertyEntry:
+						var entry := arr_val as FuncGodotFlagsPropertyEntry
+						prop_val += "\t\t" + str(entry.value) + " : \"" + entry.name + "\" : " + ("1" if entry.enabled_by_default else "0") + FuncGodotUtil.newline()
+					else:
+						prop_val += "\t\t" + str(arr_val[1]) + " : \"" + str(arr_val[0]) + "\" : " + ("1" if arr_val[2] else "0") + FuncGodotUtil.newline()
 				prop_val += "\t]"
 			TYPE_NODE_PATH:
 				prop_type = "target_destination"
