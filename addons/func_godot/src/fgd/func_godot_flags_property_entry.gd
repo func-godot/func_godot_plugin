@@ -8,7 +8,7 @@ extends Resource
 @export var value := 0
 
 ## The "index" of the bitflag. For example: index 0 is equal to a raw value of 1, index 2 is equal to a raw value of 2, index 3 is equal to a raw value of 4, index 4 is equal to a raw value of 8, etc.
-@export_range(0, 31, 1) var index := 0
+@export_range(0, 23, 1) var index := 0
 
 var bitflag_value: int:
 	get: return 1 << index
