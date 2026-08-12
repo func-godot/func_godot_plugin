@@ -290,7 +290,7 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 						elif prop_flag is FuncGodotFlagsPropertyEntry:
 							var entry := prop_flag as FuncGodotFlagsPropertyEntry
 							if entry.enabled_by_default:
-								prop_flags_sum += entry.value
+								prop_flags_sum += entry.bitflag_value
 					properties[property] = prop_flags_sum
 				# Choices
 				elif prop_default is Dictionary:
