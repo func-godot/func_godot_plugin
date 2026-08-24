@@ -8,7 +8,7 @@ func _get_visible_name() -> String:
 	return 'Quake Map'
 
 func _get_resource_type() -> String:
-	return 'Resource'
+	return 'QuakeMapFile'
 
 func _get_recognized_extensions() -> PackedStringArray:
 	return PackedStringArray(['map','vmf'])
