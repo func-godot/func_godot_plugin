@@ -106,7 +106,7 @@ func generate_base_winding(plane: Plane) -> PackedVector3Array:
 	winding.append(centroid + (right *  h) + (forward * -h))
 	return winding
 
-func generate_face_vertices(brush: _BrushData, face_index: int, vertex_merge_distance: float = 0.0) -> PackedVector3Array:
+func generate_face_vertices(brush: _BrushData, face_index: int, entity: _EntityData, vertex_merge_distance: float = 0.0) -> PackedVector3Array:
 	var plane: Plane = brush.faces[face_index].plane
 	
 	# Generate initial square polygon to clip other planes against
@@ -133,6 +133,12 @@ func generate_face_vertices(brush: _BrushData, face_index: int, vertex_merge_dis
 				merged_winding.append(cur_vtx)
 			prev_vtx = cur_vtx
 		winding = merged_winding
+	
+	if entity.definition.brush_winding_overrider:
+		var ex: RefCounted = entity.definition.brush_winding_overrider.new()
+		if ex.has_method("_func_godot_modify_vertex_wind"):
+			ex.call("_func_godot_modify_vertex_wind", winding, entity)
+
 
 	return winding
 
@@ -143,7 +149,7 @@ func generate_brush_vertices(entity_index: int, brush_index: int) -> void:
 	
 	for face_index in brush.faces.size():
 		var face: _FaceData = brush.faces[face_index]
-		face.vertices = generate_face_vertices(brush, face_index, vertex_merge_distance)
+		face.vertices = generate_face_vertices(brush, face_index, entity, vertex_merge_distance)
 		
 		face.normals.resize(face.vertices.size())
 		face.normals.fill(face.plane.normal)
