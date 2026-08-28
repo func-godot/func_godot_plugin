@@ -212,12 +212,19 @@ func determine_entity_origins(entity_index: int) -> void:
 		match origin_type:
 			_OriginType.ABSOLUTE, _OriginType.RELATIVE:
 				if "origin" in entity.properties:
-					var origin_comps: PackedFloat64Array = entity.properties["origin"].split_floats(" ")
-					if origin_comps.size() > 2:
-						if entity.origin_type == _OriginType.ABSOLUTE:
-							entity.origin = Vector3(origin_comps[0], origin_comps[1], origin_comps[2]) * map_settings.scale_factor
+					var origin_prop = entity.properties["origin"]
+					match typeof(origin_prop):
+						TYPE_VECTOR3, TYPE_VECTOR3I:
+							origin_prop = FuncGodotUtil.id_to_opengl(Vector3(origin_prop)) * map_settings.scale_factor
+						TYPE_STRING:
+							var origin_comps: PackedFloat64Array = entity.properties["origin"].split_floats(" ")
+							if origin_comps.size() > 2:
+								origin_prop = Vector3(origin_comps[0], origin_comps[1], origin_comps[2]) * map_settings.scale_factor
+					if typeof(origin_prop) == TYPE_VECTOR3:
+						if origin_type == _OriginType.ABSOLUTE:
+							entity.origin = origin_prop
 						else: # _OriginType.RELATIVE
-							entity.origin += Vector3(origin_comps[0], origin_comps[1], origin_comps[2]) * map_settings.scale_factor
+							entity.origin += origin_prop
 				
 			_OriginType.BRUSH:
 				if origin_mins != Vector3.INF:

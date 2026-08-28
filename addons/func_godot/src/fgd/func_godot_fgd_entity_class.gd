@@ -100,7 +100,7 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 		res += " " + prop + "("
 		
 		if value is AABB:
-			res += "%s %s %s, %s %s %s" % [
+			res += "%d %d %d, %d %d %d" % [
 				value.position.x,
 				value.position.y,
 				value.position.z,
@@ -174,13 +174,13 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 				prop_val += "\t]"
 			TYPE_VECTOR2, TYPE_VECTOR2I:
 				prop_type = "string"
-				prop_val = "\"%s %s\"" % [value.x, value.y]
+				prop_val = "\"%d %d\"" % [value.x, value.y]
 			TYPE_VECTOR3, TYPE_VECTOR3I:
 				prop_type = "string"
-				prop_val = "\"%s %s %s\"" % [value.x, value.y, value.z]
+				prop_val = "\"%d %d %d\"" % [value.x, value.y, value.z]
 			TYPE_VECTOR4, TYPE_VECTOR4I:
 				prop_type = "string"
-				prop_val = "\"%s %s %s %s\"" % [value[0], value[1], value[2], value[3]]
+				prop_val = "\"%d %d %d %d\"" % [value[0], value[1], value[2], value[3]]
 			TYPE_COLOR:
 				prop_type = "color255"
 				prop_val = "\"%s %s %s\"" % [value.r8, value.g8, value.b8]
