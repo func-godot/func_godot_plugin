@@ -212,13 +212,18 @@ func determine_entity_origins(entity_index: int) -> void:
 		match origin_type:
 			_OriginType.ABSOLUTE, _OriginType.RELATIVE:
 				if "origin" in entity.properties:
-					var origin_comps: PackedFloat64Array = entity.properties["origin"].split_floats(" ")
-					if origin_comps.size() > 2:
-						if entity.origin_type == _OriginType.ABSOLUTE:
-							entity.origin = Vector3(origin_comps[0], origin_comps[1], origin_comps[2]) * map_settings.scale_factor
+					var new_origin = entity.properties["origin"]
+					if new_origin is Vector3 or new_origin is Vector3i:
+						new_origin = Vector3(new_origin)
+					else:
+						var origin_comps: PackedFloat64Array = new_origin.split_floats(" ")
+						new_origin = Vector3(origin_comps[0], origin_comps[1], origin_comps[2])
+					if new_origin != Vector3.INF:
+						if origin_type == _OriginType.ABSOLUTE:
+							entity.origin = new_origin * map_settings.scale_factor
 						else: # _OriginType.RELATIVE
-							entity.origin += Vector3(origin_comps[0], origin_comps[1], origin_comps[2]) * map_settings.scale_factor
-				
+							entity.origin += new_origin * map_settings.scale_factor
+
 			_OriginType.BRUSH:
 				if origin_mins != Vector3.INF:
 					entity.origin = origin_maxs - ((origin_maxs - origin_mins) * 0.5)
