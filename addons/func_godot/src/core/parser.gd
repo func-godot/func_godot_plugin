@@ -189,8 +189,12 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 			var prop_string = entity.properties[property]
 			if property in def.class_properties:
 				var prop_default: Variant = def.class_properties[property]
+
+				var expected_type := typeof(prop_default)
+				if prop_default is FuncGodotChoicesProperty:
+					expected_type = typeof((prop_default as FuncGodotChoicesProperty).default_value)
 				
-				match typeof(prop_default):
+				match expected_type:
 					TYPE_INT:
 						properties[property] = prop_string.to_int()
 					TYPE_FLOAT:
@@ -297,9 +301,12 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 						properties[property] = prop_default[prop_default.keys().front()]
 					else:
 						properties[property] = 0
-				# Materials, Shaders, and Sounds
+				# Materials, Shaders, Sounds, and special property types
 				elif prop_default is Resource:
-					properties[property] = prop_default.resource_path
+					if prop_default is FuncGodotChoicesProperty:
+						properties[property] = (prop_default as FuncGodotChoicesProperty).default_value
+					else:	
+						properties[property] = prop_default.resource_path
 				# Target Destination and Target Source
 				elif prop_default is NodePath or prop_default is Object or prop_default == null:
 					properties[property] = ""
