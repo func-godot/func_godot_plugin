@@ -282,7 +282,16 @@ func apply_entity_properties(node: Node, data: _EntityData) -> void:
 		node.call("_func_godot_apply_properties", properties)
 	
 	if node.has_method("_func_godot_build_complete"):
-		node.call_deferred("_func_godot_build_complete")
+		var complete_method : Callable = node.get("_func_godot_build_complete")
+		match complete_method.get_argument_count():
+			0:
+				pass
+			1:
+				# Allow _func_godot_build_complete to optionally have properties passed to it
+				complete_method = complete_method.bind(properties)
+			_:
+				push_error("Entity %s script has a _func_godot_build_complete function with an incorrect number of arguments (expected 0 or 1) - the call may fail" % node.name)
+		complete_method.call_deferred()
 
 ## Generate a [Node] from [FuncGodotData.EntityData]. The returned node value can be [code]null[/code], 
 ## in the case of [FuncGodotFGDSolidClass] entities with no [FuncGodotData.BrushData] entries.
