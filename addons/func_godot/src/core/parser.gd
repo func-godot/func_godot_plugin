@@ -287,6 +287,10 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 						if prop_flag is Array and prop_flag.size() > 2:
 							if prop_flag[2] and prop_flag[1] is int:
 								prop_flags_sum += prop_flag[1]
+						elif prop_flag is FuncGodotFlagsPropertyEntry:
+							var entry := prop_flag as FuncGodotFlagsPropertyEntry
+							if entry.enabled_by_default:
+								prop_flags_sum += entry.bitflag_value
 					properties[property] = prop_flags_sum
 				# Choices
 				elif prop_default is Dictionary:
