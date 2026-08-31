@@ -61,6 +61,11 @@ var prefix: String = ""
 ## This can be used to programmatically generate class properties when you need it
 @export var entity_extension_script: Script
 
+## Optional script where `_func_godot_modify_vertices` will be called during a build.
+## Provides the Vertices as a PackedVector3Array and the entity as a FuncGodotData.EntityData as arguments
+## These can be used to programmatically modify brush vertices during a build.
+@export var modify_vertices_script : Script
+
 ## Parses the definition and outputs it into the FGD format.
 func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM) -> String:
 	# Class prefix
