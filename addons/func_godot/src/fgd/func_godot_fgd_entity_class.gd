@@ -61,6 +61,9 @@ var prefix: String = ""
 ## This can be used to programmatically generate class properties when you need it
 @export var entity_extension_script: Script
 
+## Attaches entity properties from the entity onto the output node's metadata as `"func_godot_properties"`
+@export var add_properties_to_metadata : bool = false
+
 ## Parses the definition and outputs it into the FGD format.
 func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM) -> String:
 	# Class prefix
