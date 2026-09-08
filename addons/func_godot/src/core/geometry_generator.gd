@@ -106,11 +106,11 @@ func generate_base_winding(plane: Plane) -> PackedVector3Array:
 	winding.append(centroid + (right *  h) + (forward * -h))
 	return winding
 
-func generate_face_vertices(brush: _BrushData, face_index: int, vertex_merge_distance: float = 0.0) -> PackedVector3Array:
+func generate_face_vertices(brush: _BrushData, face_index: int, entity: _EntityData, vertex_merge_distance: float = 0.0) -> PackedVector3Array:
 	var plane: Plane = brush.faces[face_index].plane
 	
 	# Generate initial square polygon to clip other planes against
-	var winding: PackedVector3Array = generate_base_winding(plane)
+	var vertices: PackedVector3Array = generate_base_winding(plane)
 
 	for other_face_index in brush.faces.size():
 		if other_face_index == face_index:
@@ -118,23 +118,29 @@ func generate_face_vertices(brush: _BrushData, face_index: int, vertex_merge_dis
 		
 		# NOTE: This may need to be recentered to the origin, then moved back to the correct face position
 		# This problem may arise from floating point inaccuracy, given a large enough initial brush
-		winding = Geometry3D.clip_polygon(winding, brush.faces[other_face_index].plane)
-		if winding.is_empty():
+		vertices = Geometry3D.clip_polygon(vertices, brush.faces[other_face_index].plane)
+		if vertices.is_empty():
 			break
 	
 	# Perform rounding and merge adjacent vertices that are equivalent
 	if vertex_merge_distance > 0:
-		var merged_winding : PackedVector3Array = PackedVector3Array()
-		var prev_vtx : Vector3 = winding[0].snappedf(vertex_merge_distance)
-		merged_winding.append(prev_vtx)
-		for i in range(1, winding.size()):
-			var cur_vtx : Vector3 = winding[i].snappedf(vertex_merge_distance)
+		var merged_vertices : PackedVector3Array = PackedVector3Array()
+		var prev_vtx : Vector3 = vertices[0].snappedf(vertex_merge_distance)
+		merged_vertices.append(prev_vtx)
+		for i in range(1, vertices.size()):
+			var cur_vtx : Vector3 = vertices[i].snappedf(vertex_merge_distance)
 			if prev_vtx != cur_vtx:
-				merged_winding.append(cur_vtx)
+				merged_vertices.append(cur_vtx)
 			prev_vtx = cur_vtx
-		winding = merged_winding
+		vertices = merged_vertices
+	
+	if entity.definition.modify_vertices_script:
+		var ex: RefCounted = entity.definition.modify_vertices_script.new()
+		if ex.has_method("_func_godot_modify_vertices"):
+			ex.call("_func_godot_modify_vertices", vertices, entity)
 
-	return winding
+
+	return vertices
 
 func generate_brush_vertices(entity_index: int, brush_index: int) -> void:
 	var entity: _EntityData = entity_data[entity_index]
@@ -143,7 +149,7 @@ func generate_brush_vertices(entity_index: int, brush_index: int) -> void:
 	
 	for face_index in brush.faces.size():
 		var face: _FaceData = brush.faces[face_index]
-		face.vertices = generate_face_vertices(brush, face_index, vertex_merge_distance)
+		face.vertices = generate_face_vertices(brush, face_index, entity, vertex_merge_distance)
 		
 		face.normals.resize(face.vertices.size())
 		face.normals.fill(face.plane.normal)
