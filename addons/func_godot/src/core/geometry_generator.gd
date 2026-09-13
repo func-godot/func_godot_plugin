@@ -37,6 +37,13 @@ func _init(settings: FuncGodotMapSettings = null, hplane_size: float = 512.0) ->
 func is_skip(face: _FaceData) -> bool:
 	return FuncGodotUtil.is_skip(face.texture, map_settings)
 
+# One niche use case for Skip brushes is providing a bounding box for clean snapping/AABBs to an otherwise uneven convex prop
+func is_brush_entirely_skip(brush: _BrushData) -> bool:
+	for face in brush.faces:
+		if(!is_skip(face)):
+			return false;
+	return true;
+
 func is_clip(face: _FaceData) -> bool:
 	return FuncGodotUtil.is_clip(face.texture, map_settings)
 
@@ -580,7 +587,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 	if entity.is_collision_convex():
 		var sh: ConvexPolygonShape3D
 		for b in entity.brushes:
-			if b.planes.is_empty() or b.origin:
+			if b.planes.is_empty() or b.origin or is_brush_entirely_skip(b):
 				continue
 			
 			var points := Array(Geometry3D.compute_convex_mesh_points(b.planes)).map(op_entity_ogl_xf)
