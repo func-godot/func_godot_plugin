@@ -138,6 +138,11 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 	# Class properties
 	for prop in class_properties:
 		var value = class_properties[prop]
+		
+		if value is FuncGodotFGDProperty:
+			res += value.build_fgd_text(prop, target_editor) + "\n"
+			continue
+		
 		var prop_val = null
 		var prop_type := ""
 		var prop_description: String
