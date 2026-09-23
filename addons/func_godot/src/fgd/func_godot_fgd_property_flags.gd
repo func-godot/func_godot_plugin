@@ -22,8 +22,8 @@ func build_fgd_text(property_name: String, target_editor: FuncGodotFGDFile.FuncG
 		s += "\t\t"
 		s += String.num(1 << flag.index, 0)
 		s += " : \""
-		if flag.display_text:
-			s += flag.display_text
+		if flag.name:
+			s += flag.name
 		else:
 			s += "Flag " + String.num(flag.index, 0)
 		s += "\" : "

@@ -9,7 +9,7 @@ class_name FuncGodotFGDPropertyFlagDescriptor extends Resource
 
 ## This is the name that appears in the flag checkbox window when setting the property. 
 ## If left blank, will be given the name "Flag [member index]".
-@export var display_text: String = ""
+@export var name: String = ""
 ## The default state of the bitflag.
 @export var enabled: bool = false
 ## An optional longer description for the bitflag shown in the description window.
