@@ -1,7 +1,7 @@
 [remap]
 
 importer="func_godot.palette"
-type="Resource"
+type="QuakePaletteFile"
 uid="uid://bpw44bw4be31x"
 path="res://.godot/imported/quake2_palette.lmp-1e75c5b4fb672527308fc35f536ee6bf.tres"
 
