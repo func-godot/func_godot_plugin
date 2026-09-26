@@ -297,9 +297,12 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 						properties[property] = prop_default[prop_default.keys().front()]
 					else:
 						properties[property] = 0
-				# Materials, Shaders, and Sounds
+				# Materials, Shaders, Sounds, and special property types
 				elif prop_default is Resource:
-					properties[property] = prop_default.resource_path
+					if prop_default is FuncGodotTargetSourceProperty:
+						properties[property] = ""
+					else:
+						properties[property] = prop_default.resource_path
 				# Target Destination and Target Source
 				elif prop_default is NodePath or prop_default is Object or prop_default == null:
 					properties[property] = ""
