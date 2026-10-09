@@ -753,6 +753,7 @@ func _parse_vmf(map_data: PackedStringArray, map_settings: FuncGodotMapSettings,
 								continue
 							"dispinfo":
 								displacement = _DisplacementData.new()
+								displacement.diamond_weaving = true
 								continue
 			
 			#endregion
