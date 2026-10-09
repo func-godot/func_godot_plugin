@@ -561,6 +561,12 @@ func _parse_vmf(map_data: PackedStringArray, map_settings: FuncGodotMapSettings,
 	
 	for line in map_data:
 		line = line.replace("\t", "")
+		# Replace '"KeyValue"' with 'KeyValue' prior to string checks
+		line = line.replace("\"world\"", "world")
+		line = line.replace("\"entity\"", "entity")
+		line = line.replace("\"solid\"", "solid")
+		line = line.replace("\"side\"", "side")
+		line = line.replace("\"visgroup\"", "visgroup")
 		
 		#region START DATA
 		if line.begins_with("entity") or line.begins_with("world"):
