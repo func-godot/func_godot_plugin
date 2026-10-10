@@ -331,7 +331,9 @@ func generate_entity_node(entity_data: _EntityData, entity_index: int) -> Node:
 
 ## Main entity assembly process called by [FuncGodotMap]. Generates and sorts group nodes in the [SceneTree] first, 
 ## then generates and assembles [Node]s based upon the provided [FuncGodotData.EntityData] and adds them to the [SceneTree].
-func build(map_node: Node3D, entities: Array[_EntityData], groups: Array[_GroupData], build_flags: FuncGodotMap.BuildFlags) -> void:
+func build(entities: Array[_EntityData], groups: Array[_GroupData], build_flags: FuncGodotMap.BuildFlags) -> Node:
+	var map_node: Node = Node.new()
+	
 	if map_settings.use_groups_hierarchy:
 		declare_step.emit("Generating %s groups" % groups.size())
 		# Generate group nodes
@@ -375,3 +377,5 @@ func build(map_node: Node3D, entities: Array[_EntityData], groups: Array[_GroupD
 			
 			apply_entity_properties(entity_node, entity_data)
 	declare_step.emit("Entity assembly and property application complete")
+	
+	return map_node

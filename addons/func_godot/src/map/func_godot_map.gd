@@ -141,15 +141,13 @@ func build() -> void:
 		return
 	
 	# Assemble entities and groups outside of the scene tree
-	var built_map = await FuncGodotUtil.async_task(
+	var built_map: Node = await FuncGodotUtil.async_task(
 		func ():
 			var assembler := FuncGodotEntityAssembler.new(map_settings)
 			if build_flags & BuildFlags.SHOW_PROFILE_INFO:
 				print("\nENTITY ASSEMBLER")
 				assembler.declare_step.connect(FuncGodotUtil.print_profile_info.bind(assembler._SIGNATURE))
-			var scene = Node3D.new()
-			assembler.build(scene, entities, groups, self.build_flags)
-			return scene
+			return assembler.build(entities, groups, self.build_flags)
 	)
 	
 	# attach map contents to self

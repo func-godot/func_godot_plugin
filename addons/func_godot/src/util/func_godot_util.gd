@@ -48,7 +48,7 @@ static func newline() -> String:
 
 ## Performs a callable action within a task on the [WorkerThreadPool] and returns its result.[br]
 ## Yields control back to the main loop by only checking thread status once per frame when awaited.
-static func async_task(callable: Callable):
+static func async_task(callable: Callable) -> Variant:
 	# wrapper callable to handle data transfer out of the thread
 	var thread_return = func (holder):
 		var out = callable.call()
@@ -61,12 +61,16 @@ static func async_task(callable: Callable):
 	var holder = { "return": null }
 	var task_id = WorkerThreadPool.add_task(thread_return.bind(holder))
 	
-	# avoid blocking the main loop by performing only a minimal status check once per frame
-	while not WorkerThreadPool.is_task_completed(task_id):
-		await Engine.get_main_loop().process_frame
+	# when a main loop is able to signal for yielding, avoid blocking by using
+	# minimal status checks only once per cycle
+	var main_loop: MainLoop = Engine.get_main_loop()
+	if main_loop is SceneTree:
+		while not WorkerThreadPool.is_task_completed(task_id):
+			await main_loop.process_frame
 		
-	# cleanup internal resources, this should not result in any significant pause since
-	# the thread task will have already been completed by this point
+	# cleanup internal resources, this should not result in any significant pause when 
+	# processing within SceneTree based applications since the thread task will have already
+	# been completed by this point
 	WorkerThreadPool.wait_for_task_completion(task_id)
 	return holder.get("return")
 		
