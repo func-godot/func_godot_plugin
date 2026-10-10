@@ -46,6 +46,30 @@ static func newline() -> String:
 	else:
 		return "\n"
 
+## Performs a callable action within a task on the [WorkerThreadPool] and returns its result.[br]
+## Yields control back to the main loop by only checking thread status once per frame when awaited.
+static func async_task(callable: Callable):
+	# wrapper callable to handle data transfer out of the thread
+	var thread_return = func (holder):
+		var out = callable.call()
+		holder["return"] = out
+	
+	# Local variables are pass by value with Godot's callables, so we can not mutate anything
+	# in the immediate parent scope of a lambda function.  To work around this, we can use
+	# a data container that is passed by reference to the callable and allow the callable to
+	# return a value computed within the thread
+	var holder = { "return": null }
+	var task_id = WorkerThreadPool.add_task(thread_return.bind(holder))
+	
+	# avoid blocking the main loop by performing only a minimal status check once per frame
+	while not WorkerThreadPool.is_task_completed(task_id):
+		await Engine.get_main_loop().process_frame
+		
+	# cleanup internal resources, this should not result in any significant pause since
+	# the thread task will have already been completed by this point
+	WorkerThreadPool.wait_for_task_completion(task_id)
+	return holder.get("return")
+		
 #region MATH
 
 static func op_vec3_sum(lhs: Vector3, rhs: Vector3) -> Vector3: 

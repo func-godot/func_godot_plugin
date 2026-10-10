@@ -331,10 +331,7 @@ func generate_entity_node(entity_data: _EntityData, entity_index: int) -> Node:
 
 ## Main entity assembly process called by [FuncGodotMap]. Generates and sorts group nodes in the [SceneTree] first, 
 ## then generates and assembles [Node]s based upon the provided [FuncGodotData.EntityData] and adds them to the [SceneTree].
-func build(map_node: FuncGodotMap, entities: Array[_EntityData], groups: Array[_GroupData]) -> void:
-	var scene_root := map_node.get_tree().edited_scene_root if map_node.is_inside_tree() else map_node
-	build_flags = map_node.build_flags
-	
+func build(map_node: Node3D, entities: Array[_EntityData], groups: Array[_GroupData], build_flags: FuncGodotMap.BuildFlags) -> void:
 	if map_settings.use_groups_hierarchy:
 		declare_step.emit("Generating %s groups" % groups.size())
 		# Generate group nodes
@@ -344,12 +341,12 @@ func build(map_node: FuncGodotMap, entities: Array[_EntityData], groups: Array[_
 		for group in groups:
 			if group.parent_id < 0:
 				map_node.add_child(group.node)
-				group.node.owner = scene_root
+				group.node.owner = map_node
 			else:
 				for parent in groups:
 					if group.parent_id == parent.id:
 						parent.node.add_child(group.node)
-						group.node.owner = scene_root
+						group.node.owner = map_node
 		declare_step.emit("Groups generation and sorting complete")
 	
 	declare_step.emit("Assembling %s entities" % entities.size())
@@ -367,14 +364,14 @@ func build(map_node: FuncGodotMap, entities: Array[_EntityData], groups: Array[_
 					if entity_data.group.id == group.id:
 						group.node.add_child(entity_node)
 			
-			entity_node.owner = scene_root
+			entity_node.owner = map_node
 			if entity_data.mesh_instance:
-				entity_data.mesh_instance.owner = scene_root
+				entity_data.mesh_instance.owner = map_node
 			for shape in entity_data.collision_shapes:
 				if shape:
-					shape.owner = scene_root
+					shape.owner = map_node
 			if entity_data.occluder_instance:
-				entity_data.occluder_instance.owner = scene_root
+				entity_data.occluder_instance.owner = map_node
 			
 			apply_entity_properties(entity_node, entity_data)
 	declare_step.emit("Entity assembly and property application complete")

@@ -109,11 +109,15 @@ func build() -> void:
 		load(ProjectSettings.get_setting("func_godot/default_map_settings", "res://addons/func_godot/func_godot_default_map_settings.tres"))
 	
 	# Parse and collect map data
-	var parser := FuncGodotParser.new()
-	if build_flags & BuildFlags.SHOW_PROFILE_INFO:
-		print("\nPARSER")
-		parser.declare_step.connect(FuncGodotUtil.print_profile_info.bind(parser._SIGNATURE))
-	var parse_data: FuncGodotData.ParseData = parser.parse_map_data(_map_file_internal, map_settings)
+	var parse_data: FuncGodotData.ParseData = await FuncGodotUtil.async_task(
+		func ():
+			var parser := FuncGodotParser.new()
+			if build_flags & BuildFlags.SHOW_PROFILE_INFO:
+				print("\nPARSER")
+				parser.declare_step.connect(FuncGodotUtil.print_profile_info.bind(parser._SIGNATURE))
+			
+			return parser.parse_map_data(_map_file_internal, map_settings)
+	)
 	
 	if parse_data.entities.is_empty():
 		return	# Already printed failure message in parser, just return here
@@ -121,27 +125,40 @@ func build() -> void:
 	var entities: Array[FuncGodotData.EntityData] = parse_data.entities
 	var groups: Array[FuncGodotData.GroupData] = parse_data.groups
 	
-	# Free up some memory now that we have the data
-	parser = null
-	
 	# Retrieve geometry
-	var generator := FuncGodotGeometryGenerator.new(map_settings, hyperplane_size)
-	if build_flags & BuildFlags.SHOW_PROFILE_INFO:
-		print("\nGEOMETRY GENERATOR")
-		generator.declare_step.connect(FuncGodotUtil.print_profile_info.bind(generator._SIGNATURE))
-	
-	# Generate surface and shape data
-	var generate_error := generator.build(build_flags, entities)
+	var generate_error: Error = await FuncGodotUtil.async_task(
+		func ():
+			var generator := FuncGodotGeometryGenerator.new(map_settings, hyperplane_size)
+			if build_flags & BuildFlags.SHOW_PROFILE_INFO:
+				print("\nGEOMETRY GENERATOR")
+				generator.declare_step.connect(FuncGodotUtil.print_profile_info.bind(generator._SIGNATURE))
+			
+			# Generate surface and shape data
+			return generator.build(build_flags, entities)
+	)
 	if generate_error != OK:
 		fail_build("Geometry generation failed: %s" % error_string(generate_error))
 		return
-
-	# Assemble entities and groups
-	var assembler := FuncGodotEntityAssembler.new(map_settings)
-	if build_flags & BuildFlags.SHOW_PROFILE_INFO:
-		print("\nENTITY ASSEMBLER")
-		assembler.declare_step.connect(FuncGodotUtil.print_profile_info.bind(assembler._SIGNATURE))
-	assembler.build(self, entities, groups)
+	
+	# Assemble entities and groups outside of the scene tree
+	var built_map = await FuncGodotUtil.async_task(
+		func ():
+			var assembler := FuncGodotEntityAssembler.new(map_settings)
+			if build_flags & BuildFlags.SHOW_PROFILE_INFO:
+				print("\nENTITY ASSEMBLER")
+				assembler.declare_step.connect(FuncGodotUtil.print_profile_info.bind(assembler._SIGNATURE))
+			var scene = Node3D.new()
+			assembler.build(scene, entities, groups, self.build_flags)
+			return scene
+	)
+	
+	# attach map contents to self
+	self.add_child(built_map)
+	for entity in built_map.get_children():
+		entity.reparent(self, false)
+	remove_child(built_map)
+	built_map.queue_free()
+	propagate_call("set_owner", [get_owner()], true)
 	
 	time_elapsed = Time.get_ticks_msec() - time_elapsed
 
