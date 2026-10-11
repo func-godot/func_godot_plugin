@@ -112,6 +112,7 @@ class GroupData extends RefCounted:
 	var parent_id: int = -1
 	## Pointer to another group data that this group is a child of.
 	var parent: GroupData = null
+	var children: Array[GroupData] = []
 	## Pointer to generated Node3D representing this group in the SceneTree.
 	var node: Node3D = null
 	## If true, erases all entities assigned to this group and then the group itself at the end of the parsing stage, preventing those entities from being generated into nodes. 
