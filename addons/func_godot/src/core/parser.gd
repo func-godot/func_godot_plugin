@@ -14,6 +14,8 @@ const _PatchData	:= FuncGodotData.PatchData
 const _FaceData		:= FuncGodotData.FaceData
 const _ParseData	:= FuncGodotData.ParseData
 
+const _VMFDecoder	:= preload("res://addons/func_godot/src/valve_source/vmf_decoder.gd").VMFDecoder
+
 ## Emitted when a step in the parsing process is completed. 
 ## It is connected to [method FuncGodotUtil.print_profile_info] method if [member FuncGodotMap.build_flags] SHOW_PROFILE_INFO flag is set.
 signal declare_step(step: String)
@@ -69,7 +71,6 @@ func _parse_quoted_key_value_line(line: String) -> Dictionary:
 ## Parses the map file, generating entity and group data and sub-data, then returns the generated data as an array of arrays. 
 ## The first array is Array[FuncGodotData.EntityData], while the second array is Array[FuncGodotData.GroupData].
 func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _ParseData:
-	var map_data: PackedStringArray = []
 	var parse_data := _ParseData.new()
 	declare_step.emit("Loading map file %s" % map_file)
 	
@@ -91,6 +92,8 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 			printerr("Error: Failed to open map file (" + map_file + ")")
 			return parse_data
 	
+	var map_data: String
+	
 	# Packed map file resources need to be accessed differently in exported projects.
 	if map_file.ends_with(".import"):
 		while not file.eof_reached():
@@ -103,19 +106,18 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 				if data.is_empty():
 					printerr("Error: Failed to open map file (" + line + ")")
 					return parse_data
-				map_data = data.replace("\r", "").split("\n")
+				map_data = data.replace("\r", "")
 				break
 	else:
-		while not file.eof_reached():
-			map_data.append(file.get_line())
+		map_data = file.get_as_text()
 	
 	# Determine map type and parse data
 	if map_file.to_lower().contains(".map"):
 		declare_step.emit("Parsing as Quake MAP")
-		parse_data = _parse_quake_map(map_data, map_settings, parse_data)
+		parse_data = _parse_quake_map(map_data.split("\n"), map_settings, parse_data)
 	elif map_file.to_lower().contains(".vmf"):
 		declare_step.emit("Parsing as Source VMF")
-		parse_data = _parse_vmf(map_data, map_settings, parse_data)
+		parse_data = _parse_vmf(map_data, map_settings)
 
 	if parse_data == null:
 		printerr("Error: Failed to parse map file (%s)" % map_file)
@@ -550,136 +552,12 @@ func _parse_quake_map(map_data: PackedStringArray, map_settings: FuncGodotMapSet
 	return parse_data
 
 ## Parser subroutine called by [method parse_map_data], specializing in the Valve Map Format used by Hammer based editors.
-func _parse_vmf(map_data: PackedStringArray, map_settings: FuncGodotMapSettings, parse_data: _ParseData) -> _ParseData:
-	var entities_data: Array[_EntityData] = parse_data.entities
-	var groups_data: Array[_GroupData] = parse_data.groups
-	var ent: _EntityData = null
-	var brush: _BrushData = null
-	var group: _GroupData = null
-	var group_parent_hierarchy: Array[_GroupData] = []
-	var scope: int = 0
+func _parse_vmf(map_data: String, map_settings: FuncGodotMapSettings) -> _ParseData:
+	var parser = VMFParser.new()
+	var vmf_tree = parser.parse(map_data)
 	
-	for line in map_data:
-		line = line.replace("\t", "")
-		
-		#region START DATA
-		if line.begins_with("entity") or line.begins_with("world"):
-			ent = _EntityData.new()
-			continue
-		if line.begins_with("solid"):
-			brush = _BrushData.new()
-			continue
-		if brush and line.begins_with("{"):
-			scope += 1
-			continue
-		if line == "visgroup":
-			if group != null:
-				groups_data.append(group)
-				group_parent_hierarchy.append(group)
-			group = _GroupData.new()
-			if group_parent_hierarchy.size():
-				group.parent = group_parent_hierarchy.back()
-				group.parent_id = group.parent.id
-			continue
-		#endregion
-		
-		#region COMMIT DATA
-		if line.begins_with("}"):
-			if scope > 0:
-				scope -= 1
-			if not scope:
-				if brush:
-					if brush.faces.size():
-						ent.brushes.append(brush)
-					brush = null
-				elif ent:
-					entities_data.append(ent)
-					ent = null
-				elif group:
-					groups_data.append(group)
-					group = null
-				elif group_parent_hierarchy.size():
-					group_parent_hierarchy.pop_back()
-			continue
-		#endregion
-		
-		# Retrieve key value pairs
-		if (ent or group) and line.begins_with("\""):
-			var tokens: PackedStringArray = line.split("\" \"")
-			var key: String = tokens[0].trim_prefix("\"")
-			var value: String = tokens[1].trim_suffix("\"")
-			
-			#region BRUSH DATA
-			if brush:
-				if scope > 1:
-					match key:
-						"plane":
-							tokens = value.replace("(", "").split(")", false)
-							var points: PackedVector3Array
-							points.resize(3) 
-							for i in 3:
-								tokens[i] = tokens[i].trim_prefix("(")
-								var pts: PackedFloat64Array = tokens[i].split_floats(" ", false)
-								var point: Vector3 = Vector3(pts[0], pts[1], pts[2]) * map_settings.scale_factor
-								points[i] = point
-							brush.planes.append(Plane(points[0], points[1], points[2]))
-							brush.faces.append(_FaceData.new())
-							brush.faces[-1].plane = brush.planes[-1]
-							continue
-						"material":
-							if brush.faces.size():
-								brush.faces[-1].texture = value
-								# Origin brush needs to be completely set to origin, otherwise it's invalid
-								if brush.faces.size() < 2:
-									if value == map_settings.origin_texture:
-										brush.origin = true
-								elif brush.origin == true:
-									if value != map_settings.origin_texture:
-										brush.origin = false
-							continue
-						"uaxis", "vaxis":
-							if brush.faces.size():
-								value = value.replace("[", "")
-								var vals: PackedFloat64Array = value.replace("]", "").split_floats(" ", false)
-								var face: _FaceData = brush.faces[-1]
-								face.uv_axes.append(Vector3(vals[0], vals[1], vals[2]))
-								if key.begins_with("u"):
-									face.uv.origin.x = vals[3] # Offset
-									face.uv.x *= vals[4] * map_settings.scale_factor # Scale
-								else:
-									face.uv.origin.y = vals[3] # Offset
-									face.uv.y *= vals[4] * map_settings.scale_factor # Scale
-							continue
-						"rotation":
-							# Rotation isn't used in Valve 220 mapping and VMFs are 220 exclusive
-							continue
-						"visgroupid":
-							# Don't put worldspawn into a group
-							if entities_data.size():
-								# Only nodes can be organized into groups in the SceneTree, so only use the first brush's group
-								if not ent.properties.has(key):
-									ent.properties[key] = value
-			#endregion
-			elif ent:
-				ent.properties[key] = value
-				continue
-			elif group:
-				if key == "name":
-					group.name = "group_%s_" + value
-				elif key == "visgroupid":
-					group.id = value.to_int()
-					group.name = group.name % value
-					group.name = group.name.replace(" ", "_")
-				continue
+	if vmf_tree == null:
+		push_error("could not parse vmf file")
+		return null
 	
-	#region ASSIGN GROUPS
-	for e in entities_data:
-		if e.properties.has("visgroupid"):
-			var group_id: int = e.properties["visgroupid"] as int
-			for g in groups_data:
-				if g.id == group_id:
-					e.group = g
-					break
-	#endregion
-	
-	return parse_data
+	return _VMFDecoder.decode(vmf_tree, map_settings)
