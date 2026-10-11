@@ -92,7 +92,7 @@ func verify() -> Error:
 ## First cleans the map node of any children, then creates a [FuncGodotParser], [FuncGodotGeometryGenerator] 
 ## and [FuncGodotEntityAssembler] to parse and generate the map. 
 func build() -> void:
-	var time_elapsed: float = Time.get_ticks_msec()
+	var job_start: float = Time.get_ticks_msec()
 	
 	if build_flags & BuildFlags.SHOW_PROFILE_INFO:
 		FuncGodotUtil.print_profile_info("Building...", _SIGNATURE)
@@ -111,12 +111,17 @@ func build() -> void:
 	# Parse and collect map data
 	var parse_data: FuncGodotData.ParseData = await FuncGodotUtil.async_task(
 		func ():
+			var start = Time.get_ticks_msec()
 			var parser := FuncGodotParser.new()
 			if build_flags & BuildFlags.SHOW_PROFILE_INFO:
 				print("\nPARSER")
 				parser.declare_step.connect(FuncGodotUtil.print_profile_info.bind(parser._SIGNATURE))
+			var parsed = parser.parse_map_data(_map_file_internal, map_settings)
+			var elapsed = Time.get_ticks_msec() - start
+			var total_elapsed = Time.get_ticks_msec() - job_start
+			parser.declare_step.emit("Completed in %s/%s seconds" % [(elapsed / 1000.0), (total_elapsed / 1000.0)])
 			
-			return parser.parse_map_data(_map_file_internal, map_settings)
+			return parsed
 	)
 	
 	if parse_data.entities.is_empty():
@@ -128,13 +133,18 @@ func build() -> void:
 	# Retrieve geometry
 	var generate_error: Error = await FuncGodotUtil.async_task(
 		func ():
+			var start = Time.get_ticks_msec()
 			var generator := FuncGodotGeometryGenerator.new(map_settings, hyperplane_size)
 			if build_flags & BuildFlags.SHOW_PROFILE_INFO:
 				print("\nGEOMETRY GENERATOR")
 				generator.declare_step.connect(FuncGodotUtil.print_profile_info.bind(generator._SIGNATURE))
+			var status = generator.build(build_flags, entities)
+			var elapsed = Time.get_ticks_msec() - start
+			var total_elapsed = Time.get_ticks_msec() - job_start
+			generator.declare_step.emit("Completed in %s/%s seconds" % [(elapsed / 1000.0), (total_elapsed / 1000.0)])
 			
 			# Generate surface and shape data
-			return generator.build(build_flags, entities)
+			return status
 	)
 	if generate_error != OK:
 		fail_build("Geometry generation failed: %s" % error_string(generate_error))
@@ -143,22 +153,27 @@ func build() -> void:
 	# Assemble entities and groups outside of the scene tree
 	var built_map: Node = await FuncGodotUtil.async_task(
 		func ():
+			var start = Time.get_ticks_msec()
 			var assembler := FuncGodotEntityAssembler.new(map_settings)
 			if build_flags & BuildFlags.SHOW_PROFILE_INFO:
 				print("\nENTITY ASSEMBLER")
 				assembler.declare_step.connect(FuncGodotUtil.print_profile_info.bind(assembler._SIGNATURE))
-			return assembler.build(entities, groups, self.build_flags)
+			var result: Node = assembler.build(entities, groups, self.build_flags)
+			
+			var elapsed = Time.get_ticks_msec() - start
+			var total_elapsed = Time.get_ticks_msec() - job_start
+			assembler.declare_step.emit("Completed in %s/%s seconds" % [(elapsed / 1000.0), (total_elapsed / 1000.0)])
+			
+			return result
 	)
 	
 	# attach map contents to self
-	self.add_child(built_map)
 	for entity in built_map.get_children():
 		entity.reparent(self, false)
-	remove_child(built_map)
-	built_map.queue_free()
 	propagate_call("set_owner", [get_owner()], true)
+	built_map.queue_free()
 	
-	time_elapsed = Time.get_ticks_msec() - time_elapsed
+	var time_elapsed = Time.get_ticks_msec() - job_start
 
 	if build_flags & BuildFlags.SHOW_PROFILE_INFO:
 		print("\nCompleted in %s seconds" % (time_elapsed / 1000.0))
