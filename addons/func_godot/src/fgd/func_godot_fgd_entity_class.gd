@@ -166,7 +166,7 @@ func build_def_text(target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = 
 			TYPE_FLOAT:
 				prop_type = "float"
 				prop_val = "\"" + str(value) + "\""
-			TYPE_STRING:
+			TYPE_STRING, TYPE_STRING_NAME:
 				prop_type = "string"
 				prop_val = "\"" + value + "\""
 			TYPE_BOOL:
