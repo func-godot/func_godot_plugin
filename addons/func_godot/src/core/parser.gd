@@ -560,31 +560,10 @@ func _parse_vmf(map_data: PackedStringArray, map_settings: FuncGodotMapSettings,
 	var scope: int = 0
 	
 	for line in map_data:
-		line = line.replace("\t", "")
-		
-		#region START DATA
-		if line.begins_with("entity") or line.begins_with("world"):
-			ent = _EntityData.new()
-			continue
-		if line.begins_with("solid"):
-			brush = _BrushData.new()
-			continue
-		if brush and line.begins_with("{"):
-			scope += 1
-			continue
-		if line == "visgroup":
-			if group != null:
-				groups_data.append(group)
-				group_parent_hierarchy.append(group)
-			group = _GroupData.new()
-			if group_parent_hierarchy.size():
-				group.parent = group_parent_hierarchy.back()
-				group.parent_id = group.parent.id
-			continue
-		#endregion
+		line = line.strip_edges()
 		
 		#region COMMIT DATA
-		if line.begins_with("}"):
+		if line.find("}") > -1:
 			if scope > 0:
 				scope -= 1
 			if not scope:
@@ -671,6 +650,28 @@ func _parse_vmf(map_data: PackedStringArray, map_settings: FuncGodotMapSettings,
 					group.name = group.name % value
 					group.name = group.name.replace(" ", "_")
 				continue
+			
+		#region START DATA
+		line = line.remove_chars("\"")
+		if line.begins_with("entity") or line.begins_with("world"):
+			ent = _EntityData.new()
+			continue
+		if line.begins_with("solid"):
+			brush = _BrushData.new()
+		if brush:
+			if line.find("{") > -1:
+				scope += 1
+			continue
+		if line.begins_with("visgroup"):
+			if group != null:
+				groups_data.append(group)
+				group_parent_hierarchy.append(group)
+			group = _GroupData.new()
+			if group_parent_hierarchy.size():
+				group.parent = group_parent_hierarchy.back()
+				group.parent_id = group.parent.id
+			continue
+		#endregion
 	
 	#region ASSIGN GROUPS
 	for e in entities_data:
