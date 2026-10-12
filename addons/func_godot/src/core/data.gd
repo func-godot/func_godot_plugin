@@ -12,6 +12,41 @@ class_name FuncGodotData
 ## [FuncGodotData.GroupData][br]
 ## [FuncGodotData.EntityData][br]
 
+## Data struct representing displacement information from a VMF file, describing how a face should be subdivided 
+## and the properties of each corresponding vertex to be generated.
+##
+## @tutorial(Valve Developer Wiki VMF Displacement Info Article): https://developer.valvesoftware.com/wiki/VMF_(Valve_Map_Format)#Dispinfo
+class DisplacementData extends RefCounted:
+	## Number of vertices on any given edge determined by power or row count.
+	var edge_length: int = 0
+	## The position of the bottom left corner in Source coordinates.
+	var start_position: Vector3 = Vector3.ZERO
+	## A universal displacement in the direction of each vertex's normal.
+	var elevation: float = 0.0
+	## Vertex normals.
+	var normals: PackedVector3Array = []
+	## Default vertex normals that vertex normals are offset from.
+	var offset_normals: PackedVector3Array = []
+	## Default vertex positions relative to the original calculated vertex positions.
+	var offsets: PackedVector3Array = []
+	## Amount of displacement along vertex normals.
+	var distances: PackedFloat64Array = []
+	## Value between 0 and 1 for each vertex created by blending two materials on a displacement.
+	## These values can be optionally sent to one of the output [Mesh]'s vertex colors' channels to be used in a [Shader].
+	var alphas: PackedFloat32Array = []
+	
+	var tri_count: int = 0
+	
+	func apply_power(power: int = 4) -> void:
+		edge_length = (2 ** power) + 1
+		tri_count = 2 * ((1 << power) ** 2)
+		var count = edge_length ** 2
+		normals.resize(count)
+		offset_normals.resize(count)
+		offsets.resize(count)
+		distances.resize(count)
+		alphas.resize(count)
+
 ## Data struct representing both a single map plane and a mesh face. Generated during parsing by plane definitions in the map file, 
 ## it is further modified and utilized during the geo generation stage to create the final entity meshes.
 class FaceData extends RefCounted:
@@ -34,6 +69,8 @@ class FaceData extends RefCounted:
 	var uv_axes: PackedVector3Array = []
 	## Raw plane data parsed from the map file using the id Tech coordinate system.
 	var plane: Plane
+	## [FuncGodotData.DisplacementData] that overrides triangle generation.
+	var displacement: DisplacementData
 	
 	## Returns the average position of all vertices in the face. Only valid when the face has at least one vertex.
 	func get_centroid() -> Vector3:
