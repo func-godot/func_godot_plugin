@@ -562,6 +562,28 @@ func _parse_vmf(map_data: PackedStringArray, map_settings: FuncGodotMapSettings,
 	for line in map_data:
 		line = line.strip_edges()
 		
+		#region START DATA
+		var key: String = line.remove_chars("\"")
+		
+		if key.begins_with("entity") or key.begins_with("world"):
+			ent = _EntityData.new()
+			continue
+		if key.begins_with("solid"):
+			brush = _BrushData.new()
+		if brush and key.find("{") > -1:
+			scope += 1
+			continue
+		if key.begins_with("visgroup"):
+			if group != null:
+				groups_data.append(group)
+				group_parent_hierarchy.append(group)
+			group = _GroupData.new()
+			if group_parent_hierarchy.size():
+				group.parent = group_parent_hierarchy.back()
+				group.parent_id = group.parent.id
+			continue
+		#endregion
+		
 		#region COMMIT DATA
 		if line.find("}") > -1:
 			if scope > 0:
@@ -585,7 +607,7 @@ func _parse_vmf(map_data: PackedStringArray, map_settings: FuncGodotMapSettings,
 		# Retrieve key value pairs
 		if (ent or group) and line.begins_with("\""):
 			var tokens: PackedStringArray = line.split("\" \"")
-			var key: String = tokens[0].trim_prefix("\"")
+			key = tokens[0].trim_prefix("\"")
 			var value: String = tokens[1].trim_suffix("\"")
 			
 			#region BRUSH DATA
@@ -650,28 +672,6 @@ func _parse_vmf(map_data: PackedStringArray, map_settings: FuncGodotMapSettings,
 					group.name = group.name % value
 					group.name = group.name.replace(" ", "_")
 				continue
-			
-		#region START DATA
-		line = line.remove_chars("\"")
-		if line.begins_with("entity") or line.begins_with("world"):
-			ent = _EntityData.new()
-			continue
-		if line.begins_with("solid"):
-			brush = _BrushData.new()
-		if brush:
-			if line.find("{") > -1:
-				scope += 1
-			continue
-		if line.begins_with("visgroup"):
-			if group != null:
-				groups_data.append(group)
-				group_parent_hierarchy.append(group)
-			group = _GroupData.new()
-			if group_parent_hierarchy.size():
-				group.parent = group_parent_hierarchy.back()
-				group.parent_id = group.parent.id
-			continue
-		#endregion
 	
 	#region ASSIGN GROUPS
 	for e in entities_data:
