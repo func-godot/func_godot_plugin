@@ -92,7 +92,7 @@ func verify() -> Error:
 ## First cleans the map node of any children, then creates a [FuncGodotParser], [FuncGodotGeometryGenerator] 
 ## and [FuncGodotEntityAssembler] to parse and generate the map. 
 func build() -> void:
-	var time_elapsed: float = Time.get_ticks_msec()
+	var job_start: float = Time.get_ticks_msec()
 	
 	if build_flags & BuildFlags.SHOW_PROFILE_INFO:
 		FuncGodotUtil.print_profile_info("Building...", _SIGNATURE)
@@ -109,11 +109,20 @@ func build() -> void:
 		load(ProjectSettings.get_setting("func_godot/default_map_settings", "res://addons/func_godot/func_godot_default_map_settings.tres"))
 	
 	# Parse and collect map data
-	var parser := FuncGodotParser.new()
-	if build_flags & BuildFlags.SHOW_PROFILE_INFO:
-		print("\nPARSER")
-		parser.declare_step.connect(FuncGodotUtil.print_profile_info.bind(parser._SIGNATURE))
-	var parse_data: FuncGodotData.ParseData = parser.parse_map_data(_map_file_internal, map_settings)
+	var parse_data: FuncGodotData.ParseData = await FuncGodotUtil.async_task(
+		func ():
+			var start: float = Time.get_ticks_msec()
+			var parser := FuncGodotParser.new()
+			if build_flags & BuildFlags.SHOW_PROFILE_INFO:
+				print("\nPARSER")
+				parser.declare_step.connect(FuncGodotUtil.print_profile_info.bind(parser._SIGNATURE))
+			var parsed: FuncGodotData.ParseData = parser.parse_map_data(_map_file_internal, map_settings)
+			var elapsed: float = Time.get_ticks_msec() - start
+			var total_elapsed: float = Time.get_ticks_msec() - job_start
+			parser.declare_step.emit("Completed in %s/%s seconds" % [(elapsed / 1000.0), (total_elapsed / 1000.0)])
+			
+			return parsed
+	)
 	
 	if parse_data.entities.is_empty():
 		return	# Already printed failure message in parser, just return here
@@ -121,29 +130,50 @@ func build() -> void:
 	var entities: Array[FuncGodotData.EntityData] = parse_data.entities
 	var groups: Array[FuncGodotData.GroupData] = parse_data.groups
 	
-	# Free up some memory now that we have the data
-	parser = null
-	
 	# Retrieve geometry
-	var generator := FuncGodotGeometryGenerator.new(map_settings, hyperplane_size)
-	if build_flags & BuildFlags.SHOW_PROFILE_INFO:
-		print("\nGEOMETRY GENERATOR")
-		generator.declare_step.connect(FuncGodotUtil.print_profile_info.bind(generator._SIGNATURE))
-	
-	# Generate surface and shape data
-	var generate_error := generator.build(build_flags, entities)
+	var generate_error: Error = await FuncGodotUtil.async_task(
+		func ():
+			var start: float = Time.get_ticks_msec()
+			var generator := FuncGodotGeometryGenerator.new(map_settings, hyperplane_size)
+			if build_flags & BuildFlags.SHOW_PROFILE_INFO:
+				print("\nGEOMETRY GENERATOR")
+				generator.declare_step.connect(FuncGodotUtil.print_profile_info.bind(generator._SIGNATURE))
+			var status: Error = generator.build(build_flags, entities)
+			var elapsed: float = Time.get_ticks_msec() - start
+			var total_elapsed: float = Time.get_ticks_msec() - job_start
+			generator.declare_step.emit("Completed in %s/%s seconds" % [(elapsed / 1000.0), (total_elapsed / 1000.0)])
+			
+			# Generate surface and shape data
+			return status
+	)
 	if generate_error != OK:
 		fail_build("Geometry generation failed: %s" % error_string(generate_error))
 		return
-
-	# Assemble entities and groups
-	var assembler := FuncGodotEntityAssembler.new(map_settings)
-	if build_flags & BuildFlags.SHOW_PROFILE_INFO:
-		print("\nENTITY ASSEMBLER")
-		assembler.declare_step.connect(FuncGodotUtil.print_profile_info.bind(assembler._SIGNATURE))
-	assembler.build(self, entities, groups)
 	
-	time_elapsed = Time.get_ticks_msec() - time_elapsed
+	# Assemble entities and groups outside of the scene tree
+	var built_map: Node = await FuncGodotUtil.async_task(
+		func ():
+			var start: float = Time.get_ticks_msec()
+			var assembler := FuncGodotEntityAssembler.new(map_settings)
+			if build_flags & BuildFlags.SHOW_PROFILE_INFO:
+				print("\nENTITY ASSEMBLER")
+				assembler.declare_step.connect(FuncGodotUtil.print_profile_info.bind(assembler._SIGNATURE))
+			var result: Node = assembler.build(entities, groups, self.build_flags)
+			
+			var elapsed: float = Time.get_ticks_msec() - start
+			var total_elapsed: float = Time.get_ticks_msec() - job_start
+			assembler.declare_step.emit("Completed in %s/%s seconds" % [(elapsed / 1000.0), (total_elapsed / 1000.0)])
+			
+			return result
+	)
+	
+	# attach map contents to self
+	for entity in built_map.get_children():
+		entity.reparent(self, false)
+	propagate_call("set_owner", [get_owner()], true)
+	built_map.queue_free()
+	
+	var time_elapsed = Time.get_ticks_msec() - job_start
 
 	if build_flags & BuildFlags.SHOW_PROFILE_INFO:
 		print("\nCompleted in %s seconds" % (time_elapsed / 1000.0))
