@@ -7,12 +7,23 @@ class_name FuncGodotParser extends RefCounted
 
 const _SIGNATURE: String = "[PRS]"
 
-const _GroupData	:= FuncGodotData.GroupData
-const _EntityData	:= FuncGodotData.EntityData
-const _BrushData	:= FuncGodotData.BrushData
-const _PatchData	:= FuncGodotData.PatchData
-const _FaceData		:= FuncGodotData.FaceData
-const _ParseData	:= FuncGodotData.ParseData
+const _GroupData			:= FuncGodotData.GroupData
+const _EntityData			:= FuncGodotData.EntityData
+const _BrushData			:= FuncGodotData.BrushData
+const _PatchData			:= FuncGodotData.PatchData
+const _DisplacementData		:= FuncGodotData.DisplacementData
+const _FaceData				:= FuncGodotData.FaceData
+const _ParseData			:= FuncGodotData.ParseData
+
+enum SubScope {
+	NONE = 0,
+	
+	DISPINFO_NORMALS = 1,
+	DISPINFO_DISTANCES,
+	DISPINFO_OFFSETS,
+	DISPINFO_OFFSET_NORMALS,
+	DISPINFO_ALPHAS,
+}
 
 ## Emitted when a step in the parsing process is completed. 
 ## It is connected to [method FuncGodotUtil.print_profile_info] method if [member FuncGodotMap.build_flags] SHOW_PROFILE_INFO flag is set.
@@ -42,25 +53,25 @@ func _parse_quoted_key_value_line(line: String) -> Dictionary:
 	}
 	if not line.begins_with("\""):
 		return property_data
-
+	
 	var key_end := _find_unescaped_quote(line, 1)
 	if key_end < 0:
 		return property_data
 	property_data["key"] = line.substr(1, key_end - 1)
-
+	
 	var value_open := key_end + 1
 	while value_open < line.length() and line.unicode_at(value_open) <= 32: # 32 = space; <= 32 skips ASCII whitespace/control chars
 		value_open += 1
 	if value_open >= line.length() or line.unicode_at(value_open) != 34: # 34 = double quote (")
 		return property_data
 	value_open += 1
-
+	
 	var value_end := _find_unescaped_quote(line, value_open)
 	property_data["valid"] = true
 	if value_end < 0:
 		property_data["value"] = line.substr(value_open)
 		return property_data
-
+	
 	property_data["complete"] = true
 	property_data["value"] = line.substr(value_open, value_end - value_open)
 	property_data["trailing"] = line.substr(value_end + 1).strip_edges()
@@ -556,24 +567,23 @@ func _parse_vmf(map_data: PackedStringArray, map_settings: FuncGodotMapSettings,
 	var ent: _EntityData = null
 	var brush: _BrushData = null
 	var group: _GroupData = null
+	var displacement: _DisplacementData = null
 	var group_parent_hierarchy: Array[_GroupData] = []
 	var scope: int = 0
+	var sub_scope: int = 0
 	
 	for line in map_data:
 		line = line.strip_edges()
 		
 		#region START DATA
 		var key: String = line.remove_chars("\"")
-		
+		if key.begins_with("solid"):
+			brush = _BrushData.new()
+			continue
 		if key.begins_with("entity") or key.begins_with("world"):
 			ent = _EntityData.new()
 			continue
-		if key.begins_with("solid"):
-			brush = _BrushData.new()
-		if brush and key.find("{") > -1:
-			scope += 1
-			continue
-		if key.begins_with("visgroup"):
+		if line.begins_with("visgroup"):
 			if group != null:
 				groups_data.append(group)
 				group_parent_hierarchy.append(group)
@@ -588,9 +598,17 @@ func _parse_vmf(map_data: PackedStringArray, map_settings: FuncGodotMapSettings,
 		if line.find("}") > -1:
 			if scope > 0:
 				scope -= 1
+				if displacement:
+					if sub_scope != SubScope.NONE:
+						sub_scope = SubScope.NONE
+						continue
+					if brush:
+						if brush.faces:
+							brush.faces[-1].displacement = displacement
+					displacement = null
 			if not scope:
 				if brush:
-					if brush.faces.size():
+					if brush.faces.size() and ent:
 						ent.brushes.append(brush)
 					brush = null
 				elif ent:
@@ -605,61 +623,139 @@ func _parse_vmf(map_data: PackedStringArray, map_settings: FuncGodotMapSettings,
 		#endregion
 		
 		# Retrieve key value pairs
-		if (ent or group) and line.begins_with("\""):
-			var tokens: PackedStringArray = line.split("\" \"")
-			key = tokens[0].trim_prefix("\"")
-			var value: String = tokens[1].trim_suffix("\"")
+		if (ent or group):
+			var tokens: PackedStringArray = line.split(" ", true, 1)
+			key = tokens[0].remove_chars("\"")
+			var value: String = tokens[1].trim_prefix("\"").trim_suffix("\"") if tokens.size() > 1 else ""
 			
 			#region BRUSH DATA
 			if brush:
+				if key.find("{") > -1:
+					scope += 1
+					continue
+				
 				if scope > 1:
-					match key:
-						"plane":
-							tokens = value.replace("(", "").split(")", false)
-							var points: PackedVector3Array
-							points.resize(3) 
-							for i in 3:
-								tokens[i] = tokens[i].trim_prefix("(")
-								var pts: PackedFloat64Array = tokens[i].split_floats(" ", false)
-								var point: Vector3 = Vector3(pts[0], pts[1], pts[2]) * map_settings.scale_factor
-								points[i] = point
-							brush.planes.append(Plane(points[0], points[1], points[2]))
-							brush.faces.append(_FaceData.new())
-							brush.faces[-1].plane = brush.planes[-1]
-							continue
-						"material":
-							if brush.faces.size():
-								brush.faces[-1].texture = value
-								# Origin brush needs to be completely set to origin, otherwise it's invalid
-								if brush.faces.size() < 2:
-									if value == map_settings.origin_texture:
-										brush.origin = true
-								elif brush.origin == true:
-									if value != map_settings.origin_texture:
-										brush.origin = false
-							continue
-						"uaxis", "vaxis":
-							if brush.faces.size():
-								value = value.replace("[", "")
-								var vals: PackedFloat64Array = value.replace("]", "").split_floats(" ", false)
-								var face: _FaceData = brush.faces[-1]
-								face.uv_axes.append(Vector3(vals[0], vals[1], vals[2]))
-								if key.begins_with("u"):
-									face.uv.origin.x = vals[3] # Offset
-									face.uv.x *= vals[4] * map_settings.scale_factor # Scale
-								else:
-									face.uv.origin.y = vals[3] # Offset
-									face.uv.y *= vals[4] * map_settings.scale_factor # Scale
-							continue
-						"rotation":
-							# Rotation isn't used in Valve 220 mapping and VMFs are 220 exclusive
-							continue
-						"visgroupid":
-							# Don't put worldspawn into a group
-							if entities_data.size():
-								# Only nodes can be organized into groups in the SceneTree, so only use the first brush's group
-								if not ent.properties.has(key):
-									ent.properties[key] = value
+					if displacement:
+						if sub_scope == SubScope.NONE:
+							match key:
+								"power":
+									if not displacement.tri_count:
+										displacement.apply_power(value.to_int())
+									continue
+								"startposition":
+									var pts: PackedFloat64Array = value.replace("[","").replace("]","").split_floats(" ", false)
+									displacement.start_position = Vector3(pts[0], pts[1], pts[2]) * map_settings.scale_factor
+									continue
+								"elevation":
+									displacement.elevation = value.to_float()
+									continue
+								"normals":
+									sub_scope = SubScope.DISPINFO_NORMALS
+									continue
+								"distances":
+									sub_scope = SubScope.DISPINFO_DISTANCES
+									continue
+								"offsets":
+									sub_scope = SubScope.DISPINFO_OFFSETS
+									continue
+								"offset_normals":
+									sub_scope = SubScope.DISPINFO_OFFSET_NORMALS
+									continue
+								"alphas":
+									sub_scope = SubScope.DISPINFO_ALPHAS
+									continue
+						elif key.begins_with("row"):
+							# We'll find the offset by first getting the number of columns
+							# This will be the number of points we have, divided by 3 if they're vector elements
+							var pts: PackedFloat64Array = value.split_floats(" ")
+							var offset: int = pts.size()
+							if sub_scope != SubScope.DISPINFO_DISTANCES and sub_scope != SubScope.DISPINFO_ALPHAS:
+								offset /= 3.0
+							
+							# If keys are out of order and power hasn't been applied yet, 
+							# figure out what the power is and apply it so our arrays are properly resized
+							if not displacement.tri_count:
+								displacement.apply_power(int(log(float(offset) - 1.0) / log(2.0)))
+							
+							# Actual offset is the row number * columns
+							offset = key.to_int() * offset
+							
+							match sub_scope:
+								SubScope.DISPINFO_NORMALS:
+									_merge_array_by_offset(displacement.normals, _float_arr_to_vec3_arr(pts), offset)
+									continue
+								SubScope.DISPINFO_DISTANCES:
+									for i in range(pts.size()):
+										pts[i] = pts[i] * map_settings.scale_factor
+									_merge_array_by_offset(displacement.distances, pts, offset)
+									continue
+								SubScope.DISPINFO_OFFSETS:
+									for i in range(pts.size()):
+										pts[i] = pts[i] * map_settings.scale_factor
+									_merge_array_by_offset(displacement.offsets, _float_arr_to_vec3_arr(pts), offset)
+									continue
+								SubScope.DISPINFO_OFFSET_NORMALS:
+									_merge_array_by_offset(displacement.offset_normals, _float_arr_to_vec3_arr(pts), offset)
+									continue
+								SubScope.DISPINFO_ALPHAS:
+									for i in range(pts.size()):
+										pts[i] = pts[i] / 255.0
+									_merge_array_by_offset(displacement.alphas, pts, offset)
+									continue
+					else:
+						match key:
+							"plane":
+								tokens = value.replace("(", "").split(")", false)
+								var points: PackedVector3Array
+								points.resize(3) 
+								for i in 3:
+									tokens[i] = tokens[i].trim_prefix("(")
+									var pts: PackedFloat64Array = tokens[i].split_floats(" ", false)
+									var point: Vector3 = Vector3(pts[0], pts[1], pts[2]) * map_settings.scale_factor
+									points[i] = point
+								brush.planes.append(Plane(points[0], points[1], points[2]))
+								brush.faces.append(_FaceData.new())
+								brush.faces[-1].plane = brush.planes[-1]
+								continue
+							"material":
+								if brush.faces.size():
+									brush.faces[-1].texture = value
+									# Origin brush needs to be completely set to origin, otherwise it's invalid
+									if brush.faces.size() < 2:
+										if value == map_settings.origin_texture:
+											brush.origin = true
+									elif brush.origin == true:
+										if value != map_settings.origin_texture:
+											brush.origin = false
+								continue
+							"uaxis", "vaxis":
+								if brush.faces.size():
+									value = value.replace("[", "")
+									var vals: PackedFloat64Array = value.replace("]", "").split_floats(" ", false)
+									var face: _FaceData = brush.faces[-1]
+									face.uv_axes.append(Vector3(vals[0], vals[1], vals[2]))
+									if key.begins_with("u"):
+										face.uv.origin.x = vals[3] # Offset
+										face.uv.x *= vals[4] * map_settings.scale_factor # Scale
+									else:
+										face.uv.origin.y = vals[3] # Offset
+										face.uv.y *= vals[4] * map_settings.scale_factor # Scale
+								continue
+							"rotation":
+								# Rotation isn't used in Valve 220 mapping and VMFs are 220 exclusive
+								continue
+							"visgroupid":
+								# Don't put worldspawn into a group
+								if entities_data.size():
+									# Only nodes can be organized into groups in the SceneTree, so only use the first brush's group
+									if not ent.properties.has(key):
+										ent.properties[key] = value
+								continue
+							"dispinfo":
+								displacement = _DisplacementData.new()
+								displacement.diamond_weaving = true
+								continue
+			
 			#endregion
 			elif ent:
 				ent.properties[key] = value
@@ -684,3 +780,16 @@ func _parse_vmf(map_data: PackedStringArray, map_settings: FuncGodotMapSettings,
 	#endregion
 	
 	return parse_data
+
+func _float_arr_to_vec3_arr(parts: PackedFloat64Array) -> PackedVector3Array:
+	var out: PackedVector3Array = []
+	out.resize(parts.size() / 3)
+	var index = 0
+	for i in range(0, parts.size(), 3):
+		out[index] = Vector3(parts[i], parts[i+1], parts[i+2])
+		index += 1
+	return out
+
+func _merge_array_by_offset(arr1, arr2, offset: int) -> void:
+	for i in range(arr2.size()):
+		arr1[offset + i] = arr2[i]

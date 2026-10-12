@@ -16,6 +16,7 @@ const _BrushData 		:= FuncGodotData.BrushData
 const _PatchData 		:= FuncGodotData.PatchData
 const _FaceData 		:= FuncGodotData.FaceData
 const _VertexGroupData	:= FuncGodotData.VertexGroupData
+const _DisplacementData	:= FuncGodotData.DisplacementData
 
 # Class members
 var map_settings: FuncGodotMapSettings = null
@@ -106,12 +107,11 @@ func generate_base_winding(plane: Plane) -> PackedVector3Array:
 	winding.append(centroid + (right *  h) + (forward * -h))
 	return winding
 
-func generate_face_vertices(brush: _BrushData, face_index: int, vertex_merge_distance: float = 0.0) -> PackedVector3Array:
-	var plane: Plane = brush.faces[face_index].plane
-	
+func generate_face_geometry(brush: _BrushData, face_index: int, vertex_merge_distance: float = 0.0) -> void:
+	var face: _FaceData = brush.faces[face_index]
+	var plane: Plane = face.plane
 	# Generate initial square polygon to clip other planes against
 	var winding: PackedVector3Array = generate_base_winding(plane)
-
 	for other_face_index in brush.faces.size():
 		if other_face_index == face_index:
 			continue
@@ -122,33 +122,68 @@ func generate_face_vertices(brush: _BrushData, face_index: int, vertex_merge_dis
 		if winding.is_empty():
 			break
 	
-	# Perform rounding and merge adjacent vertices that are equivalent
-	if vertex_merge_distance > 0:
-		var merged_winding : PackedVector3Array = PackedVector3Array()
-		var prev_vtx : Vector3 = winding[0].snappedf(vertex_merge_distance)
-		merged_winding.append(prev_vtx)
-		for i in range(1, winding.size()):
-			var cur_vtx : Vector3 = winding[i].snappedf(vertex_merge_distance)
-			if prev_vtx != cur_vtx:
-				merged_winding.append(cur_vtx)
-			prev_vtx = cur_vtx
-		winding = merged_winding
-
-	return winding
-
-func generate_brush_vertices(entity_index: int, brush_index: int) -> void:
-	var entity: _EntityData = entity_data[entity_index]
-	var brush: _BrushData = entity.brushes[brush_index]
-	var vertex_merge_distance: float = entity.properties.get(map_settings.vertex_merge_distance_property, 0.0) as float
-	
-	for face_index in brush.faces.size():
-		var face: _FaceData = brush.faces[face_index]
-		face.vertices = generate_face_vertices(brush, face_index, vertex_merge_distance)
+	if face.displacement:
+		var vertices: PackedVector3Array = []
+		var normals: PackedVector3Array = []
+		var tangents: PackedFloat32Array = []
 		
+		var info: _DisplacementData = face.displacement
+		var start_point: int = 0
+		var closest: float = INT32_MAX
+		for i in range(len(winding)):
+			var dst: float = info.start_position.distance_squared_to(winding[i])
+			if dst < closest:
+				start_point = i
+				closest = dst
+			
+		var p1: Vector3 = winding[start_point]
+		var p2: Vector3 = winding[(start_point + 1) % len(winding)]
+		var p3: Vector3 = winding[(start_point + 3) % len(winding)]
+		var p4: Vector3 = winding[(start_point + 2) % len(winding)]
+		
+		for r in range(info.edge_length):
+			for c in range(info.edge_length):
+				var h: Vector3 = p1.lerp(p2, inverse_lerp(0, info.edge_length - 1, r))
+				var v: Vector3 = p3.lerp(p4, inverse_lerp(0, info.edge_length - 1, r))
+				var position: Vector3 = h.lerp(v, inverse_lerp(0, info.edge_length - 1, c))
+				var index: int = (r * info.edge_length) + c
+				var normal: Vector3 = info.normals[index]
+				var height: Vector3 = normal * info.distances[index]
+				var offset: Vector3 = info.offsets[index]
+				var height_offset: Vector3 = info.offset_normals[index] * info.elevation
+				var vertex: Vector3 = position + height + offset + height_offset
+				normals.append(normal)
+				vertices.append(vertex)
+				
+				var tangent: PackedFloat32Array = FuncGodotUtil.get_face_tangent(face, normal)
+		
+				# convert into OpenGL coordinates
+				tangents.append(tangent[1]) # Y
+				tangents.append(tangent[2]) # Z
+				tangents.append(tangent[0]) # X
+				tangents.append(tangent[3]) # W
+		
+		face.vertices = vertices
+		face.normals = normals
+		face.tangents = tangents
+	else:
+		# Perform rounding and merge adjacent vertices that are equivalent
+		if vertex_merge_distance > 0:
+			var merged_winding : PackedVector3Array = PackedVector3Array()
+			var prev_vtx : Vector3 = winding[0].snappedf(vertex_merge_distance)
+			merged_winding.append(prev_vtx)
+			for i in range(1, winding.size()):
+				var cur_vtx : Vector3 = winding[i].snappedf(vertex_merge_distance)
+				if prev_vtx != cur_vtx:
+					merged_winding.append(cur_vtx)
+				prev_vtx = cur_vtx
+			winding = merged_winding
+			
+		face.vertices = winding
 		face.normals.resize(face.vertices.size())
 		face.normals.fill(face.plane.normal)
 		
-		var tangent: PackedFloat32Array = FuncGodotUtil.get_face_tangent(face)
+		var tangent: PackedFloat32Array = FuncGodotUtil.get_face_tangent(face, face.plane.normal)
 		
 		# convert into OpenGL coordinates
 		for i in face.vertices.size():
@@ -156,12 +191,19 @@ func generate_brush_vertices(entity_index: int, brush_index: int) -> void:
 			face.tangents.append(tangent[2]) # Z
 			face.tangents.append(tangent[0]) # X
 			face.tangents.append(tangent[3]) # W
-	return
 
-func generate_entity_vertices(entity_index: int) -> void:
+func generate_brush_geometry(entity_index: int, brush_index: int) -> void:
+	var entity: _EntityData = entity_data[entity_index]
+	var brush: _BrushData = entity.brushes[brush_index]
+	var vertex_merge_distance: float = entity.properties.get(map_settings.vertex_merge_distance_property, 0.0) as float
+	
+	for face_index in brush.faces.size():
+		generate_face_geometry(brush, face_index, vertex_merge_distance)
+
+func generate_entity_geometry(entity_index: int) -> void:
 	var entity: _EntityData = entity_data[entity_index]
 	for brush_index in entity.brushes.size():
-		generate_brush_vertices(entity_index, brush_index)
+		generate_brush_geometry(entity_index, brush_index)
 
 func determine_entity_origins(entity_index: int) -> void:
 	var entity: _EntityData = entity_data[entity_index]
@@ -637,8 +679,8 @@ func build(build_flags: int, entities: Array[_EntityData]) -> Error:
 	texture_sizes = texture_map[1]
 	
 	var task_id: int
-	declare_step.emit("Generating brush vertices")
-	task_id = WorkerThreadPool.add_group_task(generate_entity_vertices, entity_count, -1, false, "Generate Brush Vertices")
+	declare_step.emit("Generating brush geometry")
+	task_id = WorkerThreadPool.add_group_task(generate_entity_geometry, entity_count, -1, false, "Generate Brush Geometry")
 	WorkerThreadPool.wait_for_group_task_completion(task_id)
 	
 	declare_step.emit("Determining solid entity origins")
