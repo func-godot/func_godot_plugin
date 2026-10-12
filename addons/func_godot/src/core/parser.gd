@@ -190,6 +190,12 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 			if property in def.class_properties:
 				var prop_default: Variant = def.class_properties[property]
 				
+				if prop_default is FuncGodotFGDProperty:
+					if prop_default is FuncGodotFGDPropertyColor:
+						properties[property] = prop_default.get_color_from_property_string(def.classname, property, prop_string)
+						continue
+					prop_default = prop_default.get_default_value()
+				
 				match typeof(prop_default):
 					TYPE_INT:
 						properties[property] = prop_string.to_int()
@@ -280,8 +286,11 @@ func parse_map_data(map_file: String, map_settings: FuncGodotMapSettings) -> _Pa
 		for property in def_properties:
 			if not property in properties:
 				var prop_default: Variant = def_properties[property]
+				# FuncGodotFGDProperty
+				if prop_default is FuncGodotFGDProperty:
+					properties[property] = prop_default.get_default_value()
 				# Flags
-				if prop_default is Array:
+				elif prop_default is Array:
 					var prop_flags_sum := 0
 					for prop_flag in prop_default:
 						if prop_flag is Array and prop_flag.size() > 2:
