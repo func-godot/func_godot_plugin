@@ -7,12 +7,23 @@ class_name FuncGodotParser extends RefCounted
 
 const _SIGNATURE: String = "[PRS]"
 
-const _GroupData	:= FuncGodotData.GroupData
-const _EntityData	:= FuncGodotData.EntityData
-const _BrushData	:= FuncGodotData.BrushData
-const _PatchData	:= FuncGodotData.PatchData
-const _FaceData		:= FuncGodotData.FaceData
-const _ParseData	:= FuncGodotData.ParseData
+const _GroupData			:= FuncGodotData.GroupData
+const _EntityData			:= FuncGodotData.EntityData
+const _BrushData			:= FuncGodotData.BrushData
+const _PatchData			:= FuncGodotData.PatchData
+const _DisplacementData		:= FuncGodotData.DisplacementData
+const _FaceData				:= FuncGodotData.FaceData
+const _ParseData			:= FuncGodotData.ParseData
+
+enum SubScope {
+	NONE = 0,
+	
+	DISPINFO_NORMALS = 1,
+	DISPINFO_DISTANCES,
+	DISPINFO_OFFSETS,
+	DISPINFO_OFFSET_NORMALS,
+	DISPINFO_ALPHAS,
+}
 
 ## Emitted when a step in the parsing process is completed. 
 ## It is connected to [method FuncGodotUtil.print_profile_info] method if [member FuncGodotMap.build_flags] SHOW_PROFILE_INFO flag is set.
@@ -42,25 +53,25 @@ func _parse_quoted_key_value_line(line: String) -> Dictionary:
 	}
 	if not line.begins_with("\""):
 		return property_data
-
+	
 	var key_end := _find_unescaped_quote(line, 1)
 	if key_end < 0:
 		return property_data
 	property_data["key"] = line.substr(1, key_end - 1)
-
+	
 	var value_open := key_end + 1
 	while value_open < line.length() and line.unicode_at(value_open) <= 32: # 32 = space; <= 32 skips ASCII whitespace/control chars
 		value_open += 1
 	if value_open >= line.length() or line.unicode_at(value_open) != 34: # 34 = double quote (")
 		return property_data
 	value_open += 1
-
+	
 	var value_end := _find_unescaped_quote(line, value_open)
 	property_data["valid"] = true
 	if value_end < 0:
 		property_data["value"] = line.substr(value_open)
 		return property_data
-
+	
 	property_data["complete"] = true
 	property_data["value"] = line.substr(value_open, value_end - value_open)
 	property_data["trailing"] = line.substr(value_end + 1).strip_edges()
