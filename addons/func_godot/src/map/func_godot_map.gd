@@ -142,6 +142,7 @@ func build() -> void:
 		print("\nENTITY ASSEMBLER")
 		assembler.declare_step.connect(FuncGodotUtil.print_profile_info.bind(assembler._SIGNATURE))
 	assembler.build(self, entities, groups)
+	assembler.build_complete.emit()
 	
 	time_elapsed = Time.get_ticks_msec() - time_elapsed
 
