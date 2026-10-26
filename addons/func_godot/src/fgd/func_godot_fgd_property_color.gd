@@ -18,7 +18,7 @@ func build_fgd_text(property_name: String, target_editor: FuncGodotFGDFile.FuncG
 	var s: String = "\t" + property_name + "("
 	if fgd_color_type == FGDColorType.COLOR255:
 		s += "color255"
-		if target_editor != FuncGodotFGDFile.FuncGodotTargetMapEditors.NET_RADIANT_CUSTOM:
+		if target_editor == FuncGodotFGDFile.FuncGodotTargetMapEditors.NET_RADIANT_CUSTOM:
 			push_warning("WARNING: \"" + property_name + "\" set to type \"color255\". NetRadiant-Custom does not support \"color255\" for color picking.")
 	else:
 		s += "color1"
