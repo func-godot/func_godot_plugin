@@ -14,10 +14,13 @@ enum FGDTargetType {
 
 func build_fgd_text(property_name: String, target_editor: FuncGodotFGDFile.FuncGodotTargetMapEditors = FuncGodotFGDFile.FuncGodotTargetMapEditors.TRENCHBROOM) -> String:
 	var s: String = "\t" + property_name + "("
-	match fgd_target_type:
-		FGDTargetType.TARGET_SOURCE: s += "target_source"
-		FGDTargetType.TARGET_DESTINATION: s += "target_destination"
-		_: s += "string"
+	if target_editor != FuncGodotFGDFile.FuncGodotTargetMapEditors.NET_RADIANT_CUSTOM:
+		match fgd_target_type:
+			FGDTargetType.TARGET_SOURCE: s += "target_source"
+			FGDTargetType.TARGET_DESTINATION: s += "target_destination"
+			_: s += "string"
+	else:
+		s += "string"
 	s += ")"
 	if description:
 		s += " : \"" + description + "\""
