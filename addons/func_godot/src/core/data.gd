@@ -59,6 +59,8 @@ class FaceData extends RefCounted:
 	var normals: PackedVector3Array = []
 	## Tangent data for the face.
 	var tangents: PackedFloat32Array = []
+	## Vertex color array for the face.
+	var colors: PackedColorArray = []
 	## Local path to the texture without the extension, relative to the FuncGodotMap node's settings' base texture directory.
 	var texture: String
 	## UV transform data generated during the parsing stage. Used for both Standard and Valve 220 UV formats, 
@@ -87,6 +89,10 @@ class FaceData extends RefCounted:
 	## Prepares the face for OpenGL triangle winding order. 
 	## Sorts the vertex array in-place by angle from the centroid.
 	func wind() -> void:
+		# Do not wind displacements, as they are not triangle fans.
+		if displacement:
+			return
+		
 		var centroid: Vector3 = get_centroid()
 		var u_axis: Vector3 = get_basis()
 		var v_axis: Vector3 = u_axis.cross(plane.normal).normalized()
@@ -107,9 +113,49 @@ class FaceData extends RefCounted:
 	## Repopulate the [member indices] array to create a triangle fan. 
 	## The face must be properly wound for the resulting indices to be valid.
 	func index_vertices() -> void:
+		var index: int = 0
+		
+		if displacement:
+			var tri_count: int = displacement.tri_count
+			indices.resize(tri_count * 3)
+			
+			# Flip handles the diamond weaving possessed by displacement triangles.
+			var flip: bool = false
+			
+			for r in range(displacement.edge_length - 1):
+				for c in range(displacement.edge_length - 1):
+					var p1: int = r * displacement.edge_length + c
+					var p2: int = (r + 1) * displacement.edge_length + c
+					var p3: int = (r + 1) * displacement.edge_length + c + 1
+					var p4: int = r * displacement.edge_length + c + 1
+					
+					# TL to BR
+					if flip:
+						indices[index]   = p1
+						indices[index+1] = p2
+						indices[index+2] = p4
+						
+						indices[index+3] = p4
+						indices[index+4] = p2
+						indices[index+5] = p3
+					# BL to TR
+					else:
+						indices[index]   = p1
+						indices[index+1] = p2
+						indices[index+2] = p3
+						
+						indices[index+3] = p1
+						indices[index+4] = p3
+						indices[index+5] = p4
+					
+					flip = not flip
+					index += 6
+			
+			return
+		
+		# Standard brush face vertex indexing
 		var tri_count: int = vertices.size() - 2
 		indices.resize(tri_count * 3)
-		var index: int = 0
 		for i in tri_count:
 			indices[index] = 0
 			indices[index + 1] = i + 1
