@@ -12,6 +12,43 @@ class_name FuncGodotData
 ## [FuncGodotData.GroupData][br]
 ## [FuncGodotData.EntityData][br]
 
+## Data struct representing displacement information from a VMF file, describing how a face should be subdivided 
+## and the properties of each corresponding vertex to be generated.
+##
+## @tutorial(Valve Developer Wiki VMF Displacement Info Article): https://developer.valvesoftware.com/wiki/VMF_(Valve_Map_Format)#Dispinfo
+class DisplacementData extends RefCounted:
+	## Number of vertices on any given edge determined by power or row count.
+	var edge_length: int = 0
+	## The position of the bottom left corner in Source coordinates.
+	var start_position: Vector3 = Vector3.ZERO
+	## A universal displacement in the direction of each vertex's normal.
+	var elevation: float = 0.0
+	## Vertex normals.
+	var normals: PackedVector3Array = []
+	## Default vertex normals that vertex normals are offset from.
+	var offset_normals: PackedVector3Array = []
+	## Default vertex positions relative to the original calculated vertex positions.
+	var offsets: PackedVector3Array = []
+	## Amount of displacement along vertex normals.
+	var distances: PackedFloat64Array = []
+	## Value between 0 and 1 for each vertex created by blending two materials on a displacement.
+	## These values can be optionally sent to one of the output [Mesh]'s vertex colors' channels to be used in a [Shader].
+	var alphas: PackedFloat32Array = []
+	## Controls indices generation to be either a uniform triangle strip or diamond ordered.
+	var diamond_weaving: bool = false
+	
+	var tri_count: int = 0
+	
+	func apply_power(power: int = 4) -> void:
+		edge_length = (2 ** power) + 1
+		tri_count = 2 * ((1 << power) ** 2)
+		var count = edge_length ** 2
+		normals.resize(count)
+		offset_normals.resize(count)
+		offsets.resize(count)
+		distances.resize(count)
+		alphas.resize(count)
+
 ## Data struct representing both a single map plane and a mesh face. Generated during parsing by plane definitions in the map file, 
 ## it is further modified and utilized during the geo generation stage to create the final entity meshes.
 class FaceData extends RefCounted:
@@ -24,6 +61,8 @@ class FaceData extends RefCounted:
 	var normals: PackedVector3Array = []
 	## Tangent data for the face.
 	var tangents: PackedFloat32Array = []
+	## Vertex color array for the face.
+	var colors: PackedColorArray = []
 	## Local path to the texture without the extension, relative to the FuncGodotMap node's settings' base texture directory.
 	var texture: String
 	## UV transform data generated during the parsing stage. Used for both Standard and Valve 220 UV formats, 
@@ -34,6 +73,8 @@ class FaceData extends RefCounted:
 	var uv_axes: PackedVector3Array = []
 	## Raw plane data parsed from the map file using the id Tech coordinate system.
 	var plane: Plane
+	## [FuncGodotData.DisplacementData] that overrides triangle generation.
+	var displacement: DisplacementData
 	
 	## Returns the average position of all vertices in the face. Only valid when the face has at least one vertex.
 	func get_centroid() -> Vector3:
@@ -50,6 +91,10 @@ class FaceData extends RefCounted:
 	## Prepares the face for OpenGL triangle winding order. 
 	## Sorts the vertex array in-place by angle from the centroid.
 	func wind() -> void:
+		# do not wind displacements, as they are not triangle fans
+		if displacement:
+			return
+		
 		var centroid: Vector3 = get_centroid()
 		var u_axis: Vector3 = get_basis()
 		var v_axis: Vector3 = u_axis.cross(plane.normal).normalized()
@@ -70,14 +115,51 @@ class FaceData extends RefCounted:
 	## Repopulate the [member indices] array to create a triangle fan. 
 	## The face must be properly wound for the resulting indices to be valid.
 	func index_vertices() -> void:
-		var tri_count: int = vertices.size() - 2
-		indices.resize(tri_count * 3)
 		var index: int = 0
-		for i in tri_count:
-			indices[index] = 0
-			indices[index + 1] = i + 1
-			indices[index + 2] = i + 2
-			index += 3
+		if displacement:
+			var tri_count: int = displacement.tri_count
+			indices.resize(tri_count * 3)
+			
+			var flip: bool = false
+			for r in range(displacement.edge_length - 1):
+				for c in range(displacement.edge_length - 1):
+					var p1: int = r * displacement.edge_length + c
+					var p2: int = (r + 1) * displacement.edge_length + c
+					var p3: int = (r + 1) * displacement.edge_length + c + 1
+					var p4: int = r * displacement.edge_length + c + 1
+					
+					# TL to BR
+					if flip:
+						indices[index]   = p1
+						indices[index+1] = p2
+						indices[index+2] = p4
+						
+						indices[index+3] = p4
+						indices[index+4] = p2
+						indices[index+5] = p3
+					# BL to TR
+					else:
+						indices[index]   = p1
+						indices[index+1] = p2
+						indices[index+2] = p3
+						
+						indices[index+3] = p1
+						indices[index+4] = p3
+						indices[index+5] = p4
+					
+					if displacement.diamond_weaving:
+						flip = not flip # (Odd = on, Even = off)
+					
+					index += 6
+		else:
+			var tri_count: int = vertices.size() - 2
+			indices.resize(tri_count * 3)
+			
+			for i in tri_count:
+				indices[index] = 0
+				indices[index + 1] = i + 1
+				indices[index + 2] = i + 2
+				index += 3
 
 ## Data struct representing a single map format brush. It is largely meant as a container for [FuncGodotData.FaceData] data.
 class BrushData extends RefCounted:

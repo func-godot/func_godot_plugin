@@ -415,11 +415,11 @@ static func get_quake_tangent(normal: Vector3, uv_y_scale: float, uv_rotation: f
 	u_axis = u_axis.rotated(normal, deg_to_rad(-uv_rotation) * v_sign)
 	return [u_axis.x, u_axis.y, u_axis.z, v_sign]
 
-static func get_face_tangent(face: FuncGodotData.FaceData) -> PackedFloat32Array:
+static func get_face_tangent(face: FuncGodotData.FaceData, normal: Vector3) -> PackedFloat32Array:
 	if face.uv_axes.size() >= 2:
-		return get_valve_tangent(face.uv_axes[0], face.uv_axes[1], face.plane.normal)
+		return get_valve_tangent(face.uv_axes[0], face.uv_axes[1], normal)
 	else:
-		return get_quake_tangent(face.plane.normal, face.uv.get_scale().y, face.uv.get_rotation())
+		return get_quake_tangent(normal, face.uv.get_scale().y, face.uv.get_rotation())
 
 #endregion
 
