@@ -104,7 +104,7 @@ class FaceData extends RefCounted:
 				var angle_b: float = atan2(dir_b.dot(v_axis), dir_b.dot(u_axis))
 				return angle_a < angle_b
 		)
-
+		
 		var _vertices: Array[Vector3]
 		_vertices.assign(vertices)
 		_vertices.sort_custom(cmp_winding_angle)
@@ -114,14 +114,11 @@ class FaceData extends RefCounted:
 	## The face must be properly wound for the resulting indices to be valid.
 	func index_vertices() -> void:
 		var index: int = 0
-		
 		if displacement:
 			var tri_count: int = displacement.tri_count
 			indices.resize(tri_count * 3)
 			
-			# Flip handles the diamond weaving possessed by displacement triangles.
 			var flip: bool = false
-			
 			for r in range(displacement.edge_length - 1):
 				for c in range(displacement.edge_length - 1):
 					var p1: int = r * displacement.edge_length + c
@@ -148,14 +145,14 @@ class FaceData extends RefCounted:
 						indices[index+4] = p3
 						indices[index+5] = p4
 					
-					flip = not flip
+					flip = not flip # (Odd = on, Even = off)
 					index += 6
-			
 			return
 		
 		# Standard brush face vertex indexing
 		var tri_count: int = vertices.size() - 2
 		indices.resize(tri_count * 3)
+		
 		for i in tri_count:
 			indices[index] = 0
 			indices[index + 1] = i + 1

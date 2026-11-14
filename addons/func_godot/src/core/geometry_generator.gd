@@ -123,16 +123,14 @@ func generate_face_geometry(brush: _BrushData, face_index: int, vertex_merge_dis
 		if winding.is_empty():
 			break
 	
+	var default_vertex_color: Color = ProjectSettings.get_setting("func_godot/default_vertex_color", Color.WHITE)
+	
 	if face.displacement:
-		var vertices: PackedVector3Array = []
-		var normals: PackedVector3Array = []
-		var tangents: PackedFloat32Array = []
-		
-		var info: _DisplacementData = face.displacement
+		var disp_info: _DisplacementData = face.displacement
 		var start_point: int = 0
 		var closest: float = INT32_MAX
 		for i in range(len(winding)):
-			var dst: float = info.start_position.distance_squared_to(winding[i])
+			var dst: float = disp_info.start_position.distance_squared_to(winding[i])
 			if dst < closest:
 				start_point = i
 				closest = dst
@@ -142,61 +140,78 @@ func generate_face_geometry(brush: _BrushData, face_index: int, vertex_merge_dis
 		var p3: Vector3 = winding[(start_point + 3) % len(winding)]
 		var p4: Vector3 = winding[(start_point + 2) % len(winding)]
 		
-		for r in range(info.edge_length):
-			for c in range(info.edge_length):
-				var h: Vector3 = p1.lerp(p2, inverse_lerp(0, info.edge_length - 1, r))
-				var v: Vector3 = p3.lerp(p4, inverse_lerp(0, info.edge_length - 1, r))
-				var position: Vector3 = h.lerp(v, inverse_lerp(0, info.edge_length - 1, c))
-				var index: int = (r * info.edge_length) + c
-				var normal: Vector3 = info.normals[index]
-				var height: Vector3 = normal * info.distances[index]
-				var offset: Vector3 = info.offsets[index]
-				var height_offset: Vector3 = info.offset_normals[index] * info.elevation
+		var texture_blend_channel: int = ProjectSettings.get_setting("func_godot/vmf_displacement_texture_blend_channel", 3)
+		
+		var disp_size: int = disp_info.edge_length * disp_info.edge_length
+		face.normals.resize(disp_size)
+		face.vertices.resize(disp_size)
+		face.tangents.resize(disp_size * 4)
+		face.colors.resize(disp_size)
+		
+		for r in range(disp_info.edge_length):
+			for c in range(disp_info.edge_length):
+				var h: Vector3 = p1.lerp(p2, inverse_lerp(0, disp_info.edge_length - 1, r))
+				var v: Vector3 = p3.lerp(p4, inverse_lerp(0, disp_info.edge_length - 1, r))
+				var position: Vector3 = h.lerp(v, inverse_lerp(0, disp_info.edge_length - 1, c))
+				var index: int = (r * disp_info.edge_length) + c
+				var normal: Vector3 = disp_info.normals[index]
+				var height: Vector3 = normal * disp_info.distances[index]
+				var offset: Vector3 = disp_info.offsets[index]
+				var height_offset: Vector3 = disp_info.offset_normals[index] * disp_info.elevation
 				var vertex: Vector3 = position + height + offset + height_offset
-				normals.append(normal)
-				vertices.append(vertex)
+				face.normals[index] = normal
+				face.vertices[index] = vertex
 				
 				var tangent: PackedFloat32Array = FuncGodotUtil.get_face_tangent(face, normal)
+				var tangent_index: int = index * 3
 				
-				# convert into OpenGL coordinates
-				tangents.append(tangent[1]) # Y
-				tangents.append(tangent[2]) # Z
-				tangents.append(tangent[0]) # X
-				tangents.append(tangent[3]) # W
+				# Convert into OpenGL coordinates
+				face.tangents[tangent_index] = tangent[1] # Y
+				face.tangents[tangent_index + 1] = tangent[2] # Z
+				face.tangents[tangent_index + 2] = tangent[0] # X
+				face.tangents[tangent_index + 3] = tangent[3] # Binormal direction
+				
+				var vertex_color: Color = default_vertex_color
+				vertex_color[texture_blend_channel] = disp_info.alphas[index]
+				face.colors[index] = vertex_color
 		
-		face.vertices = vertices
-		face.normals = normals
-		face.tangents = tangents
-	else:
-		# Perform rounding and merge adjacent vertices that are equivalent
-		if vertex_merge_distance > 0:
-			var merged_winding : PackedVector3Array = PackedVector3Array()
-			var prev_vtx : Vector3 = winding[0].snappedf(vertex_merge_distance)
-			merged_winding.append(prev_vtx)
-			for i in range(1, winding.size()):
-				var cur_vtx : Vector3 = winding[i].snappedf(vertex_merge_distance)
-				if prev_vtx != cur_vtx:
-					merged_winding.append(cur_vtx)
-				prev_vtx = cur_vtx
-			winding = merged_winding
-			
-		face.vertices = winding
-		face.normals.resize(face.vertices.size())
-		face.normals.fill(face.plane.normal)
+		return
+	
+	# Standard brush face
+	# Perform rounding and merge adjacent vertices that are equivalent
+	if vertex_merge_distance > 0:
+		var merged_winding : PackedVector3Array = PackedVector3Array()
+		var prev_vtx : Vector3 = winding[0].snappedf(vertex_merge_distance)
+		merged_winding.append(prev_vtx)
+		for i in range(1, winding.size()):
+			var cur_vtx : Vector3 = winding[i].snappedf(vertex_merge_distance)
+			if prev_vtx != cur_vtx:
+				merged_winding.append(cur_vtx)
+			prev_vtx = cur_vtx
+		winding = merged_winding
 		
-		var tangent: PackedFloat32Array = FuncGodotUtil.get_face_tangent(face, face.plane.normal)
-		
-		# convert into OpenGL coordinates
-		for i in face.vertices.size():
-			face.tangents.append(tangent[1]) # Y
-			face.tangents.append(tangent[2]) # Z
-			face.tangents.append(tangent[0]) # X
-			face.tangents.append(tangent[3]) # W
+	face.vertices = winding
+	face.normals.resize(face.vertices.size())
+	face.normals.fill(face.plane.normal)
+	
+	var tangent: PackedFloat32Array = FuncGodotUtil.get_face_tangent(face, face.plane.normal)
+	face.tangents.resize(face.vertices.size() * 4)
+	# Convert into OpenGL coordinates
+	for i in face.vertices.size():
+		var tangent_index = i * 3
+		face.tangents[tangent_index] = tangent[1] # Y
+		face.tangents[tangent_index + 1] = tangent[2] # Z
+		face.tangents[tangent_index + 2] = tangent[0] # X
+		face.tangents[tangent_index + 3] = tangent[3] # Binormal direction
+	
+	face.colors.resize(face.vertices.size())
+	face.colors.fill(default_vertex_color)
 
 func generate_brush_geometry(entity_index: int, brush_index: int) -> void:
 	var entity: _EntityData = entity_data[entity_index]
 	var brush: _BrushData = entity.brushes[brush_index]
 	var vertex_merge_distance: float = entity.properties.get(map_settings.vertex_merge_distance_property, 0.0) as float
+	
 	for face_index in brush.faces.size():
 		generate_face_geometry(brush, face_index, vertex_merge_distance)
 
@@ -437,6 +452,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 		arrays[Mesh.ARRAY_TANGENT] 	= PackedFloat32Array()
 		arrays[Mesh.ARRAY_TEX_UV] 	= PackedVector2Array()
 		arrays[Mesh.ARRAY_INDEX] 	= PackedInt32Array()
+		arrays[Mesh.ARRAY_COLOR]	= PackedColorArray()
 		
 		# Begin fresh index offset for this subarray
 		var index_offset: int = 0
@@ -476,7 +492,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 					# Opposite planes
 					if !(face.plane.normal*-1.0).is_equal_approx(face2.plane.normal):
 						continue;
-
+					
 					# Check for faces that share all their vertices.
 					var all_verts_in_face := true
 					for vert in face.vertices:
@@ -486,7 +502,7 @@ func generate_entity_surfaces(entity_index: int) -> void:
 					if all_verts_in_face:
 						remove_face = true
 						break
-		
+					
 					# Check if all vertices of Face1 intersect with any triangle of face 2
 					# If they do, then Face 1 is entirely overlapped on Face 2 and we can remove Face 1
 					var all_verts_in_face2 := true
@@ -576,6 +592,8 @@ func generate_entity_surfaces(entity_index: int) -> void:
 				
 				for j in 4:
 					arrays[ArrayMesh.ARRAY_TANGENT].append(face.tangents[(i * 4) + j])
+				
+				arrays[ArrayMesh.ARRAY_COLOR].append(face.colors[i])
 			
 			# Create offset indices for the visual mesh
 			var op_shift_index: Callable = (func(a: int) -> int: return a + index_offset)

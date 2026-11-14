@@ -75,6 +75,30 @@ func _enter_tree() -> void:
 		ProjectSettings.add_property_info(property_info)
 		ProjectSettings.set_as_basic("func_godot/model_point_class_save_path", true)
 		ProjectSettings.set_initial_value("func_godot/model_point_class_save_path", "")
+	
+	# Default Vertex Color
+	if not ProjectSettings.has_setting("func_godot/default_vertex_color"):
+		ProjectSettings.set_setting("func_godot/default_vertex_color", "")
+		var property_info = {
+			"name": "func_godot/default_vertex_color",
+			"type": TYPE_COLOR
+		}
+		ProjectSettings.add_property_info(property_info)
+		ProjectSettings.set_as_basic("func_godot/default_vertex_color", true)
+		ProjectSettings.set_initial_value("func_godot/default_vertex_color", Color.WHITE)
+	
+	# VMF Displacement Texture Blend Channel
+	if not ProjectSettings.has_setting("func_godot/vmf_displacement_texture_blend_channel"):
+		ProjectSettings.set_setting("func_godot/vmf_displacement_texture_blend_channel", "")
+		var property_info = {
+			"name": "func_godot/vmf_displacement_texture_blend_channel",
+			"type": TYPE_INT,
+			"hint": PROPERTY_HINT_ENUM,
+			"hint_string": "Red,Green,Blue,Alpha"
+		}
+		ProjectSettings.add_property_info(property_info)
+		ProjectSettings.set_as_basic("func_godot/vmf_displacement_texture_blend_channel", true)
+		ProjectSettings.set_initial_value("func_godot/vmf_displacement_texture_blend_channel", 3)
 
 func _exit_tree() -> void:
 	remove_custom_type("FuncGodotMap")
